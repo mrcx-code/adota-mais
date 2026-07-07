@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adota+ — Encontre seu novo melhor amigo</title>
+  <meta name="description" content="Veja os pets disponíveis para adoção, acompanhe quem está em processo e quem já encontrou um lar." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>🐾</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Adota+</a>
+    <div class="header-actions">
+      <a href="admin.html" class="btn btn-secondary btn-sm">Sou um abrigo / ONG</a>
+    </div>
+  </header>
+
+  <div id="demo-banner" class="demo-banner">
+    ✨ Modo demonstração — conecte o Supabase em <code>js/config.js</code> para usar dados reais.
+  </div>
+
+  <main class="site-main">
+    <section class="hero">
+      <div class="hero-text">
+        <span class="pill-badge">🐾 Adoção responsável e transparente</span>
+        <h1 class="hero-title">Cada patinha merece<br /><em>um lar de verdade.</em></h1>
+        <p class="hero-desc">Acompanhe em tempo real quais bichinhos estão disponíveis, em processo e já adotados. Encontrou o seu par? Um clique manda seu interesse pro responsável.</p>
+        <div class="hero-stats">
+          <span class="stat-pill"><span class="stat-pill-icon">🐾</span> <span id="stat-disponivel">0</span> disponíveis</span>
+          <span class="stat-pill"><span class="stat-pill-icon">🏠</span> <span id="stat-adotado">0</span> adotados</span>
+        </div>
+      </div>
+      <div class="hero-tiles" aria-hidden="true">
+        <div class="hero-tile tile-a">
+          <img src="https://images.unsplash.com/photo-1558788353-f76d92427f16?q=80&amp;w=600&amp;auto=format&amp;fit=crop" alt="" loading="lazy" />
+        </div>
+        <div class="hero-tile tile-b">
+          <img src="https://images.unsplash.com/photo-1559624989-7b9303bd9792?q=80&amp;w=600&amp;auto=format&amp;fit=crop" alt="" loading="lazy" />
+        </div>
+        <div class="hero-tile tile-c">
+          <img src="https://images.unsplash.com/photo-1643260218499-ffb487553b6d?q=80&amp;w=600&amp;auto=format&amp;fit=crop" alt="" loading="lazy" />
+        </div>
+        <div class="hero-tile tile-d">
+          <img src="https://images.unsplash.com/photo-1583524505974-6facd53f4597?q=80&amp;w=600&amp;auto=format&amp;fit=crop" alt="" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <div class="board-intro">
+      <h2>Mural de adoção</h2>
+      <p>Acompanhe em qual etapa cada pet está.</p>
+    </div>
+
+    <div id="board-loading" class="empty-state">
+      <div class="icon">🐾</div>
+      Carregando os bichinhos...
+    </div>
+
+    <div id="board-error" class="empty-state hidden">
+      <div class="icon">😿</div>
+      Não foi possível carregar os pets agora. Tente atualizar a página.
+    </div>
+
+    <div id="kanban-board" class="kanban-board hidden">
+      <section class="kanban-column" data-status="disponivel">
+        <div class="kanban-column-header">
+          <span class="col-icon disponivel">🐾</span>
+          <span class="kanban-column-title">Disponível</span>
+          <span id="column-disponivel-count" class="kanban-count">0</span>
+        </div>
+        <div id="column-disponivel-cards" class="kanban-cards"></div>
+      </section>
+
+      <section class="kanban-column" data-status="em_processo">
+        <div class="kanban-column-header">
+          <span class="col-icon em_processo">🤝</span>
+          <span class="kanban-column-title">Em processo</span>
+          <span id="column-em_processo-count" class="kanban-count">0</span>
+        </div>
+        <div id="column-em_processo-cards" class="kanban-cards"></div>
+      </section>
+
+      <section class="kanban-column" data-status="adotado">
+        <div class="kanban-column-header">
+          <span class="col-icon adotado">🏡</span>
+          <span class="kanban-column-title">Adotado</span>
+          <span id="column-adotado-count" class="kanban-count">0</span>
+        </div>
+        <div id="column-adotado-cards" class="kanban-cards"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    Feito com 🧡 para ajudar pets a encontrarem um lar. · <a href="admin.html">Área do abrigo</a>
+  </footer>
+
+  <!-- Modal: Tenho interesse -->
+  <div id="interest-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Tenho interesse em <span id="interest-pet-name"></span></h2>
+        <button class="modal-close" onclick="closeInterestModal()" aria-label="Fechar">&times;</button>
+      </div>
+
+      <div id="interest-error" class="form-error"></div>
+      <div id="interest-success" class="form-success"></div>
+
+      <form id="interest-form">
+        <div class="field">
+          <label for="interest-name">Seu nome</label>
+          <input type="text" id="interest-name" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="interest-phone">Telefone / WhatsApp</label>
+            <input type="tel" id="interest-phone" placeholder="(11) 99999-0000" />
+          </div>
+          <div class="field">
+            <label for="interest-email">E-mail</label>
+            <input type="email" id="interest-email" placeholder="voce@email.com" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="interest-message">Mensagem (opcional)</label>
+          <textarea id="interest-message" placeholder="Conte um pouco sobre você, se já teve outros pets, etc."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" onclick="closeInterestModal()">Cancelar</button>
+          <button type="submit" id="interest-submit-btn" class="btn btn-primary">Enviar</button>
+        </div>
+      </form>
+
+      <a id="interest-whatsapp-cta" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-block hidden" style="margin-top: 12px;">
+        Chamar no WhatsApp agora 💬
+      </a>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/mockData.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
