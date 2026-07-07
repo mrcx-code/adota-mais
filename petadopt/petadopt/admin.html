@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área do abrigo — Patinhas</title>
+  <meta name="description" content="Painel administrativo do Patinhas: cadastre pets, gerencie o processo de adoção e acompanhe interessados. Área restrita a abrigos e ONGs parceiras." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://matheusferreira.cc/admin.html" />
+  <meta name="theme-color" content="#527353" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Patinhas" />
+  <meta property="og:title" content="Área do abrigo — Patinhas" />
+  <meta property="og:description" content="Painel administrativo do Patinhas para abrigos e ONGs parceiras." />
+  <meta property="og:url" content="https://matheusferreira.cc/admin.html" />
+  <meta property="og:locale" content="pt_BR" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>🐾</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
+    <div class="header-actions">
+      <a href="index.html" class="btn btn-ghost btn-sm">Ver site público</a>
+      <span id="org-name-label" class="btn btn-ghost btn-sm hidden"></span>
+      <button id="profile-btn" class="btn btn-secondary btn-sm hidden" onclick="openProfileModal()">⚙️ Meu perfil</button>
+      <button id="logout-btn" class="btn btn-secondary btn-sm hidden" onclick="handleLogout()">Sair</button>
+    </div>
+  </header>
+
+  <div id="demo-banner" class="demo-banner">
+    ✨ Modo demonstração — as alterações feitas aqui não são salvas de verdade. Conecte o Supabase em <code>js/config.js</code> para usar dados reais.
+  </div>
+
+  <!-- ---------------- Tela de login / cadastro ---------------- -->
+  <main id="auth-view" class="hidden">
+    <div class="auth-split">
+      <div class="auth-side">
+        <div class="auth-side-brand"><span class="brand-mark">🐾</span> Patinhas</div>
+        <div>
+          <h2 class="auth-side-title">Você cuida deles.<br />A gente cuida do resto.</h2>
+          <p class="auth-side-desc">Painel simples para cadastrar bichinhos, acompanhar interessados e mover o status até a adoção final.</p>
+        </div>
+        <p class="auth-side-foot">Área para gestores de abrigos e resgates.</p>
+      </div>
+
+      <div class="auth-form-side">
+        <div class="auth-wrap">
+          <div id="login-panel">
+            <h1>Entrar</h1>
+            <p class="sub">Acesse o painel do seu abrigo ou ONG.</p>
+            <div id="login-error" class="form-error"></div>
+            <form id="login-form">
+              <div class="field">
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" required />
+              </div>
+              <div class="field">
+                <label for="login-password">Senha</label>
+                <input type="password" id="login-password" required />
+              </div>
+              <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block">Entrar</button>
+            </form>
+            <div class="auth-toggle">
+              Ainda não tem conta? <button type="button" onclick="showSignup()">Cadastrar meu abrigo</button>
+            </div>
+          </div>
+
+          <div id="signup-panel" class="hidden">
+            <h1>Cadastrar abrigo</h1>
+            <p class="sub">Crie a conta da sua ONG/abrigo para gerenciar os pets.</p>
+            <div id="signup-error" class="form-error"></div>
+            <div id="signup-success" class="form-success"></div>
+            <form id="signup-form">
+              <div class="field">
+                <label for="signup-org-name">Nome do abrigo/ONG</label>
+                <input type="text" id="signup-org-name" required />
+              </div>
+              <div class="field">
+                <label for="signup-email">E-mail</label>
+                <input type="email" id="signup-email" required />
+              </div>
+              <div class="field">
+                <label for="signup-password">Senha</label>
+                <input type="password" id="signup-password" required minlength="6" />
+                <p class="hint">Mínimo de 6 caracteres.</p>
+              </div>
+              <div class="field">
+                <label for="signup-whatsapp">WhatsApp de contato (opcional)</label>
+                <input type="tel" id="signup-whatsapp" placeholder="(11) 99999-0000" />
+              </div>
+              <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block">Criar conta</button>
+            </form>
+            <div class="auth-toggle">
+              Já tem conta? <button type="button" onclick="showLogin()">Entrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ---------------- Painel (logado) ---------------- -->
+  <main id="dashboard-view" class="site-main hidden">
+    <div class="page-intro" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h1>Meus pets</h1>
+        <p>Cadastre novos pets e mova os cards entre as colunas conforme o processo avança.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openPetModal()">+ Novo pet</button>
+    </div>
+
+    <div id="dash-loading" class="empty-state">
+      <div class="paw-loader" aria-hidden="true"><span>🐾</span><span>🐾</span><span>🐾</span></div>
+      Carregando seus pets...
+    </div>
+
+    <div id="dash-empty" class="empty-state hidden">
+      <div class="icon">🐾</div>
+      Você ainda não cadastrou nenhum pet. Clique em <strong>"+ Novo pet"</strong> para começar.
+    </div>
+
+    <div id="admin-board" class="kanban-board hidden">
+      <section class="kanban-column" data-status="disponivel">
+        <div class="kanban-column-header">
+          <span class="col-icon disponivel">🐾</span>
+          <span class="kanban-column-title">Disponível</span>
+          <span id="admin-column-disponivel-count" class="kanban-count">0</span>
+        </div>
+        <div id="admin-column-disponivel-cards" class="kanban-cards"></div>
+      </section>
+
+      <section class="kanban-column" data-status="em_processo">
+        <div class="kanban-column-header">
+          <span class="col-icon em_processo">🤝</span>
+          <span class="kanban-column-title">Em processo</span>
+          <span id="admin-column-em_processo-count" class="kanban-count">0</span>
+        </div>
+        <div id="admin-column-em_processo-cards" class="kanban-cards"></div>
+      </section>
+
+      <section class="kanban-column" data-status="adotado">
+        <div class="kanban-column-header">
+          <span class="col-icon adotado">🏡</span>
+          <span class="kanban-column-title">Adotado</span>
+          <span id="admin-column-adotado-count" class="kanban-count">0</span>
+        </div>
+        <div id="admin-column-adotado-cards" class="kanban-cards"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    Patinhas · área restrita a abrigos e ONGs parceiras.
+  </footer>
+
+  <!-- ---------------- Modal: novo pet / editar pet ---------------- -->
+  <div id="pet-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="pet-modal-title">Novo pet</h2>
+        <button class="modal-close" onclick="closePetModal()" aria-label="Fechar">&times;</button>
+      </div>
+
+      <div id="pet-form-error" class="form-error"></div>
+
+      <form id="pet-form">
+        <input type="hidden" id="pet-id" />
+        <div class="field">
+          <label for="pet-name">Nome</label>
+          <input type="text" id="pet-name" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="pet-species">Espécie</label>
+            <select id="pet-species">
+              <option value="cachorro">🐶 Cachorro</option>
+              <option value="gato">🐱 Gato</option>
+              <option value="outro">🐾 Outro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pet-size">Porte</label>
+            <select id="pet-size">
+              <option value="Pequeno">Pequeno</option>
+              <option value="Médio">Médio</option>
+              <option value="Grande">Grande</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pet-age">Idade (ex: "2 anos", "filhote")</label>
+          <input type="text" id="pet-age" placeholder="2 anos" />
+        </div>
+        <div class="field">
+          <label for="pet-description">Descrição</label>
+          <textarea id="pet-description" placeholder="Personalidade, saúde, comportamento com outros animais..."></textarea>
+        </div>
+        <div class="field">
+          <label for="pet-photo">Foto</label>
+          <input type="file" id="pet-photo" accept="image/*" />
+          <p class="hint">Opcional. JPG ou PNG, até 5MB.</p>
+          <img id="pet-photo-preview" class="hidden" style="margin-top:8px; border-radius:10px; max-height:140px;" />
+        </div>
+        <div class="field">
+          <label for="pet-status">Status</label>
+          <select id="pet-status">
+            <option value="disponivel">Disponível</option>
+            <option value="em_processo">Em processo</option>
+            <option value="adotado">Adotado</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" onclick="closePetModal()">Cancelar</button>
+          <button type="submit" id="pet-submit-btn" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ---------------- Modal: interesses recebidos ---------------- -->
+  <div id="interests-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Interesses em <span id="interests-pet-name"></span></h2>
+        <button class="modal-close" onclick="closeInterestsModal()" aria-label="Fechar">&times;</button>
+      </div>
+      <div id="interests-list"></div>
+    </div>
+  </div>
+
+  <!-- ---------------- Modal: meu perfil ---------------- -->
+  <div id="profile-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Meu perfil</h2>
+        <button class="modal-close" onclick="closeProfileModal()" aria-label="Fechar">&times;</button>
+      </div>
+      <div id="profile-form-error" class="form-error"></div>
+      <div id="profile-form-success" class="form-success"></div>
+      <form id="profile-form">
+        <div class="field">
+          <label for="profile-org-name">Nome do abrigo/ONG</label>
+          <input type="text" id="profile-org-name" required />
+        </div>
+        <div class="field">
+          <label for="profile-contact-email">E-mail de contato</label>
+          <input type="email" id="profile-contact-email" />
+        </div>
+        <div class="field">
+          <label for="profile-whatsapp">WhatsApp de contato</label>
+          <input type="tel" id="profile-whatsapp" placeholder="(11) 99999-0000" />
+          <p class="hint">Aparece como botão de contato direto para quem demonstrar interesse.</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" onclick="closeProfileModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/mockData.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
