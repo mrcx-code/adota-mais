@@ -46,8 +46,8 @@
         <h1 class="hero-title">Cada patinha merece<br /><em>um lar de verdade.</em></h1>
         <p class="hero-desc">Acompanhe em tempo real quais bichinhos estão disponíveis, em processo e já adotados. Encontrou o seu par? Um clique manda seu interesse pro responsável.</p>
         <div class="hero-stats">
-          <span class="stat-pill"><span class="stat-pill-icon">🐾</span> <span id="stat-disponivel">0</span> disponíveis</span>
-          <span class="stat-pill"><span class="stat-pill-icon">🏠</span> <span id="stat-adotado">0</span> adotados</span>
+          <a href="#col-disponivel" class="stat-pill stat-pill-link"><span class="stat-pill-icon">🐾</span> <span id="stat-disponivel">0</span> disponíveis</a>
+          <a href="#col-adotado" class="stat-pill stat-pill-link"><span class="stat-pill-icon">🏠</span> <span id="stat-adotado">0</span> adotados</a>
         </div>
       </div>
       <div class="hero-tiles" aria-hidden="true">
@@ -83,7 +83,7 @@
       </div>
 
       <div id="kanban-board" class="kanban-board hidden">
-        <section class="kanban-column" data-status="disponivel">
+        <section class="kanban-column" id="col-disponivel" data-status="disponivel">
           <div class="kanban-column-header">
             <span class="col-icon disponivel">🐾</span>
             <span class="kanban-column-title">Disponível</span>
@@ -101,7 +101,7 @@
           <div id="column-em_processo-cards" class="kanban-cards"></div>
         </section>
 
-        <section class="kanban-column" data-status="adotado">
+        <section class="kanban-column" id="col-adotado" data-status="adotado">
           <div class="kanban-column-header">
             <span class="col-icon adotado">🏡</span>
             <span class="kanban-column-title">Adotado</span>
@@ -162,7 +162,7 @@
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
-    <script src="js/analytics.js"></script>
+  <script src="js/analytics.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/mockData.js"></script>
   <script src="js/app.js"></script>
