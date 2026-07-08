@@ -109,6 +109,15 @@ function openInterestModal(petId) {
   document.getElementById("interest-success").classList.remove("visible");
   document.getElementById("interest-form").classList.remove("hidden");
   document.getElementById("interest-whatsapp-cta").classList.add("hidden");
+
+  const externalFormNote = document.getElementById("interest-external-form");
+  if (pet.adoption_form_url) {
+    document.getElementById("interest-external-form-link").href = pet.adoption_form_url;
+    externalFormNote.classList.remove("hidden");
+  } else {
+    externalFormNote.classList.add("hidden");
+  }
+
   document.getElementById("interest-modal").classList.add("open");
 }
 
