@@ -31,6 +31,7 @@ create table pets (
   age_label text,
   description text,
   photo_url text,
+  adoption_form_url text,
   status pet_status not null default 'disponivel',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
