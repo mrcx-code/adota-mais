@@ -82,3 +82,51 @@ function formatDate(isoString) {
     return "";
   }
 }
+
+/**
+ * Liga o carrossel do Kanban no mobile: clicar numa bolinha rola até a
+ * coluna correspondente, e rolar o board atualiza qual bolinha está ativa.
+ * Chame de novo sempre que os pets forem (re)renderizados.
+ */
+function setupKanbanCarousel(boardEl, dotsEl) {
+  if (!boardEl || !dotsEl) return;
+  const columns = Array.from(boardEl.querySelectorAll(".kanban-column"));
+  const dots = Array.from(dotsEl.querySelectorAll(".kanban-dot"));
+  if (!columns.length || !dots.length) return;
+
+  dots.forEach((dot) => {
+    if (dot.dataset.kanbanDotBound) return;
+    dot.dataset.kanbanDotBound = "1";
+    dot.addEventListener("click", () => {
+      const target = columns.find((col) => col.dataset.status === dot.dataset.status);
+      if (target) target.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    });
+  });
+
+  if (boardEl.dataset.kanbanScrollBound) return;
+  boardEl.dataset.kanbanScrollBound = "1";
+
+  let ticking = false;
+  boardEl.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const boardRect = boardEl.getBoundingClientRect();
+      const boardCenter = boardRect.left + boardRect.width / 2;
+      let closest = null;
+      let closestDist = Infinity;
+      columns.forEach((col) => {
+        const rect = col.getBoundingClientRect();
+        const dist = Math.abs(rect.left + rect.width / 2 - boardCenter);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = col;
+        }
+      });
+      if (closest) {
+        dots.forEach((dot) => dot.classList.toggle("active", dot.dataset.status === closest.dataset.status));
+      }
+      ticking = false;
+    });
+  });
+}
