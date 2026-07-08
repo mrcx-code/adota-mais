@@ -60,6 +60,8 @@ function renderBoard() {
   const statAdotado = document.getElementById("stat-adotado");
   if (statDisponivel) statDisponivel.textContent = (groups.disponivel || []).length;
   if (statAdotado) statAdotado.textContent = (groups.adotado || []).length;
+
+  setupKanbanCarousel(document.getElementById("kanban-board"), document.getElementById("kanban-dots"));
 }
 
 function petCardHtml(pet) {
