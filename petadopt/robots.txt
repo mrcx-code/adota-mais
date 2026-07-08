@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://matheusferreira.cc/sitemap.xml
+Sitemap: https://patinhasbrasil.com.br/sitemap.xml
