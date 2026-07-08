@@ -392,6 +392,7 @@ function openPetModal(petId) {
   document.getElementById("pet-size").value = pet ? pet.size || "Médio" : "Médio";
   document.getElementById("pet-age").value = pet ? pet.age_label || "" : "";
   document.getElementById("pet-description").value = pet ? pet.description || "" : "";
+  document.getElementById("pet-adoption-form-url").value = pet ? pet.adoption_form_url || "" : "";
   document.getElementById("pet-status").value = pet ? pet.status : "disponivel";
   document.getElementById("pet-vaccinated").checked = pet ? Boolean(pet.vaccinated) : false;
   document.getElementById("pet-dewormed").checked = pet ? Boolean(pet.dewormed) : false;
@@ -432,6 +433,7 @@ async function handlePetFormSubmit(event) {
     size: document.getElementById("pet-size").value,
     age_label: document.getElementById("pet-age").value.trim(),
     description: document.getElementById("pet-description").value.trim(),
+    adoption_form_url: document.getElementById("pet-adoption-form-url").value.trim(),
     status: document.getElementById("pet-status").value,
     vaccinated: document.getElementById("pet-vaccinated").checked,
     dewormed: document.getElementById("pet-dewormed").checked,
