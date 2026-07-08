@@ -17,3 +17,4 @@ window.SUPABASE_URL = "https://hdhqziqvrthxtgyraemk.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_kR7pCuqZrPAr24Xdr0F4Nw_t1j5YUKN";
 
 // Ambiente: branch dev (staging) - usado para iteracao rapida antes de ir pra producao
+// (rebuild p/ atualizar dominio de preview com novo nome do projeto)
