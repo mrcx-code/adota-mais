@@ -88,10 +88,9 @@ O site já está publicado e com deploy automático configurado:
   "Add file → Upload files" do repositório, ou via `git push` se um dia
   vocês passarem a usar Git de linha de comando), a Vercel detecta sozinha e
   publica a nova versão — não precisa mais arrastar zip em lugar nenhum.
-- **Domínio:** [matheusferreira.cc](https://matheusferreira.cc) (e
-  `www.matheusferreira.cc`), com HTTPS automático. O DNS está configurado no
-  Squarespace, apontando para a Vercel. O link técnico da Vercel
-  (`adota-mais.vercel.app`) também continua funcionando.
+- **Domínio:** [patinhasbrasil.com.br](https://patinhasbrasil.com.br) (e
+  `www.patinhasbrasil.com.br`), com HTTPS automático. O DNS está configurado na
+  Hostinger, apontando para a Vercel.
 
 > **Como atualizar o site no futuro:** edite os arquivos, depois vá em
 > `github.com/mrcx-code/adota-mais/upload/main/petadopt` e arraste os
