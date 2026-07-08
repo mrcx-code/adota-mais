@@ -60,6 +60,16 @@ function whatsappLink(rawNumber, message) {
   return `https://wa.me/${digits}${text}`;
 }
 
+/** Monta as badges de saúde do pet (vacinado / vermifugado / castrado). */
+function petHealthBadgesHtml(pet) {
+  const badges = [];
+  if (pet.vaccinated) badges.push(`<span class="pet-health-badge">💉 Vacinado</span>`);
+  if (pet.dewormed) badges.push(`<span class="pet-health-badge">🪱 Vermifugado</span>`);
+  if (pet.neutered) badges.push(`<span class="pet-health-badge">✂️ Castrado</span>`);
+  if (!badges.length) return "";
+  return `<div class="pet-health-badges">${badges.join("")}</div>`;
+}
+
 function formatDate(isoString) {
   if (!isoString) return "";
   try {
