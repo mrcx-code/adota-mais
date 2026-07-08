@@ -226,6 +226,7 @@ function adminPetCardHtml(pet) {
           <h3 class="pet-card-name">${escapeHtml(pet.name)}</h3>
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
+        ${petHealthBadgesHtml(pet)}
         ${pet.description ? `<p class="pet-card-desc">${escapeHtml(pet.description)}</p>` : ""}
         <div class="pet-card-actions">
           <button class="btn btn-secondary btn-sm" onclick="openPetModal('${pet.id}')">Editar</button>
@@ -336,6 +337,23 @@ function setupDragAndDrop() {
       e.dataTransfer.setData("text/plain", card.dataset.petId);
     });
     card.addEventListener("dragend", () => card.classList.remove("dragging"));
+
+    // Sem isto, soltar exatamente em cima de outro card (em vez do espaço
+    // vazio da coluna) não disparava o "drop" — o navegador só libera o
+    // drop num elemento que tenha seu próprio "dragover" com preventDefault.
+    card.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+    card.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const column = card.closest(".kanban-column");
+      if (!column) return;
+      column.classList.remove("drag-over");
+      const petId = e.dataTransfer.getData("text/plain");
+      if (petId) changeStatus(petId, column.dataset.status);
+    });
   });
 
   document.querySelectorAll(".kanban-column").forEach((column) => {
@@ -374,6 +392,9 @@ function openPetModal(petId) {
   document.getElementById("pet-age").value = pet ? pet.age_label || "" : "";
   document.getElementById("pet-description").value = pet ? pet.description || "" : "";
   document.getElementById("pet-status").value = pet ? pet.status : "disponivel";
+  document.getElementById("pet-vaccinated").checked = pet ? Boolean(pet.vaccinated) : false;
+  document.getElementById("pet-dewormed").checked = pet ? Boolean(pet.dewormed) : false;
+  document.getElementById("pet-neutered").checked = pet ? Boolean(pet.neutered) : false;
 
   if (pet && pet.photo_url) {
     const preview = document.getElementById("pet-photo-preview");
@@ -411,6 +432,9 @@ async function handlePetFormSubmit(event) {
     age_label: document.getElementById("pet-age").value.trim(),
     description: document.getElementById("pet-description").value.trim(),
     status: document.getElementById("pet-status").value,
+    vaccinated: document.getElementById("pet-vaccinated").checked,
+    dewormed: document.getElementById("pet-dewormed").checked,
+    neutered: document.getElementById("pet-neutered").checked,
   };
 
   if (!payload.name) {
