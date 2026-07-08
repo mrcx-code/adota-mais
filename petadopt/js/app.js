@@ -72,17 +72,22 @@ function petCardHtml(pet) {
       ? `<button class="btn btn-primary btn-sm" onclick="openInterestModal('${pet.id}')">Tenho interesse 🐾</button>`
       : "";
   const metaParts = [speciesLabel(pet.species), pet.size, pet.age_label].filter(Boolean);
+  // No site público, a descrição só aparece para pets ainda disponíveis —
+  // uma vez em processo ou adotado, o texto de "procurando um lar" perde o sentido.
+  const showDescription = pet.status === "disponivel" && pet.description;
 
   return `
     <article class="pet-card">
-      <div class="pet-card-photo" ${photoStyle}></div>
+      <div class="pet-card-photo" ${photoStyle}>
+        ${org ? `<span class="pet-card-org-pin">📍 ${escapeHtml(org.org_name)}</span>` : ""}
+      </div>
       <div class="pet-card-body">
         <div class="pet-card-top">
           <h3 class="pet-card-name">${escapeHtml(pet.name)}</h3>
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
-        ${pet.description ? `<p class="pet-card-desc">${escapeHtml(pet.description)}</p>` : ""}
-        ${org ? `<p class="pet-card-org">📍 ${escapeHtml(org.org_name)}</p>` : ""}
+        ${petHealthBadgesHtml(pet)}
+        ${showDescription ? `<p class="pet-card-desc">${escapeHtml(pet.description)}</p>` : ""}
         <div class="pet-card-actions">${interestBtn}</div>
       </div>
     </article>
