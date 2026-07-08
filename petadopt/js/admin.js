@@ -203,6 +203,7 @@ function renderAdminBoard() {
   });
 
   setupDragAndDrop();
+  setupKanbanCarousel(board, document.getElementById("admin-kanban-dots"));
 }
 
 function adminPetCardHtml(pet) {
