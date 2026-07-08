@@ -737,6 +737,23 @@ textarea { resize: vertical; min-height: 80px; }
 }
 .form-success.visible { display: block; }
 
+.external-form-note {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.external-form-note a {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--color-brand-dark);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 /* ---------- Modal ---------- */
 
 .modal-overlay {
