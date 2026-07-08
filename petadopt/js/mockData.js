@@ -50,7 +50,7 @@ window.DEMO_PETS = [
     size: "Grande",
     age_label: "4 anos",
     description: "Cão de guarda tranquilo, já treinado. Está em visita com uma família interessada.",
-    photo_url: "https://images.unsplash.com/photo-1517849845537-4d257902861a?q=80&w=600&auto=format&fit=crop",
+    photo_url: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=600&auto=format&fit=crop",
     status: "em_processo",
     vaccinated: true,
     dewormed: true,
