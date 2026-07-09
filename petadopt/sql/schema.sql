@@ -263,3 +263,30 @@ as $$
 $$;
 
 grant execute on function public.get_public_stats() to anon, authenticated;
+
+-- =========================================================
+-- Analytics simples de visitas (js/analytics.js) — só métricas agregadas
+-- de navegação, sem dado pessoal identificável além de um visitor_id
+-- gerado no próprio navegador.
+-- =========================================================
+
+create table site_visits (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  path text not null,
+  referrer text,
+  utm_source text,
+  utm_medium text,
+  utm_campaign text,
+  device_type text,
+  visitor_id text
+);
+
+alter table site_visits enable row level security;
+
+-- Registrado tanto pelo visitante anônimo quanto por uma ONG logada
+-- navegando pelo próprio site público — por isso libera pros dois papéis.
+create policy "Anyone can log a visit"
+  on site_visits for insert
+  to anon, authenticated
+  with check (true);
