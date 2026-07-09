@@ -25,12 +25,15 @@
 <body>
 
   <header class="site-header">
-    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
+    <a href="index.html" class="brand"><span class="brand-mark" id="header-brand-mark">🐾</span> Patinhas <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
     <div class="header-actions">
+      <a href="sobre.html" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
+      <a href="#ong-faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
       <a href="index.html" class="btn btn-ghost btn-sm">Ver site público</a>
       <span id="org-name-label" class="btn btn-ghost btn-sm hidden"></span>
+      <a id="interessados-link" href="admin-interessados.html" class="btn btn-secondary btn-sm hidden">💬 Interessados</a>
       <button id="profile-btn" class="btn btn-secondary btn-sm hidden" onclick="openProfileModal()">⚙️ Meu perfil</button>
-      <button id="logout-btn" class="btn btn-secondary btn-sm hidden" onclick="handleLogout()">Sair</button>
+      <button id="logout-btn" class="btn btn-secondary btn-sm hidden" onclick="confirmInlineAction(this, 'Sim, sair', handleLogout)">Sair</button>
     </div>
   </header>
 
@@ -42,7 +45,6 @@
   <main id="auth-view" class="hidden">
     <div class="auth-split">
       <div class="auth-side">
-        <div class="auth-side-brand"><span class="brand-mark">🐾</span> Patinhas</div>
         <div>
           <h2 class="auth-side-title">Você cuida deles.<br />A gente cuida do resto.</h2>
           <p class="auth-side-desc">Painel simples para cadastrar bichinhos, acompanhar interessados e mover o status até a adoção final.</p>
@@ -95,6 +97,20 @@
                 <label for="signup-whatsapp">WhatsApp de contato (opcional)</label>
                 <input type="tel" id="signup-whatsapp" placeholder="(11) 99999-0000" />
               </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="signup-state">Estado</label>
+                  <select id="signup-state" required>
+                    <option value="">Selecione o estado</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="signup-city">Cidade</label>
+                  <select id="signup-city" required disabled>
+                    <option value="">Selecione o estado primeiro</option>
+                  </select>
+                </div>
+              </div>
               <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block">Criar conta</button>
             </form>
             <div class="auth-toggle">
@@ -114,6 +130,59 @@
         <p>Cadastre novos pets e mova os cards entre as colunas conforme o processo avança.</p>
       </div>
       <button class="btn btn-primary" onclick="openPetModal()">+ Novo pet</button>
+    </div>
+
+    <div id="ong-stats" class="stats-row">
+      <div class="stat-card">
+        <span class="stat-card-icon disponivel">🐾</span>
+        <div>
+          <div class="stat-card-value" id="stat-count-disponivel">0</div>
+          <div class="stat-card-label">Disponíveis</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-icon em_processo">🤝</span>
+        <div>
+          <div class="stat-card-value" id="stat-count-em_processo">0</div>
+          <div class="stat-card-label">Em processo</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-icon adotado">🏡</span>
+        <div>
+          <div class="stat-card-value" id="stat-count-adotado">0</div>
+          <div class="stat-card-label">Adotados</div>
+        </div>
+      </div>
+      <a href="admin-interessados.html" class="stat-card stat-card--link" title="Ver todos os interessados na Central de Interessados">
+        <span class="stat-card-icon">💬</span>
+        <div>
+          <div class="stat-card-value" id="stat-count-total-interesses">0</div>
+          <div class="stat-card-label">Total de interessados</div>
+        </div>
+      </a>
+      <div class="stat-card" title="Interesses recebidos desde meia-noite de hoje">
+        <span class="stat-card-icon">📅</span>
+        <div>
+          <div class="stat-card-value" id="stat-count-hoje">0</div>
+          <div class="stat-card-label">Interessados hoje</div>
+        </div>
+      </div>
+      <div class="stat-card" title="Atualização mais recente entre todos os seus pets — edição de cadastro, troca de status ou confirmação de disponibilidade">
+        <span class="stat-card-icon">🕒</span>
+        <div>
+          <div class="stat-card-value" id="stat-last-updated">—</div>
+          <div class="stat-card-label">Última atualização</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kanban-flow" aria-hidden="true">
+      <span class="kanban-flow-step disponivel">🐾 Disponível</span>
+      <span class="kanban-flow-arrow">→</span>
+      <span class="kanban-flow-step em_processo">🤝 Em processo</span>
+      <span class="kanban-flow-arrow">→</span>
+      <span class="kanban-flow-step adotado">🏡 Adotado</span>
     </div>
 
     <div id="dash-loading" class="empty-state">
@@ -155,11 +224,42 @@
       </section>
     </div>
 
-    <div class="kanban-dots" id="admin-kanban-dots">
-      <button class="kanban-dot active" data-status="disponivel" aria-label="Ver disponíveis"></button>
-      <button class="kanban-dot" data-status="em_processo" aria-label="Ver em processo"></button>
-      <button class="kanban-dot" data-status="adotado" aria-label="Ver adotados"></button>
-    </div>
+    <section id="ong-faq" class="faq-section">
+      <div class="board-intro">
+        <h2>Perguntas frequentes do abrigo</h2>
+        <p>Dúvidas comuns sobre como usar o painel.</p>
+      </div>
+
+      <details class="faq-item">
+        <summary>Como cadastro um novo pet?</summary>
+        <p>Clique em "+ Novo pet" no topo da página, preencha os dados (nome, espécie, porte, idade, foto e saúde) e clique em Salvar. O pet aparece na coluna "Disponível" por padrão.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Como movo um pet entre as colunas?</summary>
+        <p>Você pode arrastar o card para outra coluna, ou usar os botões de status dentro do próprio card (Disponível / Em processo / Adotado).</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Como vejo quem demonstrou interesse em um pet?</summary>
+        <p>Clique no botão com o ícone 💬 no card do pet — ele mostra o número de interessados e abre a lista com nome e contato de cada um.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Posso usar o formulário de adoção do meu próprio abrigo?</summary>
+        <p>Sim. Ao editar um pet, cole o link do seu formulário no campo "Link do formulário de adoção". Quem demonstrar interesse verá a opção de preencher o nosso formulário ou o seu, o que for mais rápido.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Como atualizo o nome e o WhatsApp do meu abrigo?</summary>
+        <p>Clique em "⚙️ Meu perfil" no topo da página para editar o nome do abrigo, e-mail e WhatsApp de contato usados nas mensagens de interesse.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Esqueci minha senha, e agora?</summary>
+        <p>Por enquanto a recuperação de senha é feita manualmente — envie uma mensagem pelo canal de suporte que usamos para falar com você e redefinimos o acesso.</p>
+      </details>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -188,7 +288,6 @@
             <select id="pet-species">
               <option value="cachorro">🐶 Cachorro</option>
               <option value="gato">🐱 Gato</option>
-              <option value="outro">🐾 Outro</option>
             </select>
           </div>
           <div class="field">
@@ -201,17 +300,13 @@
           </div>
         </div>
         <div class="field">
-          <label for="pet-age">Idade (ex: "2 anos", "filhote")</label>
-          <input type="text" id="pet-age" placeholder="2 anos" />
-        </div>
-        <div class="field">
-          <label for="pet-description">Descrição</label>
-          <textarea id="pet-description" placeholder="Personalidade, saúde, comportamento com outros animais..."></textarea>
-        </div>
-        <div class="field">
-          <label for="pet-adoption-form-url">Link do formulário externo de adoção (opcional)</label>
-          <input type="url" id="pet-adoption-form-url" placeholder="https://forms.gle/..." />
-          <p class="hint">Se o seu abrigo tiver um formulário próprio, cole o link aqui. Ele aparece pro adotante junto com o nosso formulário padrão.</p>
+          <label for="pet-age">Idade</label>
+          <select id="pet-age">
+            <option value="Filhote">🍼 Filhote (até 1 ano)</option>
+            <option value="Jovem">🐕 Jovem (1 a 3 anos)</option>
+            <option value="Adulto">🐾 Adulto (3 a 7 anos)</option>
+            <option value="Idoso">🦴 Idoso (7+ anos)</option>
+          </select>
         </div>
         <div class="field">
           <label for="pet-photo">Foto</label>
@@ -235,22 +330,49 @@
             <label class="checkbox-inline"><input type="checkbox" id="pet-neutered" /> ✂️ Castrado</label>
           </div>
         </div>
+        <div class="field">
+          <label for="pet-city">Cidade (opcional)</label>
+          <input type="text" id="pet-city" placeholder="São Paulo" />
+        </div>
+        <div class="field">
+          <label>Convivência (opcional — só marque o que já foi testado)</label>
+          <div class="checkbox-row">
+            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-dogs" /> 🐶 Convive com cães</label>
+            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-cats" /> 🐱 Convive com gatos</label>
+            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-kids" /> 🧒 Convive com crianças</label>
+            <label class="checkbox-inline"><input type="checkbox" id="pet-apartment-friendly" /> 🏢 Vive bem em apartamento</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Personalidade (opcional)</label>
+          <div class="checkbox-row">
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="carinhoso" /> 🥰 Carinhoso</label>
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="brincalhao" /> 🎾 Brincalhão</label>
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="calmo" /> 😌 Calmo</label>
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="independente" /> 🦁 Independente</label>
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="protetor" /> 🛡️ Protetor</label>
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="sociavel" /> 👋 Sociável com pessoas</label>
+            <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="timido" /> 🙈 Tímido no início</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pet-favorite-toy">Brinquedo ou hobby favorito (opcional)</label>
+          <input type="text" id="pet-favorite-toy" placeholder="bolinha de papel, cabo de guerra..." />
+        </div>
+        <div class="field">
+          <label>Pré-visualização da descrição</label>
+          <p id="pet-description-preview" class="hint">Marque as características acima para gerar a descrição automaticamente.</p>
+        </div>
+        <div class="field">
+          <label for="pet-adoption-form-url">Link do formulário de adoção do seu abrigo (opcional)</label>
+          <input type="url" id="pet-adoption-form-url" placeholder="https://forms.gle/..." />
+          <p class="hint">Se preenchido, aparece como uma opção extra para quem demonstrar interesse — além do nosso formulário padrão.</p>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" onclick="closePetModal()">Cancelar</button>
           <button type="submit" id="pet-submit-btn" class="btn btn-primary">Salvar</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- ---------------- Modal: interesses recebidos ---------------- -->
-  <div id="interests-modal" class="modal-overlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Interesses em <span id="interests-pet-name"></span></h2>
-        <button class="modal-close" onclick="closeInterestsModal()" aria-label="Fechar">&times;</button>
-      </div>
-      <div id="interests-list"></div>
     </div>
   </div>
 
@@ -277,9 +399,43 @@
           <input type="tel" id="profile-whatsapp" placeholder="(11) 99999-0000" />
           <p class="hint">Aparece como botão de contato direto para quem demonstrar interesse.</p>
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="profile-state">Estado</label>
+            <select id="profile-state" required>
+              <option value="">Selecione o estado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="profile-city">Cidade</label>
+            <select id="profile-city" required disabled>
+              <option value="">Selecione o estado primeiro</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="profile-instagram">Instagram (opcional)</label>
+            <input type="text" id="profile-instagram" placeholder="@seuabrigo" />
+          </div>
+          <div class="field">
+            <label for="profile-website">Site (opcional)</label>
+            <input type="text" id="profile-website" placeholder="www.seuabrigo.com" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="profile-description">Descrição do abrigo (opcional)</label>
+          <textarea id="profile-description" placeholder="Conte um pouco sobre o trabalho do abrigo..."></textarea>
+        </div>
+        <div class="field">
+          <label for="profile-logo">Logo / foto do abrigo (opcional)</label>
+          <input type="file" id="profile-logo" accept="image/*" />
+          <p class="hint">Será usada futuramente na página pública do abrigo.</p>
+          <img id="profile-logo-preview" class="hidden" style="margin-top:8px; border-radius:10px; max-height:100px;" />
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" onclick="closeProfileModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="submit" id="profile-submit-btn" class="btn btn-primary">Salvar</button>
         </div>
       </form>
     </div>

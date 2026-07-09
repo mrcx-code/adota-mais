@@ -31,6 +31,8 @@
   <header class="site-header">
     <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas</a>
     <div class="header-actions">
+      <a href="sobre.html" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
+      <a href="#faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
       <a href="admin.html" class="btn btn-secondary btn-sm">Sou um abrigo / ONG</a>
     </div>
   </header>
@@ -46,8 +48,8 @@
         <h1 class="hero-title">Cada patinha merece<br /><em>um lar de verdade.</em></h1>
         <p class="hero-desc">Acompanhe em tempo real quais bichinhos estão disponíveis, em processo e já adotados. Encontrou o seu par? Um clique manda seu interesse pro responsável.</p>
         <div class="hero-stats">
-          <a href="#col-disponivel" class="stat-pill stat-pill-link"><span class="stat-pill-icon">🐾</span> <span id="stat-disponivel">0</span> disponíveis</a>
-          <a href="#col-adotado" class="stat-pill stat-pill-link"><span class="stat-pill-icon">🏠</span> <span id="stat-adotado">0</span> adotados</a>
+          <a href="#kanban-column-disponivel" class="stat-pill"><span class="stat-pill-icon">🐾</span> <span id="stat-disponivel">0</span> disponíveis</a>
+          <a href="#kanban-column-adotado" class="stat-pill"><span class="stat-pill-icon">🏠</span> <span id="stat-adotado">0</span> adotados</a>
         </div>
       </div>
       <div class="hero-tiles" aria-hidden="true">
@@ -67,9 +69,52 @@
     </section>
 
     <div class="mural-panel">
-      <div class="board-intro">
-        <h2>Mural de adoção</h2>
-        <p>Acompanhe em qual etapa cada pet está.</p>
+      <div class="mural-intro-row">
+        <div class="board-intro">
+          <h2>Mural de adoção</h2>
+          <p>Acompanhe em qual etapa cada pet está.</p>
+        </div>
+
+        <div class="kanban-flow" aria-hidden="true">
+          <span class="kanban-flow-step disponivel">🐾 Disponível</span>
+          <span class="kanban-flow-arrow">→</span>
+          <span class="kanban-flow-step em_processo">🤝 Em processo</span>
+          <span class="kanban-flow-arrow">→</span>
+          <span class="kanban-flow-step adotado">🏡 Adotado</span>
+        </div>
+      </div>
+
+      <div class="interest-filters mural-filters">
+        <div class="field">
+          <label for="filter-species">Espécie</label>
+          <select id="filter-species">
+            <option value="">Todas</option>
+            <option value="cachorro">🐶 Cachorro</option>
+            <option value="gato">🐱 Gato</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-size">Porte</label>
+          <select id="filter-size">
+            <option value="">Todos</option>
+            <option value="Pequeno">Pequeno</option>
+            <option value="Médio">Médio</option>
+            <option value="Grande">Grande</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-state">Estado</label>
+          <select id="filter-state">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-city">Cidade</label>
+          <select id="filter-city" disabled>
+            <option value="">Todos os estados</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="clearMuralFilters()" style="align-self:flex-end;">Limpar filtros</button>
       </div>
 
       <div id="board-loading" class="empty-state">
@@ -83,7 +128,7 @@
       </div>
 
       <div id="kanban-board" class="kanban-board hidden">
-        <section class="kanban-column" id="col-disponivel" data-status="disponivel">
+        <section id="kanban-column-disponivel" class="kanban-column" data-status="disponivel">
           <div class="kanban-column-header">
             <span class="col-icon disponivel">🐾</span>
             <span class="kanban-column-title">Disponível</span>
@@ -92,7 +137,7 @@
           <div id="column-disponivel-cards" class="kanban-cards"></div>
         </section>
 
-        <section class="kanban-column" data-status="em_processo">
+        <section id="kanban-column-em_processo" class="kanban-column" data-status="em_processo">
           <div class="kanban-column-header">
             <span class="col-icon em_processo">🤝</span>
             <span class="kanban-column-title">Em processo</span>
@@ -101,7 +146,7 @@
           <div id="column-em_processo-cards" class="kanban-cards"></div>
         </section>
 
-        <section class="kanban-column" id="col-adotado" data-status="adotado">
+        <section id="kanban-column-adotado" class="kanban-column" data-status="adotado">
           <div class="kanban-column-header">
             <span class="col-icon adotado">🏡</span>
             <span class="kanban-column-title">Adotado</span>
@@ -111,12 +156,44 @@
         </section>
       </div>
 
-      <div class="kanban-dots" id="kanban-dots">
-        <button class="kanban-dot active" data-status="disponivel" aria-label="Ver disponíveis"></button>
-        <button class="kanban-dot" data-status="em_processo" aria-label="Ver em processo"></button>
-        <button class="kanban-dot" data-status="adotado" aria-label="Ver adotados"></button>
+      <div id="kanban-dots" class="kanban-dots">
+        <button class="kanban-dot active" data-target="kanban-column-disponivel" aria-label="Ver coluna Disponível"></button>
+        <button class="kanban-dot" data-target="kanban-column-em_processo" aria-label="Ver coluna Em processo"></button>
+        <button class="kanban-dot" data-target="kanban-column-adotado" aria-label="Ver coluna Adotado"></button>
       </div>
     </div>
+
+    <section id="faq" class="faq-section">
+      <div class="board-intro">
+        <h2>Perguntas frequentes</h2>
+        <p>Tire suas dúvidas sobre como funciona a adoção pelo Patinhas.</p>
+      </div>
+
+      <details class="faq-item">
+        <summary>Como funciona a adoção pelo Patinhas?</summary>
+        <p>Cada abrigo ou ONG parceira cadastra seus pets aqui, e você acompanha em qual etapa cada um está: Disponível, Em processo ou Adotado. Quando encontrar um pet que combine com você, clique em "Tenho interesse" para enviar seus dados de contato direto para o responsável.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Tem algum custo para adotar?</summary>
+        <p>Não. O Patinhas é só uma vitrine gratuita para conectar quem quer adotar com abrigos e ONGs — qualquer taxa de adoção (quando existir) é definida e cobrada diretamente pelo abrigo responsável, nunca por nós.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>O que acontece depois que eu clico em "Quero adotar!"?</summary>
+        <p>Seus dados (nome e contato) são enviados direto para o abrigo responsável pelo pet. O contato de resposta é feito por eles, geralmente por WhatsApp ou e-mail — o prazo pode variar de abrigo para abrigo. Recomendamos também entrar em contato direto com a ONG ou visitar o local pessoalmente para conhecer os bichinhos antes de decidir.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Posso adotar de qualquer cidade?</summary>
+        <p>Sim, mas fique de olho no local de cada abrigo (indicado no card do pet) — a maioria prioriza adotantes que conseguem buscar o animal pessoalmente ou combinar a entrega dentro da mesma região.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Sou um abrigo ou ONG, como cadastro meus pets?</summary>
+        <p>Clique em "Sou um abrigo / ONG" no topo da página, crie sua conta gratuita e comece a cadastrar. Veja também as perguntas específicas para abrigos na área logada.</p>
+      </details>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -131,9 +208,9 @@
         <button class="modal-close" onclick="closeInterestModal()" aria-label="Fechar">&times;</button>
       </div>
 
-      <div id="interest-external-form" class="external-form-note hidden">
-        Este abrigo também tem um formulário próprio de adoção. Pode preencher os dois para agilizar o processo:
-        <a id="interest-external-form-link" href="#" target="_blank" rel="noopener">Abrir formulário do abrigo 📝</a>
+      <div id="interest-org-form-note" class="org-form-note hidden">
+        <p>Esse abrigo também tem um formulário próprio de adoção. Você pode preencher o nosso formulário abaixo <strong>ou</strong> ir direto pro deles — o que for mais rápido pra você:</p>
+        <a id="interest-org-form-link" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-block">Abrir formulário do abrigo ↗</a>
       </div>
 
       <div id="interest-error" class="form-error"></div>
@@ -173,7 +250,7 @@
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
-  <script src="js/analytics.js"></script>
+    <script src="js/analytics.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/mockData.js"></script>
   <script src="js/app.js"></script>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central de Interessados — Patinhas</title>
+  <meta name="description" content="Central de Interessados do Patinhas: acompanhe todos os contatos recebidos pelos seus pets em um só lugar." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://patinhasbrasil.com.br/admin-interessados.html" />
+  <meta name="theme-color" content="#527353" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>🐾</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
+    <div class="header-actions">
+      <a href="admin.html" class="btn btn-ghost btn-sm">← Voltar ao painel</a>
+      <button class="btn btn-secondary btn-sm" onclick="confirmInlineAction(this, 'Sim, sair', handleLogoutInteressados)">Sair</button>
+    </div>
+  </header>
+
+  <div id="demo-banner" class="demo-banner">
+    ✨ Modo demonstração — dados de exemplo, nada é salvo de verdade.
+  </div>
+
+  <main class="site-main">
+    <div class="page-intro">
+      <h1>Central de Interessados</h1>
+      <p>Todos os contatos recebidos pelos seus pets, em um só lugar.</p>
+    </div>
+
+    <div class="status-tabs" id="status-tabs">
+      <button type="button" class="status-tab active" data-status="">Todos</button>
+      <button type="button" class="status-tab" data-status="novo">Novo</button>
+      <button type="button" class="status-tab" data-status="contatado">Contatado</button>
+      <button type="button" class="status-tab" data-status="arquivado">Arquivado</button>
+    </div>
+
+    <div class="interest-filters">
+      <div class="field">
+        <label for="filter-pet">Pet</label>
+        <select id="filter-pet">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filter-date">A partir de</label>
+        <input type="date" id="filter-date" />
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearInterestFilters()" style="align-self:flex-end;">Limpar filtros</button>
+    </div>
+
+    <div id="interessados-loading" class="empty-state">
+      <div class="paw-loader" aria-hidden="true"><span>🐾</span><span>🐾</span><span>🐾</span></div>
+      Carregando interessados...
+    </div>
+
+    <div id="interessados-empty" class="empty-state hidden">
+      <div class="icon">💬</div>
+      <span id="interessados-empty-text">Você ainda não recebeu nenhum interesse.</span>
+    </div>
+
+    <div id="interessados-list" class="interest-list"></div>
+  </main>
+
+  <footer class="site-footer">
+    Patinhas · área restrita a abrigos e ONGs parceiras.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/mockData.js"></script>
+  <script src="js/admin-interessados.js"></script>
+</body>
+</html>

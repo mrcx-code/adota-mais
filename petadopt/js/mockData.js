@@ -9,6 +9,12 @@ window.DEMO_ORG = {
   org_name: "Abrigo Amigo Fiel (exemplo)",
   contact_email: "contato@amigofiel.exemplo",
   contact_whatsapp: "5511999990000",
+  city: "São Paulo",
+  state: "SP",
+  instagram: "@amigofiel.exemplo",
+  website: "",
+  description: "ONG dedicada ao resgate e adoção responsável de cães e gatos na zona leste de SP.",
+  logo_url: "",
 };
 
 window.DEMO_PETS = [
@@ -25,7 +31,15 @@ window.DEMO_PETS = [
     vaccinated: true,
     dewormed: true,
     neutered: true,
+    city: "São Paulo",
+    lives_with_dogs: true,
+    lives_with_cats: null,
+    lives_with_kids: true,
+    apartment_friendly: false,
+    personality: ["brincalhao", "sociavel"],
+    favorite_toy: "bolinha de tênis",
     created_at: "2026-06-01T12:00:00Z",
+    updated_at: "2026-06-01T12:00:00Z",
   },
   {
     id: "demo-2",
@@ -40,7 +54,17 @@ window.DEMO_PETS = [
     vaccinated: true,
     dewormed: true,
     neutered: false,
+    city: "São Paulo",
+    lives_with_dogs: null,
+    lives_with_cats: true,
+    lives_with_kids: null,
+    apartment_friendly: true,
+    personality: ["calmo", "carinhoso"],
+    favorite_toy: "",
     created_at: "2026-06-03T12:00:00Z",
+    // Sem atualização há mais de 30 dias — deve disparar o aviso de
+    // "anúncio desatualizado" no card do admin.
+    updated_at: "2026-05-01T12:00:00Z",
   },
   {
     id: "demo-3",
@@ -55,7 +79,10 @@ window.DEMO_PETS = [
     vaccinated: true,
     dewormed: true,
     neutered: true,
+    personality: ["protetor", "independente"],
+    favorite_toy: "",
     created_at: "2026-05-20T12:00:00Z",
+    updated_at: "2026-06-10T15:00:00Z",
   },
   {
     id: "demo-4",
@@ -70,12 +97,27 @@ window.DEMO_PETS = [
     vaccinated: true,
     dewormed: true,
     neutered: true,
+    personality: ["carinhoso", "timido"],
+    favorite_toy: "colo à tarde",
     created_at: "2026-04-15T12:00:00Z",
+    updated_at: "2026-04-20T12:00:00Z",
   },
 ];
 
 /** Interesses de exemplo, só para ilustrar a tela de admin no modo demonstração. */
 window.DEMO_INTERESTS = {
+  "demo-1": [
+    {
+      id: "demo-interest-2",
+      pet_id: "demo-1",
+      name: "João Pedro",
+      email: "joaopedro@exemplo.com",
+      phone: "11977776666",
+      message: "Moro em casa com quintal, tenho outro cachorro.",
+      status: "novo",
+      created_at: "2026-07-08T09:00:00Z",
+    },
+  ],
   "demo-3": [
     {
       id: "demo-interest-1",
@@ -84,7 +126,18 @@ window.DEMO_INTERESTS = {
       email: "fernanda@exemplo.com",
       phone: "11988887777",
       message: "Tenho quintal grande e já cuidei de cães de porte grande antes.",
+      status: "contatado",
       created_at: "2026-06-10T15:30:00Z",
+    },
+    {
+      id: "demo-interest-3",
+      pet_id: "demo-3",
+      name: "Renata Souza",
+      email: "renata@exemplo.com",
+      phone: "11966665555",
+      message: "",
+      status: "arquivado",
+      created_at: "2026-06-12T10:15:00Z",
     },
   ],
 };

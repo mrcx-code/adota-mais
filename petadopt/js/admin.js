@@ -3,8 +3,9 @@
 let CURRENT_ORG_ID = null;
 let CURRENT_ORG_PROFILE = null;
 let MY_PETS = [];
+let MY_INTERESTS = [];
 let SELECTED_PET_PHOTO_FILE = null;
-let INTERESTS_MODAL_PET_ID = null;
+let SELECTED_LOGO_FILE = null;
 
 /* ======================================================================
    Inicialização / autenticação
@@ -16,11 +17,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("pet-form").addEventListener("submit", handlePetFormSubmit);
   document.getElementById("profile-form").addEventListener("submit", handleProfileFormSubmit);
   document.getElementById("pet-photo").addEventListener("change", handlePhotoInputChange);
+  document.getElementById("profile-logo").addEventListener("change", handleLogoInputChange);
+  // Recalcula a prévia da descrição automática a qualquer mudança no formulário
+  // (saúde, convivência, personalidade, brinquedo favorito).
+  document.getElementById("pet-form").addEventListener("input", updatePetDescriptionPreview);
+  attachPhoneMask(document.getElementById("signup-whatsapp"));
+  attachPhoneMask(document.getElementById("profile-whatsapp"));
+
+  populateStateSelect(document.getElementById("signup-state"));
+  populateStateSelect(document.getElementById("profile-state"));
+  document.getElementById("signup-state").addEventListener("change", (e) => {
+    populateCitySelect(document.getElementById("signup-city"), e.target.value);
+  });
+  document.getElementById("profile-state").addEventListener("change", (e) => {
+    populateCitySelect(document.getElementById("profile-city"), e.target.value);
+  });
 
   if (window.DEMO_MODE) {
     CURRENT_ORG_ID = window.DEMO_ORG.id;
     CURRENT_ORG_PROFILE = Object.assign({}, window.DEMO_ORG);
     MY_PETS = window.DEMO_PETS.slice();
+    MY_INTERESTS = Object.values(window.DEMO_INTERESTS || {}).flat();
     showDashboard();
     return;
   }
@@ -39,6 +56,8 @@ function showAuthView() {
   document.getElementById("profile-btn").classList.add("hidden");
   document.getElementById("logout-btn").classList.add("hidden");
   document.getElementById("org-name-label").classList.add("hidden");
+  document.getElementById("interessados-link").classList.add("hidden");
+  updateHeaderBrandMark();
 }
 
 function showDashboard() {
@@ -46,10 +65,24 @@ function showDashboard() {
   document.getElementById("dashboard-view").classList.remove("hidden");
   document.getElementById("profile-btn").classList.remove("hidden");
   document.getElementById("logout-btn").classList.remove("hidden");
+  document.getElementById("interessados-link").classList.remove("hidden");
   const label = document.getElementById("org-name-label");
   label.textContent = CURRENT_ORG_PROFILE ? CURRENT_ORG_PROFILE.org_name : "";
   label.classList.remove("hidden");
+  updateHeaderBrandMark();
   renderAdminBoard();
+}
+
+/** Troca o ícone 🐾 do header pela logo da ONG quando ela existir — só faz
+ * sentido na área logada, onde a logo pertence a quem está vendo a página. */
+function updateHeaderBrandMark() {
+  const mark = document.getElementById("header-brand-mark");
+  if (!mark) return;
+  if (CURRENT_ORG_PROFILE && CURRENT_ORG_PROFILE.logo_url) {
+    mark.innerHTML = `<img src="${escapeHtml(CURRENT_ORG_PROFILE.logo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+  } else {
+    mark.textContent = "🐾";
+  }
 }
 
 function showLogin() {
@@ -93,10 +126,18 @@ async function handleSignup(event) {
   const email = document.getElementById("signup-email").value.trim();
   const password = document.getElementById("signup-password").value;
   const whatsapp = document.getElementById("signup-whatsapp").value.trim();
+  const state = document.getElementById("signup-state").value;
+  const city = document.getElementById("signup-city").value;
   const errorBox = document.getElementById("signup-error");
   const successBox = document.getElementById("signup-success");
   errorBox.classList.remove("visible");
   successBox.classList.remove("visible");
+
+  if (!state || !city) {
+    errorBox.textContent = "Selecione o estado e a cidade do abrigo.";
+    errorBox.classList.add("visible");
+    return;
+  }
 
   const btn = document.getElementById("signup-submit-btn");
   btn.disabled = true;
@@ -111,6 +152,8 @@ async function handleSignup(event) {
           org_name: orgName,
           contact_email: email,
           contact_whatsapp: whatsapp || null,
+          state,
+          city,
         },
       },
     });
@@ -145,6 +188,7 @@ async function enterDashboardWithSession(session) {
   }
   CURRENT_ORG_PROFILE = profile || { id: CURRENT_ORG_ID, org_name: session.user.email };
   await loadMyPets();
+  await loadMyInterests();
   showDashboard();
 }
 
@@ -177,7 +221,59 @@ async function loadMyPets() {
   MY_PETS = data || [];
 }
 
+/** Carrega, de uma vez só, todos os interesses recebidos pelos pets da ONG
+ * — alimenta os cards de resumo do dashboard e o contador de cada card. */
+async function loadMyInterests() {
+  if (window.DEMO_MODE) return; // já carregado no boot
+  const petIds = MY_PETS.map((p) => p.id);
+  if (!petIds.length) {
+    MY_INTERESTS = [];
+    return;
+  }
+  const { data, error } = await window.sb
+    .from("interests")
+    .select("*")
+    .in("pet_id", petIds)
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("[Patinhas] Erro ao carregar interesses:", error);
+    MY_INTERESTS = [];
+    return;
+  }
+  MY_INTERESTS = data || [];
+}
+
+/** Conta quantos interesses cada pet recebeu, a partir do MY_INTERESTS já carregado. */
+function countInterestsByPet() {
+  const counts = {};
+  MY_INTERESTS.forEach((i) => {
+    counts[i.pet_id] = (counts[i.pet_id] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderOngStats() {
+  const groups = groupByStatus(MY_PETS);
+  document.getElementById("stat-count-disponivel").textContent = (groups.disponivel || []).length;
+  document.getElementById("stat-count-em_processo").textContent = (groups.em_processo || []).length;
+  document.getElementById("stat-count-adotado").textContent = (groups.adotado || []).length;
+  document.getElementById("stat-count-total-interesses").textContent = MY_INTERESTS.length;
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const today = MY_INTERESTS.filter((i) => new Date(i.created_at) >= startOfToday).length;
+  document.getElementById("stat-count-hoje").textContent = today;
+
+  const mostRecent = MY_PETS.reduce((latest, pet) => {
+    if (!pet.updated_at) return latest;
+    return !latest || new Date(pet.updated_at) > new Date(latest) ? pet.updated_at : latest;
+  }, null);
+  document.getElementById("stat-last-updated").textContent = relativeDateLabel(mostRecent);
+}
+
 function renderAdminBoard() {
+  renderOngStats();
+
   const loading = document.getElementById("dash-loading");
   const empty = document.getElementById("dash-empty");
   const board = document.getElementById("admin-board");
@@ -191,6 +287,7 @@ function renderAdminBoard() {
   empty.classList.add("hidden");
   board.classList.remove("hidden");
 
+  const interestCounts = countInterestsByPet();
   const groups = groupByStatus(MY_PETS);
   STATUS_ORDER.forEach((status) => {
     const list = document.getElementById(`admin-column-${status}-cards`);
@@ -198,19 +295,21 @@ function renderAdminBoard() {
     const pets = groups[status] || [];
     count.textContent = pets.length;
     list.innerHTML = pets.length
-      ? pets.map((pet) => adminPetCardHtml(pet)).join("")
+      ? pets.map((pet) => adminPetCardHtml(pet, interestCounts[pet.id] || 0)).join("")
       : `<div class="kanban-empty">Nenhum pet aqui.</div>`;
   });
 
   setupDragAndDrop();
-  setupKanbanCarousel(board, document.getElementById("admin-kanban-dots"));
 }
 
-function adminPetCardHtml(pet) {
+/** Pets "disponível" sem nenhuma atualização há mais de 30 dias — provável
+ * dado desatualizado no marketplace (pode já ter sido adotado em outro canal). */
+const STALE_LISTING_DAYS = 30;
+
+function adminPetCardHtml(pet, interestCount) {
   const photoStyle = pet.photo_url
     ? `style="background-image:url('${escapeHtml(pet.photo_url)}');background-size:cover;background-position:center;"`
     : "";
-  const interestCount = countInterestsFor(pet.id);
   const metaParts = [speciesLabel(pet.species), pet.size, pet.age_label].filter(Boolean);
   const moveButtons = STATUS_ORDER.map((status) => {
     const isCurrent = status === pet.status;
@@ -218,6 +317,15 @@ function adminPetCardHtml(pet) {
       ${isCurrent ? "disabled" : ""}
       onclick="changeStatus('${pet.id}', '${status}')">${shortStatusLabel(status)}</button>`;
   }).join("");
+
+  const staleDays = daysSince(pet.updated_at);
+  const isStale = pet.status === "disponivel" && staleDays !== null && staleDays > STALE_LISTING_DAYS;
+  const staleBanner = isStale
+    ? `<div class="stale-banner">
+         <span>⏳ Este pet ainda está disponível? Sem atualização há ${staleDays} dias.</span>
+         <button type="button" class="btn btn-secondary btn-sm" onclick="confirmAvailability('${pet.id}')">Confirmar disponibilidade</button>
+       </div>`
+    : "";
 
   return `
     <article class="pet-card" draggable="true" data-pet-id="${pet.id}">
@@ -228,25 +336,41 @@ function adminPetCardHtml(pet) {
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}
-        ${pet.description ? `<p class="pet-card-desc">${escapeHtml(pet.description)}</p>` : ""}
+        ${petTraitsBadgesHtml(pet)}
+        ${(() => {
+          const autoDescription = buildPetDescription(pet);
+          return autoDescription ? `<p class="pet-card-desc">${escapeHtml(autoDescription)}</p>` : "";
+        })()}
+        ${staleBanner}
         <div class="pet-card-actions">
           <button class="btn btn-secondary btn-sm" onclick="openPetModal('${pet.id}')">Editar</button>
-          <button class="btn btn-secondary btn-sm" onclick="openInterestsModal('${pet.id}')">💬 ${interestCount}</button>
+          <a class="btn btn-secondary btn-sm" href="admin-interessados.html?pet=${pet.id}">💬 ${interestCount}</a>
           <button class="btn btn-danger btn-sm" onclick="confirmDeletePet(this, '${pet.id}')">Excluir</button>
         </div>
         <div class="pet-card-move">${moveButtons}</div>
+        <p class="pet-card-updated">Atualizado: ${relativeDateLabel(pet.updated_at)}</p>
       </div>
     </article>
   `;
 }
 
-function countInterestsFor(petId) {
+/** Botão "Confirmar disponibilidade" no aviso de anúncio desatualizado —
+ * reafirma o status atual só para tocar o updated_at (via trigger no banco). */
+async function confirmAvailability(petId) {
   if (window.DEMO_MODE) {
-    return (window.DEMO_INTERESTS[petId] || []).length;
+    const pet = MY_PETS.find((p) => p.id === petId);
+    if (pet) pet.updated_at = new Date().toISOString();
+    renderAdminBoard();
+    return;
   }
-  return typeof PET_INTEREST_COUNTS !== "undefined" && PET_INTEREST_COUNTS[petId]
-    ? PET_INTEREST_COUNTS[petId]
-    : 0;
+  const { error } = await window.sb.from("pets").update({ status: "disponivel" }).eq("id", petId);
+  if (error) {
+    console.error("[Patinhas] Erro ao confirmar disponibilidade:", error);
+    alertInline("Não foi possível confirmar agora. Tente novamente.");
+    return;
+  }
+  await loadMyPets();
+  renderAdminBoard();
 }
 
 /* ======================================================================
@@ -280,6 +404,7 @@ function confirmDeletePet(button, petId) {
 async function deletePet(petId) {
   if (window.DEMO_MODE) {
     MY_PETS = MY_PETS.filter((p) => p.id !== petId);
+    MY_INTERESTS = MY_INTERESTS.filter((i) => i.pet_id !== petId);
     renderAdminBoard();
     return;
   }
@@ -290,6 +415,9 @@ async function deletePet(petId) {
     return;
   }
   await loadMyPets();
+  // Os interesses do pet excluído são apagados em cascata no banco — recarrega
+  // pra não deixar as estatísticas do dashboard contando algo que não existe mais.
+  await loadMyInterests();
   renderAdminBoard();
 }
 
@@ -314,14 +442,16 @@ function alertInline(message) {
 async function changeStatus(petId, newStatus) {
   if (window.DEMO_MODE) {
     const pet = MY_PETS.find((p) => p.id === petId);
-    if (pet) pet.status = newStatus;
+    if (pet) {
+      pet.status = newStatus;
+      pet.updated_at = new Date().toISOString();
+    }
     renderAdminBoard();
     return;
   }
-  const { error } = await window.sb
-    .from("pets")
-    .update({ status: newStatus, updated_at: new Date().toISOString() })
-    .eq("id", petId);
+  // updated_at não precisa ser setado aqui — o trigger pets_touch_updated_at
+  // no banco toca o campo automaticamente em qualquer UPDATE.
+  const { error } = await window.sb.from("pets").update({ status: newStatus }).eq("id", petId);
   if (error) {
     console.error("[Patinhas] Erro ao mover pet:", error);
     alertInline("Não foi possível mover o pet agora.");
@@ -377,6 +507,27 @@ function setupDragAndDrop() {
    Modal: novo pet / editar pet
    ====================================================================== */
 
+const PET_AGE_STANDARD_VALUES = ["Filhote", "Jovem", "Adulto", "Idoso"];
+
+// Pets cadastrados antes do campo virar dropdown podem ter um texto livre
+// (ex: "3 anos") que não bate com nenhuma opção padrão — em vez de descartar
+// esse valor ao editar, injetamos ele como uma opção extra pra não perder
+// o dado já cadastrado.
+function setPetAgeValue(ageValue) {
+  const select = document.getElementById("pet-age");
+  const existingCustom = select.querySelector('option[data-custom="true"]');
+  if (existingCustom) existingCustom.remove();
+
+  if (ageValue && !PET_AGE_STANDARD_VALUES.includes(ageValue)) {
+    const opt = document.createElement("option");
+    opt.value = ageValue;
+    opt.textContent = `${ageValue} (valor antigo)`;
+    opt.dataset.custom = "true";
+    select.appendChild(opt);
+  }
+  select.value = ageValue || "Filhote";
+}
+
 function openPetModal(petId) {
   const isEdit = Boolean(petId);
   document.getElementById("pet-modal-title").textContent = isEdit ? "Editar pet" : "Novo pet";
@@ -390,13 +541,22 @@ function openPetModal(petId) {
   document.getElementById("pet-name").value = pet ? pet.name : "";
   document.getElementById("pet-species").value = pet ? pet.species : "cachorro";
   document.getElementById("pet-size").value = pet ? pet.size || "Médio" : "Médio";
-  document.getElementById("pet-age").value = pet ? pet.age_label || "" : "";
-  document.getElementById("pet-description").value = pet ? pet.description || "" : "";
-  document.getElementById("pet-adoption-form-url").value = pet ? pet.adoption_form_url || "" : "";
+  setPetAgeValue(pet ? pet.age_label || "" : "");
   document.getElementById("pet-status").value = pet ? pet.status : "disponivel";
   document.getElementById("pet-vaccinated").checked = pet ? Boolean(pet.vaccinated) : false;
   document.getElementById("pet-dewormed").checked = pet ? Boolean(pet.dewormed) : false;
   document.getElementById("pet-neutered").checked = pet ? Boolean(pet.neutered) : false;
+  document.getElementById("pet-adoption-form-url").value = pet ? pet.adoption_form_url || "" : "";
+  document.getElementById("pet-city").value = pet ? pet.city || "" : "";
+  document.getElementById("pet-lives-with-dogs").checked = pet ? Boolean(pet.lives_with_dogs) : false;
+  document.getElementById("pet-lives-with-cats").checked = pet ? Boolean(pet.lives_with_cats) : false;
+  document.getElementById("pet-lives-with-kids").checked = pet ? Boolean(pet.lives_with_kids) : false;
+  document.getElementById("pet-apartment-friendly").checked = pet ? Boolean(pet.apartment_friendly) : false;
+  document.getElementById("pet-favorite-toy").value = pet ? pet.favorite_toy || "" : "";
+  const personality = pet ? pet.personality || [] : [];
+  document.querySelectorAll(".pet-personality-check").forEach((checkbox) => {
+    checkbox.checked = personality.includes(checkbox.value);
+  });
 
   if (pet && pet.photo_url) {
     const preview = document.getElementById("pet-photo-preview");
@@ -404,7 +564,27 @@ function openPetModal(petId) {
     preview.classList.remove("hidden");
   }
 
+  updatePetDescriptionPreview();
   document.getElementById("pet-modal").classList.add("open");
+}
+
+/** Recalcula a prévia da descrição automática a partir do estado atual do
+ * formulário — chamada a cada mudança nos campos que alimentam a frase. */
+function updatePetDescriptionPreview() {
+  const draftPet = {
+    vaccinated: document.getElementById("pet-vaccinated").checked,
+    dewormed: document.getElementById("pet-dewormed").checked,
+    neutered: document.getElementById("pet-neutered").checked,
+    lives_with_dogs: document.getElementById("pet-lives-with-dogs").checked,
+    lives_with_cats: document.getElementById("pet-lives-with-cats").checked,
+    lives_with_kids: document.getElementById("pet-lives-with-kids").checked,
+    apartment_friendly: document.getElementById("pet-apartment-friendly").checked,
+    favorite_toy: document.getElementById("pet-favorite-toy").value.trim(),
+    personality: Array.from(document.querySelectorAll(".pet-personality-check:checked")).map((c) => c.value),
+  };
+  const preview = document.getElementById("pet-description-preview");
+  const description = buildPetDescription(draftPet);
+  preview.textContent = description || "Marque as características acima para gerar a descrição automaticamente.";
 }
 
 function closePetModal() {
@@ -432,12 +612,18 @@ async function handlePetFormSubmit(event) {
     species: document.getElementById("pet-species").value,
     size: document.getElementById("pet-size").value,
     age_label: document.getElementById("pet-age").value.trim(),
-    description: document.getElementById("pet-description").value.trim(),
-    adoption_form_url: document.getElementById("pet-adoption-form-url").value.trim(),
     status: document.getElementById("pet-status").value,
     vaccinated: document.getElementById("pet-vaccinated").checked,
     dewormed: document.getElementById("pet-dewormed").checked,
     neutered: document.getElementById("pet-neutered").checked,
+    adoption_form_url: document.getElementById("pet-adoption-form-url").value.trim() || null,
+    city: document.getElementById("pet-city").value.trim() || null,
+    lives_with_dogs: document.getElementById("pet-lives-with-dogs").checked,
+    lives_with_cats: document.getElementById("pet-lives-with-cats").checked,
+    lives_with_kids: document.getElementById("pet-lives-with-kids").checked,
+    apartment_friendly: document.getElementById("pet-apartment-friendly").checked,
+    favorite_toy: document.getElementById("pet-favorite-toy").value.trim() || null,
+    personality: Array.from(document.querySelectorAll(".pet-personality-check:checked")).map((c) => c.value),
   };
 
   if (!payload.name) {
@@ -512,60 +698,6 @@ async function uploadPetPhoto(file) {
 }
 
 /* ======================================================================
-   Modal: interesses recebidos
-   ====================================================================== */
-
-let PET_INTEREST_COUNTS = {};
-
-async function openInterestsModal(petId) {
-  INTERESTS_MODAL_PET_ID = petId;
-  const pet = MY_PETS.find((p) => p.id === petId);
-  document.getElementById("interests-pet-name").textContent = pet ? pet.name : "";
-  const list = document.getElementById("interests-list");
-  list.innerHTML = `<p class="hint"><span class="paw-spinner">🐾</span> Carregando...</p>`;
-  document.getElementById("interests-modal").classList.add("open");
-
-  let interests = [];
-  if (window.DEMO_MODE) {
-    interests = window.DEMO_INTERESTS[petId] || [];
-  } else {
-    const { data, error } = await window.sb
-      .from("interests")
-      .select("*")
-      .eq("pet_id", petId)
-      .order("created_at", { ascending: false });
-    if (!error) interests = data || [];
-  }
-
-  PET_INTEREST_COUNTS[petId] = interests.length;
-
-  if (interests.length === 0) {
-    list.innerHTML = `<p class="hint">Ainda não há interessados neste pet.</p>`;
-    return;
-  }
-
-  list.innerHTML = interests
-    .map(
-      (i) => `
-      <div style="padding:12px 0; border-bottom:1px solid var(--color-border);">
-        <strong>${escapeHtml(i.name)}</strong>
-        <span class="hint" style="display:block;">
-          ${i.phone ? `📞 ${escapeHtml(i.phone)} &nbsp;` : ""}
-          ${i.email ? `✉️ ${escapeHtml(i.email)}` : ""}
-        </span>
-        ${i.message ? `<p style="margin:6px 0 0; font-size:13.5px;">${escapeHtml(i.message)}</p>` : ""}
-        <span class="hint" style="display:block; margin-top:4px;">${formatDate(i.created_at)}</span>
-      </div>
-    `
-    )
-    .join("");
-}
-
-function closeInterestsModal() {
-  document.getElementById("interests-modal").classList.remove("open");
-}
-
-/* ======================================================================
    Modal: meu perfil
    ====================================================================== */
 
@@ -575,11 +707,47 @@ function openProfileModal() {
   document.getElementById("profile-org-name").value = CURRENT_ORG_PROFILE.org_name || "";
   document.getElementById("profile-contact-email").value = CURRENT_ORG_PROFILE.contact_email || "";
   document.getElementById("profile-whatsapp").value = CURRENT_ORG_PROFILE.contact_whatsapp || "";
+  document.getElementById("profile-state").value = CURRENT_ORG_PROFILE.state || "";
+  populateCitySelect(document.getElementById("profile-city"), CURRENT_ORG_PROFILE.state, CURRENT_ORG_PROFILE.city);
+  document.getElementById("profile-instagram").value = CURRENT_ORG_PROFILE.instagram || "";
+  document.getElementById("profile-website").value = CURRENT_ORG_PROFILE.website || "";
+  document.getElementById("profile-description").value = CURRENT_ORG_PROFILE.description || "";
+  SELECTED_LOGO_FILE = null;
+  const preview = document.getElementById("profile-logo-preview");
+  document.getElementById("profile-logo").value = "";
+  if (CURRENT_ORG_PROFILE.logo_url) {
+    preview.src = CURRENT_ORG_PROFILE.logo_url;
+    preview.classList.remove("hidden");
+  } else {
+    preview.classList.add("hidden");
+  }
   document.getElementById("profile-modal").classList.add("open");
 }
 
 function closeProfileModal() {
   document.getElementById("profile-modal").classList.remove("open");
+}
+
+function handleLogoInputChange(event) {
+  const file = event.target.files && event.target.files[0];
+  SELECTED_LOGO_FILE = file || null;
+  const preview = document.getElementById("profile-logo-preview");
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
+  }
+}
+
+async function uploadOrgLogo(file) {
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `logos/${CURRENT_ORG_ID}.${ext}`;
+  const { error: uploadError } = await window.sb.storage.from("pet-photos").upload(path, file, {
+    upsert: true,
+    cacheControl: "3600",
+  });
+  if (uploadError) throw uploadError;
+  const { data } = window.sb.storage.from("pet-photos").getPublicUrl(path);
+  return `${data.publicUrl}?v=${Date.now()}`; // cache-bust: mesmo path pode ser sobrescrito
 }
 
 async function handleProfileFormSubmit(event) {
@@ -593,22 +761,43 @@ async function handleProfileFormSubmit(event) {
     org_name: document.getElementById("profile-org-name").value.trim(),
     contact_email: document.getElementById("profile-contact-email").value.trim(),
     contact_whatsapp: document.getElementById("profile-whatsapp").value.trim(),
+    city: document.getElementById("profile-city").value.trim(),
+    state: document.getElementById("profile-state").value.trim().toUpperCase(),
+    instagram: document.getElementById("profile-instagram").value.trim(),
+    website: document.getElementById("profile-website").value.trim(),
+    description: document.getElementById("profile-description").value.trim(),
   };
+
+  if (!payload.city || !payload.state) {
+    errorBox.textContent = "Cidade e estado são obrigatórios.";
+    errorBox.classList.add("visible");
+    return;
+  }
+
+  const submitBtn = document.getElementById("profile-submit-btn");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span class="paw-spinner">🐾</span> Salvando...`;
 
   try {
     if (window.DEMO_MODE) {
+      if (SELECTED_LOGO_FILE) payload.logo_url = URL.createObjectURL(SELECTED_LOGO_FILE);
       Object.assign(CURRENT_ORG_PROFILE, payload);
     } else {
+      if (SELECTED_LOGO_FILE) payload.logo_url = await uploadOrgLogo(SELECTED_LOGO_FILE);
       const { error } = await window.sb.from("profiles").update(payload).eq("id", CURRENT_ORG_ID);
       if (error) throw error;
       Object.assign(CURRENT_ORG_PROFILE, payload);
     }
     document.getElementById("org-name-label").textContent = CURRENT_ORG_PROFILE.org_name;
+    updateHeaderBrandMark();
     successBox.textContent = "Perfil atualizado!";
     successBox.classList.add("visible");
   } catch (err) {
     console.error("[Patinhas] Erro ao salvar perfil:", err);
     errorBox.textContent = "Não foi possível salvar agora.";
     errorBox.classList.add("visible");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Salvar";
   }
 }

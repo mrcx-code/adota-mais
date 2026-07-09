@@ -23,16 +23,20 @@ abaixo para conectar seu próprio banco de dados e publicar o site de verdade.
 ## Estrutura do projeto
 
 ```
-index.html          → página pública (quadro Kanban)
-admin.html           → login e painel do abrigo/ONG
-css/style.css         → todo o visual do site
-js/config.js          → ⚠️ único arquivo que você precisa editar
-js/supabaseClient.js  → conecta ao Supabase (ou ativa o modo demonstração)
-js/utils.js           → funções auxiliares
-js/mockData.js        → dados de exemplo usados só no modo demonstração
-js/app.js             → lógica da página pública
-js/admin.js           → lógica da área de admin
-sql/schema.sql         → script para criar as tabelas no Supabase
+index.html               → página pública (quadro Kanban)
+sobre.html               → página institucional "Sobre nós"
+admin.html               → login e painel do abrigo/ONG
+admin-interessados.html  → Central de Interessados (lista/filtra contatos recebidos)
+css/style.css            → todo o visual do site
+js/config.js             → ⚠️ único arquivo que você precisa editar
+js/supabaseClient.js     → conecta ao Supabase (ou ativa o modo demonstração)
+js/utils.js              → funções auxiliares (inclui auth compartilhada da área logada)
+js/mockData.js           → dados de exemplo usados só no modo demonstração
+js/app.js                → lógica da página pública
+js/sobre.js              → lógica da página "Sobre nós" (métricas de impacto)
+js/admin.js              → lógica do painel principal do abrigo
+js/admin-interessados.js → lógica da Central de Interessados
+sql/schema.sql           → script para criar as tabelas no Supabase
 ```
 
 ---

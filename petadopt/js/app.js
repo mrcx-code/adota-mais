@@ -20,7 +20,7 @@ async function loadPets() {
     } else {
       const { data, error } = await window.sb
         .from("pets")
-        .select("*, org:profiles(id, org_name, contact_whatsapp, contact_email)")
+        .select("*, org:profiles(id, org_name, contact_whatsapp, contact_email, city, state)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       ALL_PETS = data || [];
@@ -29,6 +29,7 @@ async function loadPets() {
         if (pet.org) ORG_BY_ID[pet.org.id] = pet.org;
       });
     }
+    populateMuralFilters();
     renderBoard();
     loading.classList.add("hidden");
     board.classList.remove("hidden");
@@ -39,8 +40,78 @@ async function loadPets() {
   }
 }
 
+/* ---------------- Filtros do mural ---------------- */
+
+/** Estado/cidade dos filtros vêm só de onde já existe pet cadastrado — evita
+ * deixar escolher uma combinação que nunca vai dar resultado. */
+function populateMuralFilters() {
+  const states = Array.from(
+    new Set(ALL_PETS.map((pet) => (ORG_BY_ID[pet.org_id] || pet.org)?.state).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+  const stateSelect = document.getElementById("filter-state");
+  stateSelect.innerHTML =
+    `<option value="">Todos</option>` +
+    states.map((uf) => `<option value="${uf}">${uf}</option>`).join("");
+
+  document.getElementById("filter-species").addEventListener("change", renderBoard);
+  document.getElementById("filter-size").addEventListener("change", renderBoard);
+  stateSelect.addEventListener("change", () => {
+    updateMuralCityOptions();
+    renderBoard();
+  });
+  document.getElementById("filter-city").addEventListener("change", renderBoard);
+}
+
+function updateMuralCityOptions() {
+  const state = document.getElementById("filter-state").value;
+  const citySelect = document.getElementById("filter-city");
+
+  if (!state) {
+    citySelect.innerHTML = `<option value="">Todos os estados</option>`;
+    citySelect.disabled = true;
+    return;
+  }
+
+  const cities = Array.from(
+    new Set(
+      ALL_PETS.filter((pet) => (ORG_BY_ID[pet.org_id] || pet.org)?.state === state)
+        .map((pet) => (ORG_BY_ID[pet.org_id] || pet.org)?.city)
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+  citySelect.disabled = false;
+  citySelect.innerHTML =
+    `<option value="">Todas</option>` + cities.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+}
+
+function clearMuralFilters() {
+  document.getElementById("filter-species").value = "";
+  document.getElementById("filter-size").value = "";
+  document.getElementById("filter-state").value = "";
+  updateMuralCityOptions();
+  renderBoard();
+}
+
+function getFilteredPets() {
+  const species = document.getElementById("filter-species").value;
+  const size = document.getElementById("filter-size").value;
+  const state = document.getElementById("filter-state").value;
+  const city = document.getElementById("filter-city").value;
+
+  return ALL_PETS.filter((pet) => {
+    if (species && pet.species !== species) return false;
+    if (size && pet.size !== size) return false;
+    const org = ORG_BY_ID[pet.org_id] || pet.org;
+    if (state && org?.state !== state) return false;
+    if (city && org?.city !== city) return false;
+    return true;
+  });
+}
+
 function renderBoard() {
-  const groups = groupByStatus(ALL_PETS);
+  const groups = groupByStatus(getFilteredPets());
 
   STATUS_ORDER.forEach((status) => {
     const list = document.getElementById(`column-${status}-cards`);
@@ -60,8 +131,6 @@ function renderBoard() {
   const statAdotado = document.getElementById("stat-adotado");
   if (statDisponivel) statDisponivel.textContent = (groups.disponivel || []).length;
   if (statAdotado) statAdotado.textContent = (groups.adotado || []).length;
-
-  setupKanbanCarousel(document.getElementById("kanban-board"), document.getElementById("kanban-dots"));
 }
 
 function petCardHtml(pet) {
@@ -71,12 +140,13 @@ function petCardHtml(pet) {
     : "";
   const interestBtn =
     pet.status === "disponivel"
-      ? `<button class="btn btn-primary btn-sm" onclick="openInterestModal('${pet.id}')">Tenho interesse 🐾</button>`
+      ? `<button class="btn btn-primary btn-cta btn-block" onclick="openInterestModal('${pet.id}')">Quero adotar! 🐾</button>`
       : "";
   const metaParts = [speciesLabel(pet.species), pet.size, pet.age_label].filter(Boolean);
   // No site público, a descrição só aparece para pets ainda disponíveis —
   // uma vez em processo ou adotado, o texto de "procurando um lar" perde o sentido.
-  const showDescription = pet.status === "disponivel" && pet.description;
+  const autoDescription = buildPetDescription(pet);
+  const showDescription = pet.status === "disponivel" && autoDescription;
 
   return `
     <article class="pet-card">
@@ -89,7 +159,8 @@ function petCardHtml(pet) {
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}
-        ${showDescription ? `<p class="pet-card-desc">${escapeHtml(pet.description)}</p>` : ""}
+        ${petTraitsBadgesHtml(pet)}
+        ${showDescription ? `<p class="pet-card-desc">${escapeHtml(autoDescription)}</p>` : ""}
         <div class="pet-card-actions">${interestBtn}</div>
       </div>
     </article>
@@ -110,12 +181,12 @@ function openInterestModal(petId) {
   document.getElementById("interest-form").classList.remove("hidden");
   document.getElementById("interest-whatsapp-cta").classList.add("hidden");
 
-  const externalFormNote = document.getElementById("interest-external-form");
+  const orgNote = document.getElementById("interest-org-form-note");
   if (pet.adoption_form_url) {
-    document.getElementById("interest-external-form-link").href = pet.adoption_form_url;
-    externalFormNote.classList.remove("hidden");
+    document.getElementById("interest-org-form-link").href = pet.adoption_form_url;
+    orgNote.classList.remove("hidden");
   } else {
-    externalFormNote.classList.add("hidden");
+    orgNote.classList.add("hidden");
   }
 
   document.getElementById("interest-modal").classList.add("open");
@@ -188,7 +259,97 @@ async function submitInterest(event) {
   }
 }
 
+/* ---------------- Carrossel mobile (indicador de bolinhas) ---------------- */
+
+function setupKanbanDots() {
+  const board = document.getElementById("kanban-board");
+  const dots = Array.from(document.querySelectorAll(".kanban-dot"));
+  if (!board || !dots.length) return;
+
+  dots.forEach((dot) => {
+    dot.addEventListener("click", () => {
+      const target = document.getElementById(dot.dataset.target);
+      if (target) target.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    });
+  });
+
+  setupDragToScroll(board);
+
+  const columns = STATUS_ORDER.map((status) => document.getElementById(`kanban-column-${status}`)).filter(Boolean);
+  if (!columns.length) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+        const idx = columns.indexOf(entry.target);
+        dots.forEach((dot, i) => dot.classList.toggle("active", i === idx));
+      });
+    },
+    { root: board, threshold: [0.5] }
+  );
+  columns.forEach((col) => observer.observe(col));
+}
+
+// Arrastar as colunas com o cursor (clicar-e-segurar), além do scroll normal.
+// Só faz sentido quando o board vira carrossel horizontal (mobile/telas
+// estreitas); em telas largas ele é um grid e scrollWidth == clientWidth,
+// então o arrasto simplesmente não tem para onde mover.
+function setupDragToScroll(board) {
+  let isDown = false;
+  let startX = 0;
+  let startScroll = 0;
+  let moved = false;
+
+  board.addEventListener("pointerdown", (e) => {
+    // Todo novo toque começa "limpo": zera o flag de arrasto mesmo quando o
+    // alvo é um botão/link (senão um arrasto anterior deixaria `moved=true` e
+    // engoliria o próximo clique num card).
+    moved = false;
+    // Cliques em botões/links dentro dos cards devem funcionar normalmente,
+    // sem serem interpretados como arrasto do board.
+    if (e.target.closest("button, a")) return;
+    isDown = true;
+    startX = e.clientX;
+    startScroll = board.scrollLeft;
+  });
+
+  board.addEventListener("pointermove", (e) => {
+    if (!isDown) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 4) {
+      moved = true;
+      board.classList.add("dragging");
+      board.setPointerCapture(e.pointerId);
+    }
+    if (moved) board.scrollLeft = startScroll - dx;
+  });
+
+  const end = () => {
+    isDown = false;
+    board.classList.remove("dragging");
+  };
+  board.addEventListener("pointerup", end);
+  board.addEventListener("pointercancel", end);
+
+  // Se houve arrasto, cancela o clique que dispararia logo em seguida
+  // (evita abrir um modal sem querer ao terminar de arrastar sobre um card).
+  board.addEventListener(
+    "click",
+    (e) => {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = false;
+      }
+    },
+    true
+  );
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadPets();
   document.getElementById("interest-form").addEventListener("submit", submitInterest);
+  attachPhoneMask(document.getElementById("interest-phone"));
+  setupKanbanDots();
 });

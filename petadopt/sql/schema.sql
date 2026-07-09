@@ -18,6 +18,14 @@ create table profiles (
   org_name text not null,
   contact_email text,
   contact_whatsapp text,
+  -- Cidade/estado são obrigatórios na tela de perfil (validado no app, não
+  -- aqui no banco, já que perfis antigos podem não ter esses dados ainda).
+  city text,
+  state text,
+  instagram text,
+  website text,
+  description text,
+  logo_url text,
   created_at timestamptz not null default now()
 );
 
@@ -29,10 +37,29 @@ create table pets (
   species pet_species not null default 'cachorro',
   size text,
   age_label text,
+  -- Legado: texto livre da época anterior à descrição automática (ver
+  -- "personality"/"favorite_toy" abaixo). Mantido só para não perder o
+  -- histórico de pets já cadastrados — o formulário não edita mais este campo.
   description text,
   photo_url text,
-  adoption_form_url text,
   status pet_status not null default 'disponivel',
+  vaccinated boolean not null default false,
+  dewormed boolean not null default false,
+  neutered boolean not null default false,
+  -- Link opcional para o formulário de adoção próprio do abrigo (exibido
+  -- como alternativa ao formulário padrão do Patinhas).
+  adoption_form_url text,
+  -- Informações adicionais opcionais — só aparecem no card quando preenchidas.
+  city text,
+  lives_with_dogs boolean,
+  lives_with_cats boolean,
+  lives_with_kids boolean,
+  apartment_friendly boolean,
+  -- Traços de personalidade (multi-seleção) + brinquedo/hobby favorito —
+  -- usados para montar a descrição automática do pet no lugar de um texto
+  -- livre, padronizando a forma como cada animal é apresentado.
+  personality text[] not null default '{}',
+  favorite_toy text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -48,10 +75,13 @@ create table interests (
   email text,
   phone text,
   message text,
+  -- Acompanhamento manual do abrigo na Central de Interessados.
+  status text not null default 'novo' check (status in ('novo', 'contatado', 'arquivado')),
   created_at timestamptz not null default now()
 );
 
 create index interests_pet_id_idx on interests (pet_id);
+create index interests_status_idx on interests (status);
 
 -- =========================================================
 -- Segurança (Row Level Security)
@@ -93,7 +123,7 @@ create policy "Abrigo exclui seus próprios pets"
   using (auth.uid() = org_id);
 
 -- interests: qualquer pessoa pode registrar interesse (formulário público);
--- só o abrigo dono do pet pode ver os interesses recebidos.
+-- só o abrigo dono do pet pode ver e atualizar (status) os interesses recebidos.
 create policy "Qualquer pessoa registra interesse"
   on interests for insert
   with check (true);
@@ -108,10 +138,41 @@ create policy "Abrigo vê interesses dos seus pets"
     )
   );
 
+create policy "Abrigo atualiza status dos interesses dos seus pets"
+  on interests for update
+  using (
+    exists (
+      select 1 from pets
+      where pets.id = interests.pet_id
+        and pets.org_id = auth.uid()
+    )
+  );
+
+-- =========================================================
+-- pets.updated_at é tocado automaticamente em qualquer UPDATE — cobre
+-- edição de cadastro, troca de status (drag-and-drop) e o botão "Confirmar
+-- disponibilidade", sem depender de cada ponto do app lembrar de setar o
+-- campo manualmente.
+-- =========================================================
+
+create function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create trigger pets_touch_updated_at
+  before update on pets
+  for each row execute procedure public.touch_updated_at();
+
 -- =========================================================
 -- Cria automaticamente o "profile" quando um abrigo se cadastra
 -- (auth.users -> profiles), usando os dados extras enviados no
--- signUp (org_name, contact_email, contact_whatsapp).
+-- signUp (org_name, contact_email, contact_whatsapp, city, state).
 -- =========================================================
 
 create function public.handle_new_user()
@@ -120,12 +181,14 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, org_name, contact_email, contact_whatsapp)
+  insert into public.profiles (id, org_name, contact_email, contact_whatsapp, city, state)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'org_name', 'Abrigo sem nome'),
     coalesce(new.raw_user_meta_data ->> 'contact_email', new.email),
-    new.raw_user_meta_data ->> 'contact_whatsapp'
+    new.raw_user_meta_data ->> 'contact_whatsapp',
+    new.raw_user_meta_data ->> 'city',
+    new.raw_user_meta_data ->> 'state'
   );
   return new;
 end;
@@ -141,7 +204,8 @@ create trigger on_auth_user_created
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 -- =========================================================
--- Storage: bucket público para as fotos dos pets
+-- Storage: bucket público para as fotos dos pets (e também para o
+-- logo/foto do abrigo, salvo em storage.objects sob o prefixo "logos/").
 -- =========================================================
 
 insert into storage.buckets (id, name, public)
@@ -164,3 +228,31 @@ create policy "Usuários logados atualizam fotos de pets"
 create policy "Usuários logados excluem fotos de pets"
   on storage.objects for delete
   using (bucket_id = 'pet-photos' and auth.role() = 'authenticated');
+
+-- =========================================================
+-- Estatísticas públicas agregadas (página "Sobre Nós") — só contagens,
+-- nenhum dado privado é exposto. security definer é seguro aqui porque a
+-- função só retorna 4 números, nunca linhas de "interests" (que têm
+-- nome/contato de quem demonstrou interesse).
+-- =========================================================
+
+create or replace function public.get_public_stats()
+returns table (
+  total_orgs bigint,
+  total_pets bigint,
+  total_adopted bigint,
+  total_interests bigint
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    (select count(*) from profiles) as total_orgs,
+    (select count(*) from pets) as total_pets,
+    (select count(*) from pets where status = 'adotado') as total_adopted,
+    (select count(*) from interests) as total_interests;
+$$;
+
+grant execute on function public.get_public_stats() to anon, authenticated;
