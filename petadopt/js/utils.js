@@ -154,31 +154,45 @@ function petHealthBadgesHtml(pet) {
 }
 
 /**
- * Monta as badges de informações extras do pet (cidade + convivência).
- * Só aparece o que foi de fato preenchido — nada de "Convive com cães: ?".
+ * Monta as badges de informações extras do pet (só cidade — convivência
+ * virou parte do texto da descrição automática pra não repetir a mesma
+ * informação duas vezes no card).
  */
 function petTraitsBadgesHtml(pet) {
   const badges = [];
   if (pet.city) badges.push(`<span class="pet-trait-badge">📍 ${escapeHtml(pet.city)}</span>`);
-  if (pet.lives_with_dogs === true) badges.push(`<span class="pet-trait-badge">🐶 Convive com cães</span>`);
-  if (pet.lives_with_cats === true) badges.push(`<span class="pet-trait-badge">🐱 Convive com gatos</span>`);
-  if (pet.lives_with_kids === true) badges.push(`<span class="pet-trait-badge">🧒 Convive com crianças</span>`);
-  if (pet.apartment_friendly === true) badges.push(`<span class="pet-trait-badge">🏢 Vive bem em apartamento</span>`);
   if (!badges.length) return "";
   return `<div class="pet-trait-badges">${badges.join("")}</div>`;
 }
 
+/** ♂/♀ ao lado do nome do pet no card — só aparece quando o gênero foi
+ * informado no cadastro. */
+function genderSymbolHtml(gender) {
+  if (gender === "macho") return `<span class="pet-gender pet-gender--macho" title="Macho">♂</span>`;
+  if (gender === "femea") return `<span class="pet-gender pet-gender--femea" title="Fêmea">♀</span>`;
+  return "";
+}
+
 /** Opções fixas de personalidade — mesmas chaves usadas no checkbox do
- * formulário, no banco (pets.personality) e na descrição automática. */
+ * formulário e no banco (pets.personality). Cada uma tem forma masculina e
+ * feminina pra descrição concordar com o gênero cadastrado do pet. */
 const PERSONALITY_LABELS = {
-  carinhoso: "carinhoso(a)",
-  brincalhao: "brincalhão(ona)",
-  calmo: "calmo(a)",
-  independente: "independente",
-  protetor: "protetor(a)",
-  sociavel: "sociável com pessoas",
-  timido: "tímido(a) no início",
+  carinhoso: { m: "carinhoso", f: "carinhosa" },
+  brincalhao: { m: "brincalhão", f: "brincalhona" },
+  calmo: { m: "calmo", f: "calma" },
+  independente: { m: "independente", f: "independente" },
+  protetor: { m: "protetor", f: "protetora" },
+  sociavel: { m: "sociável com pessoas", f: "sociável com pessoas" },
+  timido: { m: "tímido no início", f: "tímida no início" },
 };
+
+/** Forma da personalidade de acordo com o gênero do pet (default masculino,
+ * já que é a forma mais neutra em português quando o gênero não foi informado). */
+function personalityLabel(key, gender) {
+  const entry = PERSONALITY_LABELS[key];
+  if (!entry) return "";
+  return gender === "femea" ? entry.f : entry.m;
+}
 
 /** Junta uma lista em texto natural: "a", "a e b", "a, b e c". */
 function joinWithE(items) {
@@ -213,7 +227,7 @@ function ageLabelWithRange(ageLabel) {
 function buildPetDescription(pet) {
   const parts = [];
 
-  const personality = (pet.personality || []).map((key) => PERSONALITY_LABELS[key]).filter(Boolean);
+  const personality = (pet.personality || []).map((key) => personalityLabel(key, pet.gender)).filter(Boolean);
   if (personality.length) {
     parts.push(`É ${joinWithE(personality)}`);
   }
@@ -235,6 +249,15 @@ function buildPetDescription(pet) {
 
   if (!parts.length) return "";
   return parts.join(". ") + ".";
+}
+
+/** Sempre devolve uma descrição pra exibir — quando nenhuma característica
+ * foi marcada, usa uma frase genérica em vez de deixar o card sem texto. */
+function petDescriptionOrFallback(pet) {
+  const description = buildPetDescription(pet);
+  if (description) return description;
+  const pronoun = pet.gender === "femea" ? "Ela" : "Ele";
+  return `${pronoun} está esperando por uma família especial para chamar de sua.`;
 }
 
 /** Depois de quantos dias sem atualização um anúncio "disponível" vira suspeito

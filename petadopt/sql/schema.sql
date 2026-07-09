@@ -37,6 +37,9 @@ create table pets (
   species pet_species not null default 'cachorro',
   size text,
   age_label text,
+  -- 'macho' | 'femea' | null (não informado) — usado pro símbolo ♂/♀ no card
+  -- e pra concordância de gênero na descrição automática.
+  gender text check (gender in ('macho', 'femea')),
   -- Legado: texto livre da época anterior à descrição automática (ver
   -- "personality"/"favorite_toy" abaixo). Mantido só para não perder o
   -- histórico de pets já cadastrados — o formulário não edita mais este campo.

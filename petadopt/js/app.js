@@ -33,6 +33,10 @@ async function loadPets() {
     renderBoard();
     loading.classList.add("hidden");
     board.classList.remove("hidden");
+    // Link compartilhado (ver sharePet) — rola até o card do pet ao abrir.
+    if (window.location.hash.startsWith("#pet-")) {
+      document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   } catch (err) {
     console.error("[Patinhas] Erro ao carregar pets:", err);
     loading.classList.add("hidden");
@@ -181,27 +185,55 @@ function petCardHtml(pet) {
       : "";
   const metaParts = [speciesLabel(pet.species), pet.size, ageLabelWithRange(pet.age_label)].filter(Boolean);
   // No site público, a descrição só aparece para pets ainda disponíveis —
-  // uma vez em processo ou adotado, o texto de "procurando um lar" perde o sentido.
-  const autoDescription = buildPetDescription(pet);
-  const showDescription = pet.status === "disponivel" && autoDescription;
+  // uma vez em processo ou adotado, o texto de "procurando um lar" perde o
+  // sentido. Sempre mostra algo (ver petDescriptionOrFallback) mesmo que a
+  // ONG não tenha marcado nenhuma característica.
+  const showDescription = pet.status === "disponivel";
 
   return `
-    <article class="pet-card">
+    <article class="pet-card" id="pet-${pet.id}">
       <div class="pet-card-photo" ${photoStyle}>
+        <button type="button" class="pet-card-share-btn" title="Compartilhar" onclick="sharePet(this, '${pet.id}', '${escapeHtml(pet.name)}')">🔗</button>
         ${org ? `<span class="pet-card-org-pin">📍 ${escapeHtml(org.org_name)}</span>` : ""}
       </div>
       <div class="pet-card-body">
         <div class="pet-card-top">
-          <h3 class="pet-card-name">${escapeHtml(pet.name)}</h3>
+          <h3 class="pet-card-name">${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender)}</h3>
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}
         ${petTraitsBadgesHtml(pet)}
-        ${showDescription ? `<p class="pet-card-desc">${escapeHtml(autoDescription)}</p>` : ""}
+        ${showDescription ? `<p class="pet-card-desc">${escapeHtml(petDescriptionOrFallback(pet))}</p>` : ""}
         <div class="pet-card-actions">${interestBtn}</div>
       </div>
     </article>
   `;
+}
+
+/** Compartilha o link direto do pet — usa a Web Share API nativa quando
+ * disponível (mobile), senão copia o link e avisa no próprio botão. */
+async function sharePet(button, petId, petName) {
+  const url = `${window.location.origin}${window.location.pathname}#pet-${petId}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: `Conheça ${petName} no Patinhas 🐾`, url });
+    } catch (err) {
+      // usuário cancelou o compartilhamento — não é um erro real
+    }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    const original = button.textContent;
+    button.textContent = "✅";
+    button.disabled = true;
+    setTimeout(() => {
+      button.textContent = original;
+      button.disabled = false;
+    }, 1500);
+  } catch (err) {
+    console.error("[Patinhas] Não foi possível copiar o link:", err);
+  }
 }
 
 /* ---------------- Modal "Tenho interesse" ---------------- */
@@ -212,6 +244,10 @@ function openInterestModal(petId) {
   CURRENT_INTEREST_PET = pet;
 
   document.getElementById("interest-pet-name").textContent = pet.name;
+  const contextPhoto = document.getElementById("interest-pet-photo");
+  contextPhoto.style.backgroundImage = pet.photo_url ? `url('${pet.photo_url}')` : "";
+  contextPhoto.style.backgroundSize = pet.photo_url ? "cover" : "";
+  document.getElementById("interest-pet-description").textContent = petDescriptionOrFallback(pet);
   document.getElementById("interest-form").reset();
   document.getElementById("interest-error").classList.remove("visible");
   document.getElementById("interest-success").classList.remove("visible");

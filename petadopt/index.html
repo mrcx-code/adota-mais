@@ -230,6 +230,11 @@
         <button class="modal-close" onclick="attemptCloseInterestModal()" aria-label="Fechar">&times;</button>
       </div>
 
+      <div id="interest-pet-context" class="interest-pet-context">
+        <div id="interest-pet-photo" class="interest-pet-context-photo"></div>
+        <p id="interest-pet-description" class="interest-pet-context-desc"></p>
+      </div>
+
       <div id="interest-close-confirm" class="org-form-note hidden">
         <p>Tem certeza que quer sair? O que você preencheu até aqui vai se perder.</p>
         <div class="modal-actions" style="margin-top:0;">
@@ -243,8 +248,8 @@
         <p style="color:var(--color-text-muted); font-size:14.5px; line-height:1.5; margin:0 0 8px;">Esse abrigo também possui um formulário próprio de adoção.</p>
         <p style="color:var(--color-text-muted); font-size:14.5px; line-height:1.5; margin:0 0 20px;">Você pode preencher o formulário oficial do abrigo ou, se preferir, continuar pelo formulário do Patinhas. Ambos os caminhos levam seu interesse ao responsável pelo pet.</p>
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <button type="button" class="btn btn-primary btn-block" onclick="showInterestFormStep()">Continuar pelo Patinhas</button>
-          <a id="interest-org-form-link" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-block">Abrir formulário do abrigo ↗</a>
+          <a id="interest-org-form-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-block">Abrir formulário do abrigo ↗</a>
+          <button type="button" class="btn btn-secondary btn-block" onclick="showInterestFormStep()">Continuar pelo Patinhas</button>
         </div>
       </div>
 

@@ -54,8 +54,9 @@ function showAuthView() {
   document.getElementById("auth-view").classList.remove("hidden");
   document.getElementById("dashboard-view").classList.add("hidden");
   document.getElementById("account-menu").classList.add("hidden");
-  document.getElementById("org-name-label").classList.add("hidden");
+  document.getElementById("admin-org-badge").classList.add("hidden");
   document.getElementById("new-pet-header-btn").classList.add("hidden");
+  document.getElementById("bulk-import-header-btn").classList.add("hidden");
 }
 
 function showDashboard() {
@@ -63,9 +64,9 @@ function showDashboard() {
   document.getElementById("dashboard-view").classList.remove("hidden");
   document.getElementById("account-menu").classList.remove("hidden");
   document.getElementById("new-pet-header-btn").classList.remove("hidden");
-  const label = document.getElementById("org-name-label");
-  label.textContent = CURRENT_ORG_PROFILE ? `, ${CURRENT_ORG_PROFILE.org_name}` : "";
-  label.classList.remove("hidden");
+  document.getElementById("bulk-import-header-btn").classList.remove("hidden");
+  document.getElementById("org-name-label").textContent = CURRENT_ORG_PROFILE ? CURRENT_ORG_PROFILE.org_name : "";
+  document.getElementById("admin-org-badge").classList.remove("hidden");
   renderAdminBoard();
 }
 
@@ -335,18 +336,18 @@ function adminPetCardHtml(pet, interestCount) {
       </div>
       <div class="pet-card-body">
         <div class="pet-card-top">
-          <h3 class="pet-card-name">${escapeHtml(pet.name)}</h3>
+          <h3 class="pet-card-name">${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender)}</h3>
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}
         ${petTraitsBadgesHtml(pet)}
-        ${(() => {
-          const autoDescription = buildPetDescription(pet);
-          return autoDescription ? `<p class="pet-card-desc">${escapeHtml(autoDescription)}</p>` : "";
-        })()}
+        <p class="pet-card-desc">${escapeHtml(petDescriptionOrFallback(pet))}</p>
         ${staleBanner}
         <div class="pet-card-move">${moveButtons}</div>
-        <p class="pet-card-updated">Atualizado: ${relativeDateLabel(pet.updated_at)}</p>
+        <div class="pet-card-dates">
+          <span>Atualizado: ${relativeDateLabel(pet.updated_at)}</span>
+          <span>Criado em: ${formatDate(pet.created_at)}</span>
+        </div>
       </div>
     </article>
   `;
@@ -380,7 +381,9 @@ let CURRENT_INTERESTS_PET_ID = null;
 function openPetInterestsDrawer(petId) {
   CURRENT_INTERESTS_PET_ID = petId;
   const pet = MY_PETS.find((p) => p.id === petId);
+  const count = MY_INTERESTS.filter((i) => i.pet_id === petId).length;
   document.getElementById("pet-interests-title").textContent = pet ? pet.name : "";
+  document.getElementById("pet-interests-count").textContent = count;
   renderPetInterestsList();
   document.getElementById("pet-interests-modal").classList.add("open");
 }
@@ -422,6 +425,248 @@ async function updateInterestStatus(interestId, newStatus) {
     }
   }
   renderPetInterestsList();
+}
+
+/* ======================================================================
+   Importação em lote de pets (CSV)
+   ====================================================================== */
+
+const BULK_IMPORT_COLUMNS = [
+  "nome",
+  "especie",
+  "porte",
+  "idade",
+  "sexo",
+  "status",
+  "vacinado",
+  "vermifugado",
+  "castrado",
+  "cidade",
+  "brinquedo_favorito",
+];
+
+let BULK_IMPORT_ROWS = [];
+
+function openBulkImportDrawer() {
+  document.getElementById("bulk-import-file").value = "";
+  document.getElementById("bulk-import-textarea").value = "";
+  document.getElementById("bulk-import-error").classList.remove("visible");
+  document.getElementById("bulk-import-preview").innerHTML = "";
+  document.getElementById("bulk-import-submit-btn").classList.add("hidden");
+  BULK_IMPORT_ROWS = [];
+  document.getElementById("bulk-import-modal").classList.add("open");
+}
+
+function closeBulkImportDrawer() {
+  document.getElementById("bulk-import-modal").classList.remove("open");
+}
+
+function downloadBulkImportTemplate() {
+  const header = BULK_IMPORT_COLUMNS.join(",");
+  const example = "Caramelo,cachorro,Médio,Jovem,macho,disponivel,sim,sim,nao,São Paulo,bolinha de tênis";
+  const csv = `${header}\n${example}\n`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "modelo-importacao-pets.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function handleBulkImportFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById("bulk-import-textarea").value = String(reader.result || "");
+  };
+  reader.readAsText(file, "utf-8");
+}
+
+/** Parser simples de CSV — lida com campos entre aspas (vírgulas e aspas
+ * duplas escapadas como "" dentro do campo), suficiente pro nosso template. */
+function parseCsvSimple(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  const pushField = () => {
+    row.push(field);
+    field = "";
+  };
+  const pushRow = () => {
+    pushField();
+    rows.push(row);
+    row = [];
+  };
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (inQuotes) {
+      if (char === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        field += char;
+      }
+    } else if (char === '"') {
+      inQuotes = true;
+    } else if (char === ",") {
+      pushField();
+    } else if (char === "\n") {
+      pushRow();
+    } else if (char === "\r") {
+      // ignora — trata \r\n como \n
+    } else {
+      field += char;
+    }
+  }
+  if (field || row.length) pushRow();
+  return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
+}
+
+const BULK_IMPORT_YES_VALUES = ["sim", "yes", "true", "1", "x"];
+
+function parseBulkImportRows() {
+  const text = document.getElementById("bulk-import-textarea").value.trim();
+  if (!text) return { error: "Cole o CSV ou escolha um arquivo antes de pré-visualizar." };
+
+  const rows = parseCsvSimple(text);
+  if (!rows.length) return { error: "Não encontrei nenhuma linha nesse CSV." };
+
+  const header = rows[0].map((h) => h.trim().toLowerCase());
+  const dataRows = rows.slice(1);
+  if (!dataRows.length) return { error: "O CSV só tem o cabeçalho — inclua ao menos uma linha de pet." };
+
+  const nameIdx = header.indexOf("nome");
+  if (nameIdx === -1) {
+    return { error: `Não encontrei a coluna "nome". Colunas esperadas: ${BULK_IMPORT_COLUMNS.join(", ")}.` };
+  }
+
+  const pets = [];
+  const errors = [];
+  dataRows.forEach((cells, i) => {
+    const get = (col) => {
+      const idx = header.indexOf(col);
+      return idx === -1 ? "" : (cells[idx] || "").trim();
+    };
+    const name = get("nome");
+    if (!name) {
+      errors.push(`Linha ${i + 2}: sem nome, pulei essa linha.`);
+      return;
+    }
+    const species = get("especie").toLowerCase() === "gato" ? "gato" : "cachorro";
+    const sizeRaw = get("porte");
+    const size = ["Pequeno", "Médio", "Grande"].includes(sizeRaw) ? sizeRaw : "Médio";
+    const ageRaw = get("idade");
+    const age_label = ["Filhote", "Jovem", "Adulto", "Idoso"].includes(ageRaw) ? ageRaw : "Adulto";
+    const genderRaw = get("sexo").toLowerCase();
+    const gender = genderRaw === "macho" || genderRaw === "femea" ? genderRaw : null;
+    const statusRaw = get("status").toLowerCase();
+    const status = ["disponivel", "em_processo", "adotado"].includes(statusRaw) ? statusRaw : "disponivel";
+    const yes = (col) => BULK_IMPORT_YES_VALUES.includes(get(col).toLowerCase());
+
+    pets.push({
+      name,
+      species,
+      size,
+      age_label,
+      gender,
+      status,
+      vaccinated: yes("vacinado"),
+      dewormed: yes("vermifugado"),
+      neutered: yes("castrado"),
+      city: get("cidade") || null,
+      favorite_toy: get("brinquedo_favorito") || null,
+      personality: [],
+    });
+  });
+
+  return { pets, errors };
+}
+
+function previewBulkImport() {
+  const errorBox = document.getElementById("bulk-import-error");
+  const previewBox = document.getElementById("bulk-import-preview");
+  const submitBtn = document.getElementById("bulk-import-submit-btn");
+  errorBox.classList.remove("visible");
+  previewBox.innerHTML = "";
+  submitBtn.classList.add("hidden");
+
+  const { error, pets, errors } = parseBulkImportRows();
+  if (error) {
+    errorBox.textContent = error;
+    errorBox.classList.add("visible");
+    return;
+  }
+
+  BULK_IMPORT_ROWS = pets;
+
+  const rowsHtml = pets
+    .map(
+      (p) => `
+        <tr>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${escapeHtml(speciesLabel(p.species))}</td>
+          <td>${escapeHtml(p.size)}</td>
+          <td>${escapeHtml(ageLabelWithRange(p.age_label))}</td>
+          <td>${escapeHtml(shortStatusLabel(p.status))}</td>
+        </tr>`
+    )
+    .join("");
+
+  previewBox.innerHTML = `
+    <p class="hint">${pets.length} pet(s) prontos pra importar${errors.length ? `, ${errors.length} linha(s) ignorada(s)` : ""}.</p>
+    ${errors.length ? `<p class="form-error visible">${errors.map(escapeHtml).join("<br />")}</p>` : ""}
+    <div class="bulk-import-preview-table-wrap">
+      <table class="bulk-import-preview-table">
+        <thead><tr><th>Nome</th><th>Espécie</th><th>Porte</th><th>Idade</th><th>Status</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+  `;
+
+  if (pets.length) {
+    submitBtn.textContent = `Importar ${pets.length} pet(s)`;
+    submitBtn.classList.remove("hidden");
+  }
+}
+
+async function submitBulkImport() {
+  if (!BULK_IMPORT_ROWS.length) return;
+  const submitBtn = document.getElementById("bulk-import-submit-btn");
+  const errorBox = document.getElementById("bulk-import-error");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Importando...";
+
+  try {
+    if (window.DEMO_MODE) {
+      const now = new Date().toISOString();
+      BULK_IMPORT_ROWS.forEach((pet) => {
+        MY_PETS.unshift(
+          Object.assign({ id: `demo-bulk-${Date.now()}-${Math.random().toString(36).slice(2)}` }, pet, {
+            created_at: now,
+            updated_at: now,
+          })
+        );
+      });
+    } else {
+      const payload = BULK_IMPORT_ROWS.map((pet) => Object.assign({}, pet, { org_id: CURRENT_ORG_ID }));
+      const { error } = await window.sb.from("pets").insert(payload);
+      if (error) throw error;
+      await loadMyPets();
+    }
+    closeBulkImportDrawer();
+    renderAdminBoard();
+  } catch (err) {
+    console.error("[Patinhas] Erro na importação em lote:", err);
+    errorBox.textContent = `Não foi possível importar agora${err?.message ? ` (${err.message})` : ""}.`;
+    errorBox.classList.add("visible");
+  } finally {
+    submitBtn.disabled = false;
+  }
 }
 
 /* ======================================================================
@@ -596,6 +841,7 @@ function openPetModal(petId) {
   document.getElementById("pet-name").value = pet ? pet.name : "";
   document.getElementById("pet-species").value = pet ? pet.species : "cachorro";
   document.getElementById("pet-size").value = pet ? pet.size || "Médio" : "Médio";
+  document.getElementById("pet-gender").value = pet ? pet.gender || "" : "";
   setPetAgeValue(pet ? pet.age_label || "" : "");
   document.getElementById("pet-status").value = pet ? pet.status : "disponivel";
   document.getElementById("pet-vaccinated").checked = pet ? Boolean(pet.vaccinated) : false;
@@ -636,10 +882,13 @@ function updatePetDescriptionPreview() {
     apartment_friendly: document.getElementById("pet-apartment-friendly").checked,
     favorite_toy: document.getElementById("pet-favorite-toy").value.trim(),
     personality: Array.from(document.querySelectorAll(".pet-personality-check:checked")).map((c) => c.value),
+    gender: document.getElementById("pet-gender").value,
   };
   const preview = document.getElementById("pet-description-preview");
+  const box = document.getElementById("pet-description-preview-box");
   const description = buildPetDescription(draftPet);
   preview.textContent = description || "Marque as características acima para gerar a descrição automaticamente.";
+  box.classList.toggle("description-preview--filled", Boolean(description));
 }
 
 function closePetModal() {
@@ -666,6 +915,7 @@ async function handlePetFormSubmit(event) {
     name: document.getElementById("pet-name").value.trim(),
     species: document.getElementById("pet-species").value,
     size: document.getElementById("pet-size").value,
+    gender: document.getElementById("pet-gender").value || null,
     age_label: document.getElementById("pet-age").value.trim(),
     status: document.getElementById("pet-status").value,
     vaccinated: document.getElementById("pet-vaccinated").checked,
@@ -874,7 +1124,7 @@ async function handleProfileFormSubmit(event) {
       if (error) throw error;
     }
     Object.assign(CURRENT_ORG_PROFILE, payload);
-    document.getElementById("org-name-label").textContent = `, ${CURRENT_ORG_PROFILE.org_name}`;
+    document.getElementById("org-name-label").textContent = CURRENT_ORG_PROFILE.org_name;
     successBox.textContent = "Perfil atualizado!";
     successBox.classList.add("visible");
   } catch (err) {

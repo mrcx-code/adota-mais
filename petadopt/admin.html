@@ -32,19 +32,22 @@
         <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
         <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
       </span>
-      <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span>
-      <span id="org-name-label" style="font-weight:500;color:var(--color-text-muted);font-size:14px;"></span>
+      <span id="admin-org-badge" class="admin-org-badge hidden">
+        <span class="admin-org-badge-tag">admin</span>
+        <span id="org-name-label" class="admin-org-badge-name"></span>
+      </span>
     </a>
     <div class="header-actions">
       <a href="#ong-faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
       <a href="index.html" class="btn btn-ghost btn-sm">Ver site público</a>
+      <button id="bulk-import-header-btn" class="btn btn-secondary btn-sm hidden" onclick="openBulkImportDrawer()">📥 Importar em lote</button>
       <button id="new-pet-header-btn" class="btn btn-primary btn-sm hidden" onclick="openPetModal()">+ Novo pet</button>
       <div class="dropdown-menu hidden" id="account-menu">
         <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAccountMenu()">⚙️ Conta ▾</button>
         <div class="dropdown-menu-panel hidden" id="account-menu-panel">
           <a id="interessados-link" href="admin-interessados.html" class="dropdown-menu-item">💬 Interessados</a>
           <button type="button" class="dropdown-menu-item" onclick="closeAccountMenu(); openProfileModal();">⚙️ Meu perfil</button>
-          <button type="button" class="dropdown-menu-item dropdown-menu-item--danger" onclick="confirmInlineAction(this, 'Sim, sair', handleLogout)">Sair</button>
+          <button type="button" class="dropdown-menu-item dropdown-menu-item--danger" onclick="confirmInlineAction(this, 'Sim, sair', handleLogout)"><svg class="icon-logout" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button>
         </div>
       </div>
     </div>
@@ -304,14 +307,24 @@
             </select>
           </div>
         </div>
-        <div class="field">
-          <label for="pet-age">Idade</label>
-          <select id="pet-age">
-            <option value="Filhote">🍼 Filhote (até 1 ano)</option>
-            <option value="Jovem">🐕 Jovem (1 a 3 anos)</option>
-            <option value="Adulto">🐾 Adulto (3 a 7 anos)</option>
-            <option value="Idoso">🦴 Idoso (7+ anos)</option>
-          </select>
+        <div class="field-row">
+          <div class="field">
+            <label for="pet-gender">Sexo</label>
+            <select id="pet-gender">
+              <option value="">Não informado</option>
+              <option value="macho">♂ Macho</option>
+              <option value="femea">♀ Fêmea</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pet-age">Idade</label>
+            <select id="pet-age">
+              <option value="Filhote">🍼 Filhote (até 1 ano)</option>
+              <option value="Jovem">🐕 Jovem (1 a 3 anos)</option>
+              <option value="Adulto">🐾 Adulto (3 a 7 anos)</option>
+              <option value="Idoso">🦴 Idoso (7+ anos)</option>
+            </select>
+          </div>
         </div>
         <div class="field">
           <label for="pet-photo">Foto</label>
@@ -340,15 +353,6 @@
           <input type="text" id="pet-city" placeholder="São Paulo" />
         </div>
         <div class="field">
-          <label>Convivência (opcional — só marque o que já foi testado)</label>
-          <div class="checkbox-row">
-            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-dogs" /> 🐶 Convive com cães</label>
-            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-cats" /> 🐱 Convive com gatos</label>
-            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-kids" /> 🧒 Convive com crianças</label>
-            <label class="checkbox-inline"><input type="checkbox" id="pet-apartment-friendly" /> 🏢 Vive bem em apartamento</label>
-          </div>
-        </div>
-        <div class="field">
           <label>Personalidade (opcional)</label>
           <div class="checkbox-row">
             <label class="checkbox-inline"><input type="checkbox" class="pet-personality-check" value="carinhoso" /> 🥰 Carinhoso</label>
@@ -361,17 +365,29 @@
           </div>
         </div>
         <div class="field">
-          <label for="pet-favorite-toy">Brinquedo ou hobby favorito (opcional)</label>
-          <input type="text" id="pet-favorite-toy" placeholder="bolinha de papel, cabo de guerra..." />
+          <label>Convivência (opcional — só marque o que já foi testado)</label>
+          <div class="checkbox-row">
+            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-dogs" /> 🐶 Convive com cães</label>
+            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-cats" /> 🐱 Convive com gatos</label>
+            <label class="checkbox-inline"><input type="checkbox" id="pet-lives-with-kids" /> 🧒 Convive com crianças</label>
+            <label class="checkbox-inline"><input type="checkbox" id="pet-apartment-friendly" /> 🏢 Vive bem em apartamento</label>
+          </div>
         </div>
         <div class="field">
-          <label>Pré-visualização da descrição</label>
-          <p id="pet-description-preview" class="hint">Marque as características acima para gerar a descrição automaticamente.</p>
+          <label for="pet-favorite-toy">Brinquedo ou hobby favorito (opcional)</label>
+          <input type="text" id="pet-favorite-toy" maxlength="60" placeholder="bolinha de papel, cabo de guerra..." />
         </div>
         <div class="field">
           <label for="pet-adoption-form-url">Link do formulário de adoção do seu abrigo (opcional)</label>
           <input type="url" id="pet-adoption-form-url" placeholder="https://forms.gle/..." />
           <p class="hint">Se preenchido, aparece como uma opção extra para quem demonstrar interesse — além do nosso formulário padrão.</p>
+        </div>
+        <div class="field">
+          <label>Pré-visualização da descrição</label>
+          <div id="pet-description-preview-box" class="description-preview">
+            <span class="description-preview-icon">🐾</span>
+            <p id="pet-description-preview">Marque as características acima para gerar a descrição automaticamente.</p>
+          </div>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" onclick="closePetModal()">Cancelar</button>
@@ -450,7 +466,7 @@
   <div id="pet-interests-modal" class="modal-overlay" onclick="if(event.target===this) closePetInterestsDrawer()">
     <div class="modal">
       <div class="modal-header">
-        <h2>Interessados em <span id="pet-interests-title"></span></h2>
+        <h2>Interessados em <span id="pet-interests-title"></span> <span id="pet-interests-count-badge" class="drawer-count-badge"><span id="pet-interests-count">0</span></span></h2>
         <button class="modal-close" onclick="closePetInterestsDrawer()" aria-label="Fechar">&times;</button>
       </div>
       <div id="pet-interests-empty" class="empty-state hidden">
@@ -458,6 +474,40 @@
         Nenhum interessado ainda por esse pet.
       </div>
       <div id="pet-interests-list" class="interest-list"></div>
+    </div>
+  </div>
+
+  <!-- ---------------- Drawer: importação em lote de pets ---------------- -->
+  <div id="bulk-import-modal" class="modal-overlay" onclick="if(event.target===this) closeBulkImportDrawer()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Importar pets em lote</h2>
+        <button class="modal-close" onclick="closeBulkImportDrawer()" aria-label="Fechar">&times;</button>
+      </div>
+
+      <p class="hint" style="margin-bottom:12px;">
+        Cadastre vários pets de uma vez a partir de um CSV. Baixe o modelo, preencha uma linha por pet e cole o conteúdo (ou envie o arquivo) abaixo.
+      </p>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom:16px;" onclick="downloadBulkImportTemplate()">⬇️ Baixar modelo CSV</button>
+
+      <div class="field">
+        <label for="bulk-import-file">Arquivo CSV (opcional)</label>
+        <input type="file" id="bulk-import-file" accept=".csv,text/csv" onchange="handleBulkImportFile(event)" />
+      </div>
+      <div class="field">
+        <label for="bulk-import-textarea">Ou cole o CSV aqui</label>
+        <textarea id="bulk-import-textarea" rows="6" placeholder="nome,especie,porte,idade,sexo,status,vacinado,vermifugado,castrado,cidade,brinquedo_favorito
+Caramelo,cachorro,Médio,Jovem,macho,disponivel,sim,sim,nao,São Paulo,bolinha de tênis"></textarea>
+      </div>
+
+      <div id="bulk-import-error" class="form-error"></div>
+      <div id="bulk-import-preview"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeBulkImportDrawer()">Cancelar</button>
+        <button type="button" class="btn btn-secondary" onclick="previewBulkImport()">Pré-visualizar</button>
+        <button type="button" id="bulk-import-submit-btn" class="btn btn-primary hidden" onclick="submitBulkImport()">Importar</button>
+      </div>
     </div>
   </div>
 
