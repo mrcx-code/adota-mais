@@ -97,6 +97,19 @@ button {
   z-index: 20;
 }
 
+/* Header e hero do site público usam um cursor de patinha, pra reforçar a
+   identidade visual (só decorativo — não afeta usabilidade/acessibilidade).
+   Escopado às páginas públicas via .cursor-paw (não entra no admin). */
+.cursor-paw,
+.hero,
+.cursor-paw a,
+.cursor-paw button,
+.hero a,
+.hero button {
+  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48dGV4dCB4PSIxNiIgeT0iMjQiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfkL48L3RleHQ+PC9zdmc+")
+    16 16, auto;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -108,18 +121,58 @@ button {
   text-decoration: none;
 }
 
-.brand-mark {
-  font-size: 24px;
-  line-height: 1;
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--color-brand-soft);
-  border-radius: 50%;
+.brand-logo {
+  height: 30px;
+  width: auto;
+  display: block;
+  position: relative;
+  z-index: 2;
+  transform-origin: 60% 70%;
 }
+
+/* Ao passar o mouse no logo: o próprio logo dá um wiggle brincalhão e três
+ * pegadas âmbar aparecem em sequência atrás dele, como um rastro — só
+ * decorativo, some de novo quando o mouse sai. */
+.logo-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.logo-wrap:hover .brand-logo {
+  animation: logo-wiggle 0.6s ease;
+}
+
+@keyframes logo-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-9deg); }
+  40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(3deg); }
+}
+
+.logo-paw {
+  position: absolute;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F59E0B'><path d='M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z'/></svg>")
+    center / contain no-repeat;
+  opacity: 0;
+  pointer-events: none;
+}
+/* Rastro de pegadas saindo de trás do logo, indo pra trás e pra baixo. */
+.logo-paw-1 { left: -2px; bottom: 2px; }
+.logo-paw-2 { left: -14px; bottom: -6px; }
+.logo-paw-3 { left: -26px; bottom: -13px; }
+
+@keyframes logo-paw-pop {
+  0% { opacity: 0; transform: scale(0.4) rotate(-15deg); }
+  40% { opacity: 1; transform: scale(1) rotate(-6deg); }
+  100% { opacity: 0; transform: scale(0.9) rotate(-6deg); }
+}
+.logo-wrap:hover .logo-paw-1 { animation: logo-paw-pop 0.9s ease forwards; }
+.logo-wrap:hover .logo-paw-2 { animation: logo-paw-pop 0.9s ease 0.18s forwards; }
+.logo-wrap:hover .logo-paw-3 { animation: logo-paw-pop 0.9s ease 0.36s forwards; }
 
 .header-actions {
   display: flex;
@@ -330,6 +383,14 @@ a.stat-pill:hover {
   overflow: hidden;
   box-shadow: var(--shadow-card);
   background: var(--color-surface-muted);
+  transform: perspective(600px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+.hero-tile.tilting {
+  transition: box-shadow 0.35s ease;
+  box-shadow: var(--shadow-card-hover);
 }
 
 .hero-tile img {
@@ -372,6 +433,7 @@ a.stat-pill:hover {
     align-items: flex-start;
   }
 }
+.board-intro h1,
 .board-intro h2 {
   font-family: var(--font-display);
   font-weight: 600;
@@ -421,10 +483,11 @@ a.stat-pill:hover {
   content: "+";
   position: absolute;
   right: 0;
-  top: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 18px;
+  line-height: 1;
   color: var(--color-text-muted);
-  transition: transform 0.15s ease;
 }
 .faq-item[open] summary::after {
   content: "–";
@@ -455,10 +518,8 @@ a.stat-pill:hover {
   white-space: nowrap;
 }
 
-/* Únicos links-botão que devem manter sublinhado: os itens de navegação do
-   header (Sobre nós, FAQ e futuras páginas equivalentes). */
 .nav-link {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .btn:active { transform: translateY(1px); }
@@ -862,10 +923,82 @@ a.stat-pill:hover {
   min-width: 160px;
 }
 
-.pet-card-actions {
+.pet-card-quick-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pet-card-icon-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(252, 250, 244, 0.92);
+  color: var(--color-text);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(28, 33, 23, 0.12);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.pet-card-icon-btn:hover {
+  background: var(--color-surface);
+  transform: scale(1.06);
+}
+.pet-card-icon-btn--danger:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* Tooltip customizado (mais rápido e consistente com o design system do
+ * que o title nativo do navegador) — some tanto quanto se usa o mouse
+ * quanto navegando por teclado. */
+.pet-card-icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 9px);
+  transform: translateY(-50%) translateX(4px);
+  background: rgba(28, 33, 23, 0.92);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10;
+}
+.pet-card-icon-btn[data-tooltip]:hover::after,
+.pet-card-icon-btn[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.pet-card-icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--color-brand);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  border-radius: 999px;
+  padding: 0 3px;
 }
 
 .pet-card-move {
@@ -921,6 +1054,13 @@ textarea {
   color: var(--color-text);
 }
 
+/* Todo dropdown (select nativo ou o .filter-dropdown-btn customizado) usa
+ * fundo branco — mesmo padrão do menu de saúde no mural. */
+select,
+.filter-dropdown-btn {
+  background: var(--color-surface);
+}
+
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--color-brand);
@@ -951,6 +1091,99 @@ textarea { resize: vertical; min-height: 80px; }
   height: 16px;
   accent-color: var(--color-brand);
 }
+
+/* Dropdown de múltipla escolha (ex: filtro de saúde no mural) — mesmo
+ * box-model de um <select>, mas o painel abre com checkboxes agrupados
+ * em vez de virar itens lado a lado. */
+.filter-dropdown {
+  position: relative;
+}
+
+.filter-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.filter-dropdown-btn:hover { background: var(--color-surface-muted); }
+.filter-dropdown-caret {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.filter-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card-hover);
+  padding: 12px 14px;
+}
+
+.interest-filters .filter-dropdown-btn {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* Menu de ações (ex: "⚙️ Conta" no header do admin) — mesmo painel do
+ * .filter-dropdown, mas com itens de ação em vez de checkboxes. */
+.dropdown-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card-hover);
+  padding: 6px;
+}
+
+.dropdown-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.dropdown-menu-item:hover { background: var(--color-surface-muted); }
+.dropdown-menu-item--danger { color: var(--color-danger); }
+.dropdown-menu-item--danger:hover { background: var(--color-danger-bg); }
 
 .field-row {
   display: grid;
@@ -998,6 +1231,31 @@ textarea { resize: vertical; min-height: 80px; }
   box-shadow: 0 0 0 2px var(--color-surface-muted), 0 0 0 4px var(--color-brand);
 }
 
+/* Cada aba já mostra a cor do grupo de status (mesma linguagem dos cards),
+   pra dar pra reconhecer o fluxo de longe sem precisar clicar. */
+.status-tab[data-status="novo"],
+.status-tab[data-status="em_contato"],
+.status-tab[data-status="em_triagem"],
+.status-tab[data-status="aprovado"] {
+  background: var(--color-status-processo-bg);
+  color: #8A5A17;
+}
+.status-tab[data-status="adocao_concluida"] {
+  background: var(--color-status-disponivel-bg);
+  color: var(--color-brand-dark);
+}
+.status-tab[data-status="reprovado"] {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.status-tab[data-status="arquivado"] {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+.status-tab[data-status].active {
+  box-shadow: var(--shadow-card), inset 0 0 0 1.5px currentColor;
+}
+
 .interest-filters {
   display: flex;
   align-items: flex-start;
@@ -1013,6 +1271,12 @@ textarea { resize: vertical; min-height: 80px; }
   margin-bottom: 12px;
   min-width: 160px;
 }
+.interest-filters select,
+.interest-filters input[type="date"] {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
 
 .interest-list {
   display: flex;
@@ -1025,6 +1289,30 @@ textarea { resize: vertical; min-height: 80px; }
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 16px 18px;
+}
+
+.interest-row[data-status="novo"],
+.interest-row[data-status="em_contato"],
+.interest-row[data-status="em_triagem"],
+.interest-row[data-status="aprovado"] {
+  background: var(--color-status-processo-bg);
+  border-color: var(--color-status-processo);
+}
+
+.interest-row[data-status="adocao_concluida"] {
+  background: var(--color-status-disponivel-bg);
+  border-color: var(--color-status-disponivel);
+}
+
+.interest-row[data-status="reprovado"] {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.interest-row[data-status="arquivado"] {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+  opacity: 0.7;
 }
 
 .interest-row-main {
@@ -1112,16 +1400,16 @@ textarea { resize: vertical; min-height: 80px; }
   line-height: 1.5;
 }
 
-/* ---------- Modal ---------- */
+/* ---------- Drawer (padrão único pra todo modal/lightbox do sistema) ---------- */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(28, 33, 23, 0.45);
   display: none;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 40px 16px;
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
   overflow-y: auto;
   z-index: 100;
 }
@@ -1129,41 +1417,31 @@ textarea { resize: vertical; min-height: 80px; }
 
 .modal {
   background: var(--color-surface);
-  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-modal);
   width: 100%;
-  max-width: 460px;
-  padding: 24px;
-  animation: modal-in 0.15s ease;
-}
-
-@keyframes modal-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* O cadastro de pet abre como um drawer lateral (mais espaço pra formulário
-   longo) em vez do popup centralizado usado pelos outros modais. */
-#pet-modal.modal-overlay {
-  justify-content: flex-end;
-  align-items: stretch;
-  padding: 0;
-}
-#pet-modal .modal {
-  width: 100%;
-  max-width: 520px;
+  max-width: 480px;
   height: 100%;
   max-height: 100%;
   border-radius: 0;
+  padding: 24px;
   overflow-y: auto;
   animation: drawer-in 0.25s ease;
 }
+
 @keyframes drawer-in {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
+
+#pet-modal .modal,
+#profile-modal .modal {
+  max-width: 520px;
+}
+
 @media (max-width: 560px) {
-  #pet-modal .modal { max-width: 100%; }
+  .modal {
+    max-width: 100%;
+  }
 }
 
 .modal-header {
@@ -1213,6 +1491,37 @@ textarea { resize: vertical; min-height: 80px; }
   padding: 1px 5px;
   border-radius: 4px;
 }
+
+/* ---------- Botão flutuante "voltar ao topo" ---------- */
+
+.back-to-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: #fff;
+  font-size: 18px;
+  border: none;
+  box-shadow: var(--shadow-card-hover);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  z-index: 90;
+}
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.back-to-top:hover { background: var(--color-brand-dark); }
 
 /* ---------- Auth (admin) — layout dividido ---------- */
 

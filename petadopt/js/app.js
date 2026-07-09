@@ -90,19 +90,56 @@ function clearMuralFilters() {
   document.getElementById("filter-species").value = "";
   document.getElementById("filter-size").value = "";
   document.getElementById("filter-state").value = "";
+  document.querySelectorAll(".filter-health-check").forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+  updateHealthFilterLabel();
   updateMuralCityOptions();
   renderBoard();
 }
+
+const HEALTH_FILTER_LABELS = { vaccinated: "Vacinado", dewormed: "Vermifugado", neutered: "Castrado" };
+
+function toggleHealthFilterDropdown() {
+  document.getElementById("health-filter-panel").classList.toggle("hidden");
+}
+
+function onHealthFilterChange() {
+  updateHealthFilterLabel();
+  renderBoard();
+}
+
+function updateHealthFilterLabel() {
+  const checked = Array.from(document.querySelectorAll(".filter-health-check:checked")).map(
+    (checkbox) => HEALTH_FILTER_LABELS[checkbox.value]
+  );
+  document.getElementById("health-filter-label").textContent = checked.length ? checked.join(", ") : "Todos";
+}
+
+// Fecha o dropdown de saúde ao clicar fora dele.
+document.addEventListener("click", (event) => {
+  const dropdown = document.getElementById("health-filter-dropdown");
+  if (dropdown && !dropdown.contains(event.target)) {
+    document.getElementById("health-filter-panel")?.classList.add("hidden");
+  }
+});
 
 function getFilteredPets() {
   const species = document.getElementById("filter-species").value;
   const size = document.getElementById("filter-size").value;
   const state = document.getElementById("filter-state").value;
   const city = document.getElementById("filter-city").value;
+  const healthFilters = Array.from(document.querySelectorAll(".filter-health-check:checked")).map(
+    (checkbox) => checkbox.value
+  );
 
   return ALL_PETS.filter((pet) => {
+    // Anúncio "disponível" sem atualização há muito tempo some do mural até
+    // a ONG confirmar que o pet ainda está disponível (ver isPetStale).
+    if (isPetStale(pet)) return false;
     if (species && pet.species !== species) return false;
     if (size && pet.size !== size) return false;
+    if (healthFilters.some((key) => !pet[key])) return false;
     const org = ORG_BY_ID[pet.org_id] || pet.org;
     if (state && org?.state !== state) return false;
     if (city && org?.city !== city) return false;
@@ -142,7 +179,7 @@ function petCardHtml(pet) {
     pet.status === "disponivel"
       ? `<button class="btn btn-primary btn-cta btn-block" onclick="openInterestModal('${pet.id}')">Quero adotar! 🐾</button>`
       : "";
-  const metaParts = [speciesLabel(pet.species), pet.size, pet.age_label].filter(Boolean);
+  const metaParts = [speciesLabel(pet.species), pet.size, ageLabelWithRange(pet.age_label)].filter(Boolean);
   // No site público, a descrição só aparece para pets ainda disponíveis —
   // uma vez em processo ou adotado, o texto de "procurando um lar" perde o sentido.
   const autoDescription = buildPetDescription(pet);
@@ -180,16 +217,45 @@ function openInterestModal(petId) {
   document.getElementById("interest-success").classList.remove("visible");
   document.getElementById("interest-form").classList.remove("hidden");
   document.getElementById("interest-whatsapp-cta").classList.add("hidden");
+  document.getElementById("interest-close-confirm").classList.add("hidden");
 
-  const orgNote = document.getElementById("interest-org-form-note");
+  // Abrigo com formulário próprio: mostra primeiro a escolha entre os dois
+  // caminhos, em vez de ir direto pro formulário do Patinhas.
   if (pet.adoption_form_url) {
     document.getElementById("interest-org-form-link").href = pet.adoption_form_url;
-    orgNote.classList.remove("hidden");
+    document.getElementById("interest-choice-step").classList.remove("hidden");
+    document.getElementById("interest-form-step").classList.add("hidden");
   } else {
-    orgNote.classList.add("hidden");
+    document.getElementById("interest-choice-step").classList.add("hidden");
+    document.getElementById("interest-form-step").classList.remove("hidden");
   }
 
   document.getElementById("interest-modal").classList.add("open");
+}
+
+/** CTA principal do passo de escolha — o Patinhas continua sendo o fluxo
+ * principal, então "ir pro formulário do abrigo" nunca é o único caminho. */
+function showInterestFormStep() {
+  document.getElementById("interest-choice-step").classList.add("hidden");
+  document.getElementById("interest-form-step").classList.remove("hidden");
+}
+
+/** Só confirma a saída se a pessoa já preencheu alguma coisa — evitar
+ * perguntar à toa quando não há nada a perder. */
+function attemptCloseInterestModal() {
+  const hasInput = ["interest-name", "interest-phone", "interest-email", "interest-message"].some(
+    (id) => document.getElementById(id).value.trim()
+  );
+  const alreadySubmitted = document.getElementById("interest-success").classList.contains("visible");
+  if (!hasInput || alreadySubmitted) {
+    closeInterestModal();
+    return;
+  }
+  document.getElementById("interest-close-confirm").classList.remove("hidden");
+}
+
+function cancelCloseInterestModal() {
+  document.getElementById("interest-close-confirm").classList.add("hidden");
 }
 
 function closeInterestModal() {
@@ -257,6 +323,31 @@ async function submitInterest(event) {
     submitBtn.disabled = false;
     submitBtn.textContent = "Enviar";
   }
+}
+
+/* ---------------- Efeito de tilt nas fotos do hero ---------------- */
+
+/** Leve inclinação 3D que segue o mouse dentro de cada foto do hero — só
+ * decorativo, some suavemente quando o mouse sai. */
+function setupHeroTilt() {
+  const tiles = document.querySelectorAll(".hero-tile");
+  tiles.forEach((tile) => {
+    tile.addEventListener("mousemove", (event) => {
+      const rect = tile.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      const rotateY = x * 16;
+      const rotateX = y * -16;
+      tile.classList.add("tilting");
+      tile.style.transition = "none";
+      tile.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`;
+    });
+    tile.addEventListener("mouseleave", () => {
+      tile.classList.remove("tilting");
+      tile.style.transition = "";
+      tile.style.transform = "";
+    });
+  });
 }
 
 /* ---------------- Carrossel mobile (indicador de bolinhas) ---------------- */
@@ -352,4 +443,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("interest-form").addEventListener("submit", submitInterest);
   attachPhoneMask(document.getElementById("interest-phone"));
   setupKanbanDots();
+  setupBackToTop();
+  setupHeroTilt();
 });

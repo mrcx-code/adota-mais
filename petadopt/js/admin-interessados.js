@@ -4,19 +4,31 @@ let MY_PETS_LOOKUP = []; // [{id, name}] — só para o filtro e exibir o nome d
 let ALL_INTERESTS = []; // normalizado: {id, pet_id, pet_name, name, email, phone, status, created_at}
 let CURRENT_STATUS_TAB = ""; // "" = Todos (que já exclui arquivados — ver renderInterestList)
 
+function renderStatusTabs() {
+  const tabsHtml = [{ value: "", label: "Todos" }, ...INTEREST_STATUSES]
+    .map(
+      (s) =>
+        `<button type="button" class="status-tab${s.value === "" ? " active" : ""}" data-status="${s.value}">${s.label}</button>`
+    )
+    .join("");
+  const container = document.getElementById("status-tabs");
+  container.innerHTML = tabsHtml;
+  container.querySelectorAll(".status-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      CURRENT_STATUS_TAB = tab.dataset.status;
+      container.querySelectorAll(".status-tab").forEach((t) => t.classList.toggle("active", t === tab));
+      renderInterestList();
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const session = await requireOngSession();
   if (!session) return; // requireOngSession já redirecionou para admin.html
 
+  renderStatusTabs();
   document.getElementById("filter-pet").addEventListener("change", renderInterestList);
   document.getElementById("filter-date").addEventListener("change", renderInterestList);
-  document.querySelectorAll(".status-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      CURRENT_STATUS_TAB = tab.dataset.status;
-      document.querySelectorAll(".status-tab").forEach((t) => t.classList.toggle("active", t === tab));
-      renderInterestList();
-    });
-  });
 
   await loadInterestsData(session.orgId);
   applyPetFilterFromQueryString();
@@ -116,37 +128,6 @@ function renderInterestList() {
 
   empty.classList.add("hidden");
   list.innerHTML = items.map((i) => interestRowHtml(i)).join("");
-}
-
-function interestRowHtml(i) {
-  const wa = whatsappLink(i.phone, `Olá, ${i.name}! Vi seu interesse pelo(a) ${i.pet_name} no Patinhas.`);
-  return `
-    <article class="interest-row">
-      <div class="interest-row-main">
-        <strong>${escapeHtml(i.name)}</strong>
-        <span class="interest-row-pet">🐾 ${escapeHtml(i.pet_name || "—")}</span>
-      </div>
-      <div class="interest-row-contact">
-        ${i.email ? `<span>✉️ ${escapeHtml(i.email)}</span>` : ""}
-        ${
-          i.phone
-            ? wa
-              ? `<a href="${wa}" target="_blank" rel="noopener">📞 ${escapeHtml(i.phone)}</a>`
-              : `<span>📞 ${escapeHtml(i.phone)}</span>`
-            : ""
-        }
-      </div>
-      ${i.message ? `<p class="interest-row-message">${escapeHtml(i.message)}</p>` : ""}
-      <div class="interest-row-foot">
-        <span class="hint">${formatDate(i.created_at)}</span>
-        <select class="interest-status-select" data-status="${i.status}" onchange="updateInterestStatus('${i.id}', this.value)">
-          <option value="novo" ${i.status === "novo" ? "selected" : ""}>Novo</option>
-          <option value="contatado" ${i.status === "contatado" ? "selected" : ""}>Contatado</option>
-          <option value="arquivado" ${i.status === "arquivado" ? "selected" : ""}>Arquivado</option>
-        </select>
-      </div>
-    </article>
-  `;
 }
 
 async function updateInterestStatus(interestId, newStatus) {

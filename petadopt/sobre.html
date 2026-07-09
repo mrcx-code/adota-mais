@@ -28,12 +28,17 @@
 </head>
 <body>
 
-  <header class="site-header">
-    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas</a>
+  <header class="site-header cursor-paw">
+    <a href="index.html" class="brand"><span class="logo-wrap">
+      <img class="brand-logo" src="img/patinhas-logo-full.png" alt="Patinhas" />
+      <span class="logo-paw logo-paw-1" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
+    </span></a>
     <div class="header-actions">
       <a href="sobre.html" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
       <a href="index.html#faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
-      <a href="admin.html" class="btn btn-secondary btn-sm">Sou um abrigo / ONG</a>
+      <a href="admin.html" class="btn btn-primary btn-sm">Sou um abrigo / ONG</a>
     </div>
   </header>
 
@@ -44,11 +49,10 @@
       <div class="about-hero-blob about-hero-blob--a" aria-hidden="true"></div>
       <div class="about-hero-blob about-hero-blob--b" aria-hidden="true"></div>
       <div class="about-hero-content">
-        <span class="pill-badge">🐾 Rede Nacional de Adoção Responsável</span>
         <h1 class="about-hero-title">Patinhas <em>Brasil</em></h1>
         <p class="about-hero-subtitle">A Rede Nacional de Adoção Responsável.</p>
         <p class="about-hero-desc">Conectamos ONGs, protetores independentes e famílias para tornar a adoção responsável mais simples, organizada e acessível em todo o Brasil.</p>
-        <a href="index.html" class="btn btn-primary btn-cta">Conheça nossos pets 🐾</a>
+        <a href="index.html" class="btn btn-primary btn-cta">Conheça os pets 🐾</a>
       </div>
       <div class="about-hero-photos" aria-hidden="true">
         <img src="https://images.unsplash.com/photo-1558788353-f76d92427f16?q=80&w=500&auto=format&fit=crop" loading="lazy" alt="" />
@@ -124,7 +128,7 @@
         <div class="how-step">
           <span class="how-step-number">3</span>
           <div class="how-step-body">
-            <span class="how-step-icon">❤️</span>
+            <span class="how-step-icon">💚</span>
             <p>Famílias encontram o pet ideal.</p>
           </div>
         </div>
@@ -205,13 +209,16 @@
   </main>
 
   <footer class="site-footer">
-    Feito com 🧡 para ajudar pets a encontrarem um lar. · <a href="admin.html">Área do abrigo</a>
+    Feito com 💚 para ajudar pets a encontrarem um lar. · <a href="admin.html">Área do abrigo</a>
   </footer>
+
+  <button id="back-to-top" class="back-to-top" aria-label="Voltar ao topo">↑</button>
 
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/analytics.js"></script>
+  <script src="js/utils.js"></script>
   <script src="js/mockData.js"></script>
   <script src="js/sobre.js"></script>
 </body>

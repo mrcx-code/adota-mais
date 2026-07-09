@@ -18,7 +18,12 @@
 <body>
 
   <header class="site-header">
-    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
+    <a href="index.html" class="brand"><span class="logo-wrap">
+      <img class="brand-logo" src="img/patinhas-logo-full.png" alt="Patinhas" />
+      <span class="logo-paw logo-paw-1" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
+    </span> <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
     <div class="header-actions">
       <a href="admin.html" class="btn btn-ghost btn-sm">← Voltar ao painel</a>
       <button class="btn btn-secondary btn-sm" onclick="confirmInlineAction(this, 'Sim, sair', handleLogoutInteressados)">Sair</button>
@@ -35,12 +40,7 @@
       <p>Todos os contatos recebidos pelos seus pets, em um só lugar.</p>
     </div>
 
-    <div class="status-tabs" id="status-tabs">
-      <button type="button" class="status-tab active" data-status="">Todos</button>
-      <button type="button" class="status-tab" data-status="novo">Novo</button>
-      <button type="button" class="status-tab" data-status="contatado">Contatado</button>
-      <button type="button" class="status-tab" data-status="arquivado">Arquivado</button>
-    </div>
+    <div class="status-tabs" id="status-tabs"></div>
 
     <div class="interest-filters">
       <div class="field">
@@ -53,7 +53,10 @@
         <label for="filter-date">A partir de</label>
         <input type="date" id="filter-date" />
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="clearInterestFilters()" style="align-self:flex-end;">Limpar filtros</button>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn btn-ghost btn-sm" onclick="clearInterestFilters()">Limpar filtros</button>
+      </div>
     </div>
 
     <div id="interessados-loading" class="empty-state">

@@ -28,12 +28,17 @@
 </head>
 <body>
 
-  <header class="site-header">
-    <a href="index.html" class="brand"><span class="brand-mark">🐾</span> Patinhas</a>
+  <header class="site-header cursor-paw">
+    <a href="index.html" class="brand"><span class="logo-wrap">
+      <img class="brand-logo" src="img/patinhas-logo-full.png" alt="Patinhas" />
+      <span class="logo-paw logo-paw-1" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
+    </span></a>
     <div class="header-actions">
       <a href="sobre.html" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
       <a href="#faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
-      <a href="admin.html" class="btn btn-secondary btn-sm">Sou um abrigo / ONG</a>
+      <a href="admin.html" class="btn btn-primary btn-sm">Sou um abrigo / ONG</a>
     </div>
   </header>
 
@@ -114,7 +119,24 @@
             <option value="">Todos os estados</option>
           </select>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="clearMuralFilters()" style="align-self:flex-end;">Limpar filtros</button>
+        <div class="field">
+          <label for="health-filter-btn">Saúde</label>
+          <div class="filter-dropdown" id="health-filter-dropdown">
+            <button type="button" id="health-filter-btn" class="filter-dropdown-btn" onclick="toggleHealthFilterDropdown()">
+              <span id="health-filter-label">Todos</span>
+              <span class="filter-dropdown-caret">▾</span>
+            </button>
+            <div class="filter-dropdown-panel hidden" id="health-filter-panel">
+              <label class="checkbox-inline"><input type="checkbox" class="filter-health-check" value="vaccinated" onchange="onHealthFilterChange()" /> 💉 Vacinado</label>
+              <label class="checkbox-inline"><input type="checkbox" class="filter-health-check" value="dewormed" onchange="onHealthFilterChange()" /> 🪱 Vermifugado</label>
+              <label class="checkbox-inline"><input type="checkbox" class="filter-health-check" value="neutered" onchange="onHealthFilterChange()" /> ✂️ Castrado</label>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn btn-ghost btn-sm" onclick="clearMuralFilters()">Limpar filtros</button>
+        </div>
       </div>
 
       <div id="board-loading" class="empty-state">
@@ -197,55 +219,73 @@
   </main>
 
   <footer class="site-footer">
-    Feito com 🧡 para ajudar pets a encontrarem um lar. · <a href="admin.html">Área do abrigo</a>
+    Feito com 💚 para ajudar pets a encontrarem um lar. · <a href="admin.html">Área do abrigo</a>
   </footer>
 
-  <!-- Modal: Tenho interesse -->
-  <div id="interest-modal" class="modal-overlay">
+  <!-- Drawer: Tenho interesse -->
+  <div id="interest-modal" class="modal-overlay" onclick="if(event.target===this) attemptCloseInterestModal()">
     <div class="modal">
       <div class="modal-header">
-        <h2>Tenho interesse em <span id="interest-pet-name"></span></h2>
-        <button class="modal-close" onclick="closeInterestModal()" aria-label="Fechar">&times;</button>
+        <h2 id="interest-modal-title">Tenho interesse em <span id="interest-pet-name"></span></h2>
+        <button class="modal-close" onclick="attemptCloseInterestModal()" aria-label="Fechar">&times;</button>
       </div>
 
-      <div id="interest-org-form-note" class="org-form-note hidden">
-        <p>Esse abrigo também tem um formulário próprio de adoção. Você pode preencher o nosso formulário abaixo <strong>ou</strong> ir direto pro deles — o que for mais rápido pra você:</p>
-        <a id="interest-org-form-link" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-block">Abrir formulário do abrigo ↗</a>
+      <div id="interest-close-confirm" class="org-form-note hidden">
+        <p>Tem certeza que quer sair? O que você preencheu até aqui vai se perder.</p>
+        <div class="modal-actions" style="margin-top:0;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCloseInterestModal()">Continuar preenchendo</button>
+          <button type="button" class="btn btn-danger btn-sm" onclick="closeInterestModal()">Sim, sair</button>
+        </div>
       </div>
 
-      <div id="interest-error" class="form-error"></div>
-      <div id="interest-success" class="form-success"></div>
-
-      <form id="interest-form">
-        <div class="field">
-          <label for="interest-name">Seu nome</label>
-          <input type="text" id="interest-name" required />
+      <!-- Passo 1: escolha entre o formulário do Patinhas ou o do abrigo -->
+      <div id="interest-choice-step">
+        <p style="color:var(--color-text-muted); font-size:14.5px; line-height:1.5; margin:0 0 8px;">Esse abrigo também possui um formulário próprio de adoção.</p>
+        <p style="color:var(--color-text-muted); font-size:14.5px; line-height:1.5; margin:0 0 20px;">Você pode preencher o formulário oficial do abrigo ou, se preferir, continuar pelo formulário do Patinhas. Ambos os caminhos levam seu interesse ao responsável pelo pet.</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button type="button" class="btn btn-primary btn-block" onclick="showInterestFormStep()">Continuar pelo Patinhas</button>
+          <a id="interest-org-form-link" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-block">Abrir formulário do abrigo ↗</a>
         </div>
-        <div class="field-row">
+      </div>
+
+      <!-- Passo 2: formulário do Patinhas -->
+      <div id="interest-form-step">
+        <div id="interest-error" class="form-error"></div>
+        <div id="interest-success" class="form-success"></div>
+
+        <form id="interest-form">
           <div class="field">
-            <label for="interest-phone">Telefone / WhatsApp</label>
-            <input type="tel" id="interest-phone" placeholder="(11) 99999-0000" />
+            <label for="interest-name">Seu nome</label>
+            <input type="text" id="interest-name" required />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="interest-phone">Telefone / WhatsApp</label>
+              <input type="tel" id="interest-phone" placeholder="(11) 99999-0000" />
+            </div>
+            <div class="field">
+              <label for="interest-email">E-mail</label>
+              <input type="email" id="interest-email" placeholder="voce@email.com" />
+            </div>
           </div>
           <div class="field">
-            <label for="interest-email">E-mail</label>
-            <input type="email" id="interest-email" placeholder="voce@email.com" />
+            <label for="interest-message">Mensagem (opcional)</label>
+            <textarea id="interest-message" placeholder="Conte um pouco sobre você, se já teve outros pets, etc."></textarea>
           </div>
-        </div>
-        <div class="field">
-          <label for="interest-message">Mensagem (opcional)</label>
-          <textarea id="interest-message" placeholder="Conte um pouco sobre você, se já teve outros pets, etc."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-ghost" onclick="closeInterestModal()">Cancelar</button>
-          <button type="submit" id="interest-submit-btn" class="btn btn-primary">Enviar</button>
-        </div>
-      </form>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" onclick="attemptCloseInterestModal()">Cancelar</button>
+            <button type="submit" id="interest-submit-btn" class="btn btn-primary">Enviar</button>
+          </div>
+        </form>
 
-      <a id="interest-whatsapp-cta" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-block hidden" style="margin-top: 12px;">
-        Chamar no WhatsApp agora 💬
-      </a>
+        <a id="interest-whatsapp-cta" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-block hidden" style="margin-top: 12px;">
+          Chamar no WhatsApp agora 💬
+        </a>
+      </div>
     </div>
   </div>
+
+  <button id="back-to-top" class="back-to-top" aria-label="Voltar ao topo">↑</button>
 
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

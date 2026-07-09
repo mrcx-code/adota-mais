@@ -83,6 +83,7 @@ function setupScrollReveal() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   setupScrollReveal();
+  setupBackToTop();
   await loadImpactStats();
   // Os cards de impacto já podem estar visíveis (hero curto) — garante que
   // a contagem apareça mesmo se o IntersectionObserver já tiver disparado

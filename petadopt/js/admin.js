@@ -53,37 +53,42 @@ document.addEventListener("DOMContentLoaded", async () => {
 function showAuthView() {
   document.getElementById("auth-view").classList.remove("hidden");
   document.getElementById("dashboard-view").classList.add("hidden");
-  document.getElementById("profile-btn").classList.add("hidden");
-  document.getElementById("logout-btn").classList.add("hidden");
+  document.getElementById("account-menu").classList.add("hidden");
   document.getElementById("org-name-label").classList.add("hidden");
-  document.getElementById("interessados-link").classList.add("hidden");
-  updateHeaderBrandMark();
+  document.getElementById("new-pet-header-btn").classList.add("hidden");
 }
 
 function showDashboard() {
   document.getElementById("auth-view").classList.add("hidden");
   document.getElementById("dashboard-view").classList.remove("hidden");
-  document.getElementById("profile-btn").classList.remove("hidden");
-  document.getElementById("logout-btn").classList.remove("hidden");
-  document.getElementById("interessados-link").classList.remove("hidden");
+  document.getElementById("account-menu").classList.remove("hidden");
+  document.getElementById("new-pet-header-btn").classList.remove("hidden");
   const label = document.getElementById("org-name-label");
-  label.textContent = CURRENT_ORG_PROFILE ? CURRENT_ORG_PROFILE.org_name : "";
+  label.textContent = CURRENT_ORG_PROFILE ? `, ${CURRENT_ORG_PROFILE.org_name}` : "";
   label.classList.remove("hidden");
-  updateHeaderBrandMark();
   renderAdminBoard();
 }
 
-/** Troca o ícone 🐾 do header pela logo da ONG quando ela existir — só faz
- * sentido na área logada, onde a logo pertence a quem está vendo a página. */
-function updateHeaderBrandMark() {
-  const mark = document.getElementById("header-brand-mark");
-  if (!mark) return;
-  if (CURRENT_ORG_PROFILE && CURRENT_ORG_PROFILE.logo_url) {
-    mark.innerHTML = `<img src="${escapeHtml(CURRENT_ORG_PROFILE.logo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-  } else {
-    mark.textContent = "🐾";
-  }
+function toggleAccountMenu() {
+  document.getElementById("account-menu-panel").classList.toggle("hidden");
 }
+
+function closeAccountMenu() {
+  document.getElementById("account-menu-panel").classList.add("hidden");
+}
+
+// Fecha o menu de conta ao clicar fora dele. Usa composedPath() em vez de
+// menu.contains(event.target): o clique em "Sair" troca o botão original
+// pelo par Sim/Cancelar (confirmInlineAction) antes do evento terminar de
+// borbulhar, então event.target já não está mais no DOM e .contains()
+// devolveria false mesmo o clique tendo sido dentro do menu — fechando o
+// painel bem na hora que a confirmação deveria aparecer.
+document.addEventListener("click", (event) => {
+  const menu = document.getElementById("account-menu");
+  if (menu && !event.composedPath().includes(menu)) {
+    closeAccountMenu();
+  }
+});
 
 function showLogin() {
   document.getElementById("signup-panel").classList.add("hidden");
@@ -263,12 +268,6 @@ function renderOngStats() {
   startOfToday.setHours(0, 0, 0, 0);
   const today = MY_INTERESTS.filter((i) => new Date(i.created_at) >= startOfToday).length;
   document.getElementById("stat-count-hoje").textContent = today;
-
-  const mostRecent = MY_PETS.reduce((latest, pet) => {
-    if (!pet.updated_at) return latest;
-    return !latest || new Date(pet.updated_at) > new Date(latest) ? pet.updated_at : latest;
-  }, null);
-  document.getElementById("stat-last-updated").textContent = relativeDateLabel(mostRecent);
 }
 
 function renderAdminBoard() {
@@ -302,15 +301,11 @@ function renderAdminBoard() {
   setupDragAndDrop();
 }
 
-/** Pets "disponível" sem nenhuma atualização há mais de 30 dias — provável
- * dado desatualizado no marketplace (pode já ter sido adotado em outro canal). */
-const STALE_LISTING_DAYS = 30;
-
 function adminPetCardHtml(pet, interestCount) {
   const photoStyle = pet.photo_url
     ? `style="background-image:url('${escapeHtml(pet.photo_url)}');background-size:cover;background-position:center;"`
     : "";
-  const metaParts = [speciesLabel(pet.species), pet.size, pet.age_label].filter(Boolean);
+  const metaParts = [speciesLabel(pet.species), pet.size, ageLabelWithRange(pet.age_label)].filter(Boolean);
   const moveButtons = STATUS_ORDER.map((status) => {
     const isCurrent = status === pet.status;
     return `<button class="btn btn-sm ${isCurrent ? "btn-primary" : "btn-secondary"}"
@@ -319,7 +314,7 @@ function adminPetCardHtml(pet, interestCount) {
   }).join("");
 
   const staleDays = daysSince(pet.updated_at);
-  const isStale = pet.status === "disponivel" && staleDays !== null && staleDays > STALE_LISTING_DAYS;
+  const isStale = isPetStale(pet);
   const staleBanner = isStale
     ? `<div class="stale-banner">
          <span>⏳ Este pet ainda está disponível? Sem atualização há ${staleDays} dias.</span>
@@ -329,7 +324,15 @@ function adminPetCardHtml(pet, interestCount) {
 
   return `
     <article class="pet-card" draggable="true" data-pet-id="${pet.id}">
-      <div class="pet-card-photo" ${photoStyle}></div>
+      <div class="pet-card-photo" ${photoStyle}>
+        <div class="pet-card-quick-actions">
+          <button class="pet-card-icon-btn" data-tooltip="Ver interessados (${interestCount})" aria-label="Ver interessados" onclick="openPetInterestsDrawer('${pet.id}')">
+            💬${interestCount > 0 ? `<span class="pet-card-icon-badge">${interestCount}</span>` : ""}
+          </button>
+          <button class="pet-card-icon-btn" data-tooltip="Editar pet" aria-label="Editar pet" onclick="openPetModal('${pet.id}')">✏️</button>
+          <button class="pet-card-icon-btn pet-card-icon-btn--danger" data-tooltip="Excluir pet" aria-label="Excluir pet" onclick="confirmDeletePetIcon(this, '${pet.id}')">🗑️</button>
+        </div>
+      </div>
       <div class="pet-card-body">
         <div class="pet-card-top">
           <h3 class="pet-card-name">${escapeHtml(pet.name)}</h3>
@@ -342,11 +345,6 @@ function adminPetCardHtml(pet, interestCount) {
           return autoDescription ? `<p class="pet-card-desc">${escapeHtml(autoDescription)}</p>` : "";
         })()}
         ${staleBanner}
-        <div class="pet-card-actions">
-          <button class="btn btn-secondary btn-sm" onclick="openPetModal('${pet.id}')">Editar</button>
-          <a class="btn btn-secondary btn-sm" href="admin-interessados.html?pet=${pet.id}">💬 ${interestCount}</a>
-          <button class="btn btn-danger btn-sm" onclick="confirmDeletePet(this, '${pet.id}')">Excluir</button>
-        </div>
         <div class="pet-card-move">${moveButtons}</div>
         <p class="pet-card-updated">Atualizado: ${relativeDateLabel(pet.updated_at)}</p>
       </div>
@@ -374,26 +372,83 @@ async function confirmAvailability(petId) {
 }
 
 /* ======================================================================
+   Drawer: interessados de um pet específico
+   ====================================================================== */
+
+let CURRENT_INTERESTS_PET_ID = null;
+
+function openPetInterestsDrawer(petId) {
+  CURRENT_INTERESTS_PET_ID = petId;
+  const pet = MY_PETS.find((p) => p.id === petId);
+  document.getElementById("pet-interests-title").textContent = pet ? pet.name : "";
+  renderPetInterestsList();
+  document.getElementById("pet-interests-modal").classList.add("open");
+}
+
+function closePetInterestsDrawer() {
+  document.getElementById("pet-interests-modal").classList.remove("open");
+  CURRENT_INTERESTS_PET_ID = null;
+}
+
+function renderPetInterestsList() {
+  const pet = MY_PETS.find((p) => p.id === CURRENT_INTERESTS_PET_ID);
+  const items = MY_INTERESTS.filter((i) => i.pet_id === CURRENT_INTERESTS_PET_ID).map((i) =>
+    Object.assign({}, i, { pet_name: pet ? pet.name : "" })
+  );
+  const empty = document.getElementById("pet-interests-empty");
+  const list = document.getElementById("pet-interests-list");
+  if (!items.length) {
+    empty.classList.remove("hidden");
+    list.innerHTML = "";
+    return;
+  }
+  empty.classList.add("hidden");
+  list.innerHTML = items.map((i) => interestRowHtml(i)).join("");
+}
+
+async function updateInterestStatus(interestId, newStatus) {
+  const item = MY_INTERESTS.find((i) => i.id === interestId);
+  if (!item) return;
+  const previous = item.status;
+  item.status = newStatus; // otimista
+
+  if (!window.DEMO_MODE) {
+    const { error } = await window.sb.from("interests").update({ status: newStatus }).eq("id", interestId);
+    if (error) {
+      console.error("[Patinhas] Erro ao atualizar status:", error);
+      item.status = previous;
+      renderPetInterestsList();
+      return;
+    }
+  }
+  renderPetInterestsList();
+}
+
+/* ======================================================================
    Excluir pet (confirmação inline, sem usar window.confirm)
    ====================================================================== */
 
-function confirmDeletePet(button, petId) {
+function confirmDeletePetIcon(button, petId) {
   if (button.dataset.confirming === "true") return;
   button.dataset.confirming = "true";
-  const original = button.textContent;
-  button.innerHTML = "Confirmar?";
+
+  // "display: contents" faz os dois botões ocuparem o lugar do original
+  // na coluna de ícones, sem criar uma caixa extra que quebraria o layout.
   const wrapper = document.createElement("span");
-  wrapper.style.display = "inline-flex";
-  wrapper.style.gap = "6px";
+  wrapper.style.display = "contents";
 
   const yesBtn = document.createElement("button");
-  yesBtn.className = "btn btn-danger btn-sm";
-  yesBtn.textContent = "Sim, excluir";
+  yesBtn.className = "pet-card-icon-btn pet-card-icon-btn--danger";
+  yesBtn.setAttribute("data-tooltip", "Confirmar exclusão");
+  yesBtn.setAttribute("aria-label", "Confirmar exclusão");
+  yesBtn.textContent = "✓";
   yesBtn.onclick = () => deletePet(petId);
 
   const noBtn = document.createElement("button");
-  noBtn.className = "btn btn-secondary btn-sm";
-  noBtn.textContent = "Cancelar";
+  noBtn.className = "pet-card-icon-btn";
+  noBtn.setAttribute("data-tooltip", "Cancelar");
+  noBtn.setAttribute("aria-label", "Cancelar");
+  noBtn.textContent = "✕";
   noBtn.onclick = () => renderAdminBoard();
 
   button.replaceWith(wrapper);
@@ -547,7 +602,7 @@ function openPetModal(petId) {
   document.getElementById("pet-dewormed").checked = pet ? Boolean(pet.dewormed) : false;
   document.getElementById("pet-neutered").checked = pet ? Boolean(pet.neutered) : false;
   document.getElementById("pet-adoption-form-url").value = pet ? pet.adoption_form_url || "" : "";
-  document.getElementById("pet-city").value = pet ? pet.city || "" : "";
+  document.getElementById("pet-city").value = pet ? pet.city || "" : CURRENT_ORG_PROFILE?.city || "";
   document.getElementById("pet-lives-with-dogs").checked = pet ? Boolean(pet.lives_with_dogs) : false;
   document.getElementById("pet-lives-with-cats").checked = pet ? Boolean(pet.lives_with_cats) : false;
   document.getElementById("pet-lives-with-kids").checked = pet ? Boolean(pet.lives_with_kids) : false;
@@ -728,8 +783,28 @@ function closeProfileModal() {
   document.getElementById("profile-modal").classList.remove("open");
 }
 
+const LOGO_MAX_SIZE_MB = 5;
+
 function handleLogoInputChange(event) {
   const file = event.target.files && event.target.files[0];
+  const errorBox = document.getElementById("profile-form-error");
+  errorBox.classList.remove("visible");
+
+  if (file && !file.type.startsWith("image/")) {
+    errorBox.textContent = "Esse arquivo não é uma imagem. Envie um JPG, PNG ou WEBP.";
+    errorBox.classList.add("visible");
+    event.target.value = "";
+    SELECTED_LOGO_FILE = null;
+    return;
+  }
+  if (file && file.size > LOGO_MAX_SIZE_MB * 1024 * 1024) {
+    errorBox.textContent = `Essa imagem tem mais de ${LOGO_MAX_SIZE_MB}MB. Tente uma versão menor ou mais comprimida.`;
+    errorBox.classList.add("visible");
+    event.target.value = "";
+    SELECTED_LOGO_FILE = null;
+    return;
+  }
+
   SELECTED_LOGO_FILE = file || null;
   const preview = document.getElementById("profile-logo-preview");
   if (file) {
@@ -781,20 +856,30 @@ async function handleProfileFormSubmit(event) {
   try {
     if (window.DEMO_MODE) {
       if (SELECTED_LOGO_FILE) payload.logo_url = URL.createObjectURL(SELECTED_LOGO_FILE);
-      Object.assign(CURRENT_ORG_PROFILE, payload);
-    } else {
-      if (SELECTED_LOGO_FILE) payload.logo_url = await uploadOrgLogo(SELECTED_LOGO_FILE);
+    } else if (SELECTED_LOGO_FILE) {
+      try {
+        payload.logo_url = await uploadOrgLogo(SELECTED_LOGO_FILE);
+      } catch (uploadErr) {
+        console.error("[Patinhas] Erro ao enviar logo:", uploadErr);
+        errorBox.textContent = `Não foi possível enviar a imagem (${
+          uploadErr?.message || "erro desconhecido"
+        }). O resto do perfil ainda não foi salvo — tente de novo ou salve sem trocar a logo.`;
+        errorBox.classList.add("visible");
+        return;
+      }
+    }
+
+    if (!window.DEMO_MODE) {
       const { error } = await window.sb.from("profiles").update(payload).eq("id", CURRENT_ORG_ID);
       if (error) throw error;
-      Object.assign(CURRENT_ORG_PROFILE, payload);
     }
-    document.getElementById("org-name-label").textContent = CURRENT_ORG_PROFILE.org_name;
-    updateHeaderBrandMark();
+    Object.assign(CURRENT_ORG_PROFILE, payload);
+    document.getElementById("org-name-label").textContent = `, ${CURRENT_ORG_PROFILE.org_name}`;
     successBox.textContent = "Perfil atualizado!";
     successBox.classList.add("visible");
   } catch (err) {
     console.error("[Patinhas] Erro ao salvar perfil:", err);
-    errorBox.textContent = "Não foi possível salvar agora.";
+    errorBox.textContent = `Não foi possível salvar agora${err?.message ? ` (${err.message})` : ""}. Tente novamente.`;
     errorBox.classList.add("visible");
   } finally {
     submitBtn.disabled = false;

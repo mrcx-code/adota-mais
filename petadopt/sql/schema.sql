@@ -75,8 +75,12 @@ create table interests (
   email text,
   phone text,
   message text,
-  -- Acompanhamento manual do abrigo na Central de Interessados.
-  status text not null default 'novo' check (status in ('novo', 'contatado', 'arquivado')),
+  -- Acompanhamento manual do abrigo na Central de Interessados — pipeline
+  -- de adoção, em ordem lógica do processo: novo -> em_contato -> em_triagem
+  -- -> aprovado -> adocao_concluida (ou reprovado/arquivado a qualquer momento).
+  status text not null default 'novo' check (
+    status in ('novo', 'em_contato', 'em_triagem', 'aprovado', 'adocao_concluida', 'reprovado', 'arquivado')
+  ),
   created_at timestamptz not null default now()
 );
 

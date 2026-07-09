@@ -192,6 +192,24 @@ function joinWithE(items) {
  * substitui o texto livre por uma frase padronizada, montada só com o que
  * foi de fato preenchido (idade, personalidade, saúde, convivência).
  */
+const AGE_LABEL_RANGES = {
+  Filhote: "até 1 ano",
+  Jovem: "1 a 3 anos",
+  Adulto: "3 a 7 anos",
+  Idoso: "mais de 7 anos",
+};
+
+/** "Adulto (3 a 7 anos)" — usado na linha de meta do card (espécie · porte ·
+ * idade) pra deixar a faixa etária clara sem precisar repetir na descrição. */
+function ageLabelWithRange(ageLabel) {
+  const range = AGE_LABEL_RANGES[ageLabel];
+  return range ? `${ageLabel} (${range})` : ageLabel;
+}
+
+// Saúde, cidade e faixa etária já aparecem na linha de meta / badges do card
+// (ver ageLabelWithRange, petHealthBadgesHtml, petTraitsBadgesHtml) — a
+// descrição cobre só comportamento: personalidade, convivência e brinquedo/
+// hobby favorito.
 function buildPetDescription(pet) {
   const parts = [];
 
@@ -200,26 +218,111 @@ function buildPetDescription(pet) {
     parts.push(`É ${joinWithE(personality)}`);
   }
 
+  const convivencia = [];
+  if (pet.lives_with_dogs === true) convivencia.push("cães");
+  if (pet.lives_with_cats === true) convivencia.push("gatos");
+  if (pet.lives_with_kids === true) convivencia.push("crianças");
+  if (convivencia.length) {
+    parts.push(`Convive bem com ${joinWithE(convivencia)}`);
+  }
+  if (pet.apartment_friendly === true) {
+    parts.push("Vive bem em apartamento");
+  }
+
   if (pet.favorite_toy) {
     parts.push(`Adora ${pet.favorite_toy}`);
   }
 
-  const health = [];
-  if (pet.vaccinated) health.push("vacinado(a)");
-  if (pet.dewormed) health.push("vermifugado(a)");
-  if (pet.neutered) health.push("castrado(a)");
-  if (health.length) parts.push(`Já está ${joinWithE(health)}`);
-
-  const conviv = [];
-  if (pet.lives_with_dogs) conviv.push("cães");
-  if (pet.lives_with_cats) conviv.push("gatos");
-  if (pet.lives_with_kids) conviv.push("crianças");
-  if (conviv.length) parts.push(`Convive bem com ${joinWithE(conviv)}`);
-
-  if (pet.apartment_friendly) parts.push("Se adapta bem a apartamentos");
-
   if (!parts.length) return "";
   return parts.join(". ") + ".";
+}
+
+/** Depois de quantos dias sem atualização um anúncio "disponível" vira suspeito
+ * de estar desatualizado (pet já pode ter sido adotado em outro canal). */
+const STALE_LISTING_DAYS = 30;
+
+/** Um pet "disponível" sem atualização há mais de STALE_LISTING_DAYS dias
+ * precisa que a ONG confirme se ainda está disponível — até lá, some do
+ * mural público (ver getFilteredPets em app.js) mas continua visível pra
+ * própria ONG no admin, com o aviso de confirmação. */
+function isPetStale(pet) {
+  if (pet.status !== "disponivel") return false;
+  const staleDays = daysSince(pet.updated_at);
+  return staleDays !== null && staleDays > STALE_LISTING_DAYS;
+}
+
+// Pipeline de acompanhamento dos interessados, em ordem lógica do processo
+// de adoção. Única fonte da verdade — usada pelas abas de filtro e pelo
+// select de status de cada interessado, tanto na Central de Interessados
+// quanto no drawer de interessados de um pet específico (admin.html).
+const INTEREST_STATUSES = [
+  { value: "novo", label: "Novo" },
+  { value: "em_contato", label: "Em contato" },
+  { value: "em_triagem", label: "Em triagem" },
+  { value: "aprovado", label: "Aprovado" },
+  { value: "adocao_concluida", label: "Adoção concluída" },
+  { value: "reprovado", label: "Reprovado" },
+  { value: "arquivado", label: "Arquivado" },
+];
+
+function statusLabel(value) {
+  return INTEREST_STATUSES.find((s) => s.value === value)?.label || value;
+}
+
+/** Card de um interessado — usado na Central de Interessados e no drawer de
+ * interessados de um pet específico (admin.html). Espera onchange chamando
+ * uma função global `updateInterestStatus(id, novoStatus)` definida por
+ * quem renderiza (cada página decide como persistir e re-renderizar). */
+function interestRowHtml(i) {
+  const wa = whatsappLink(i.phone, `Olá, ${i.name}! Vi seu interesse pelo(a) ${i.pet_name} no Patinhas.`);
+  return `
+    <article class="interest-row" data-status="${i.status}">
+      <div class="interest-row-main">
+        <strong>${escapeHtml(i.name)}</strong>
+        <span class="interest-row-pet">🐾 ${escapeHtml(i.pet_name || "—")}</span>
+      </div>
+      <div class="interest-row-contact">
+        ${i.email ? `<span>✉️ ${escapeHtml(i.email)}</span>` : ""}
+        ${
+          i.phone
+            ? wa
+              ? `<a href="${wa}" target="_blank" rel="noopener">📞 ${escapeHtml(i.phone)}</a>`
+              : `<span>📞 ${escapeHtml(i.phone)}</span>`
+            : ""
+        }
+      </div>
+      ${i.message ? `<p class="interest-row-message">${escapeHtml(i.message)}</p>` : ""}
+      <div class="interest-row-foot">
+        <span class="hint">${formatDate(i.created_at)}</span>
+        <select class="interest-status-select" data-status="${i.status}" onchange="updateInterestStatus('${i.id}', this.value)">
+          ${INTEREST_STATUSES.map(
+            (s) => `<option value="${s.value}" ${i.status === s.value ? "selected" : ""}>${s.label}</option>`
+          ).join("")}
+        </select>
+      </div>
+    </article>
+  `;
+}
+
+/** ESC fecha o drawer/modal aberto no momento, em qualquer página — clica no
+ * próprio botão "X" dele pra reaproveitar a função de fechar já ligada ali. */
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const open = document.querySelector(".modal-overlay.open");
+  if (open) open.querySelector(".modal-close")?.click();
+});
+
+/** Botão flutuante "voltar ao topo" — aparece depois de rolar a página e some
+ * de volta perto do topo. Usado nas páginas públicas mais longas. */
+function setupBackToTop() {
+  const btn = document.getElementById("back-to-top");
+  if (!btn) return;
+  window.addEventListener("scroll", () => {
+    btn.classList.toggle("visible", window.scrollY > 500);
+  });
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 }
 
 /** Quantos dias inteiros já se passaram desde uma data ISO. */
@@ -277,13 +380,23 @@ function interestStatusLabel(status) {
 
 /** "Hoje" / "Ontem" / dd/mm/aaaa a partir de uma data ISO — usado nos cards
  * de pet e no resumo do dashboard pra indicar a última atualização. */
+function formatTime(isoString) {
+  if (!isoString) return "";
+  try {
+    return new Date(isoString).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  } catch (e) {
+    return "";
+  }
+}
+
 function relativeDateLabel(isoString) {
   if (!isoString) return "—";
   const days = daysSince(isoString);
   if (days === null) return "—";
-  if (days === 0) return "Hoje";
-  if (days === 1) return "Ontem";
-  return formatDate(isoString);
+  const time = formatTime(isoString);
+  if (days === 0) return `Hoje às ${time}`;
+  if (days === 1) return `Ontem às ${time}`;
+  return `${formatDate(isoString)} às ${time}`;
 }
 
 /**

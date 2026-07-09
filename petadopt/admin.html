@@ -25,15 +25,28 @@
 <body>
 
   <header class="site-header">
-    <a href="index.html" class="brand"><span class="brand-mark" id="header-brand-mark">🐾</span> Patinhas <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span></a>
+    <a href="index.html" class="brand">
+      <span class="logo-wrap">
+        <img class="brand-logo" src="img/patinhas-logo-full.png" alt="Patinhas" />
+        <span class="logo-paw logo-paw-1" aria-hidden="true"></span>
+        <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
+        <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
+      </span>
+      <span style="font-weight:500;color:var(--color-text-muted);font-size:14px;">· admin</span>
+      <span id="org-name-label" style="font-weight:500;color:var(--color-text-muted);font-size:14px;"></span>
+    </a>
     <div class="header-actions">
-      <a href="sobre.html" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
       <a href="#ong-faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
       <a href="index.html" class="btn btn-ghost btn-sm">Ver site público</a>
-      <span id="org-name-label" class="btn btn-ghost btn-sm hidden"></span>
-      <a id="interessados-link" href="admin-interessados.html" class="btn btn-secondary btn-sm hidden">💬 Interessados</a>
-      <button id="profile-btn" class="btn btn-secondary btn-sm hidden" onclick="openProfileModal()">⚙️ Meu perfil</button>
-      <button id="logout-btn" class="btn btn-secondary btn-sm hidden" onclick="confirmInlineAction(this, 'Sim, sair', handleLogout)">Sair</button>
+      <button id="new-pet-header-btn" class="btn btn-primary btn-sm hidden" onclick="openPetModal()">+ Novo pet</button>
+      <div class="dropdown-menu hidden" id="account-menu">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAccountMenu()">⚙️ Conta ▾</button>
+        <div class="dropdown-menu-panel hidden" id="account-menu-panel">
+          <a id="interessados-link" href="admin-interessados.html" class="dropdown-menu-item">💬 Interessados</a>
+          <button type="button" class="dropdown-menu-item" onclick="closeAccountMenu(); openProfileModal();">⚙️ Meu perfil</button>
+          <button type="button" class="dropdown-menu-item dropdown-menu-item--danger" onclick="confirmInlineAction(this, 'Sim, sair', handleLogout)">Sair</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -124,14 +137,6 @@
 
   <!-- ---------------- Painel (logado) ---------------- -->
   <main id="dashboard-view" class="site-main hidden">
-    <div class="page-intro" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-      <div>
-        <h1>Meus pets</h1>
-        <p>Cadastre novos pets e mova os cards entre as colunas conforme o processo avança.</p>
-      </div>
-      <button class="btn btn-primary" onclick="openPetModal()">+ Novo pet</button>
-    </div>
-
     <div id="ong-stats" class="stats-row">
       <div class="stat-card">
         <span class="stat-card-icon disponivel">🐾</span>
@@ -168,21 +173,21 @@
           <div class="stat-card-label">Interessados hoje</div>
         </div>
       </div>
-      <div class="stat-card" title="Atualização mais recente entre todos os seus pets — edição de cadastro, troca de status ou confirmação de disponibilidade">
-        <span class="stat-card-icon">🕒</span>
-        <div>
-          <div class="stat-card-value" id="stat-last-updated">—</div>
-          <div class="stat-card-label">Última atualização</div>
-        </div>
-      </div>
     </div>
 
-    <div class="kanban-flow" aria-hidden="true">
-      <span class="kanban-flow-step disponivel">🐾 Disponível</span>
-      <span class="kanban-flow-arrow">→</span>
-      <span class="kanban-flow-step em_processo">🤝 Em processo</span>
-      <span class="kanban-flow-arrow">→</span>
-      <span class="kanban-flow-step adotado">🏡 Adotado</span>
+    <div class="mural-intro-row">
+      <div class="board-intro">
+        <h1>Meus pets</h1>
+        <p>Cadastre novos pets e mova os cards entre as colunas conforme o processo avança.</p>
+      </div>
+
+      <div class="kanban-flow" aria-hidden="true">
+        <span class="kanban-flow-step disponivel">🐾 Disponível</span>
+        <span class="kanban-flow-arrow">→</span>
+        <span class="kanban-flow-step em_processo">🤝 Em processo</span>
+        <span class="kanban-flow-arrow">→</span>
+        <span class="kanban-flow-step adotado">🏡 Adotado</span>
+      </div>
     </div>
 
     <div id="dash-loading" class="empty-state">
@@ -267,7 +272,7 @@
   </footer>
 
   <!-- ---------------- Modal: novo pet / editar pet ---------------- -->
-  <div id="pet-modal" class="modal-overlay">
+  <div id="pet-modal" class="modal-overlay" onclick="if(event.target===this) closePetModal()">
     <div class="modal">
       <div class="modal-header">
         <h2 id="pet-modal-title">Novo pet</h2>
@@ -377,7 +382,7 @@
   </div>
 
   <!-- ---------------- Modal: meu perfil ---------------- -->
-  <div id="profile-modal" class="modal-overlay">
+  <div id="profile-modal" class="modal-overlay" onclick="if(event.target===this) closeProfileModal()">
     <div class="modal">
       <div class="modal-header">
         <h2>Meu perfil</h2>
@@ -438,6 +443,21 @@
           <button type="submit" id="profile-submit-btn" class="btn btn-primary">Salvar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ---------------- Drawer: interessados de um pet ---------------- -->
+  <div id="pet-interests-modal" class="modal-overlay" onclick="if(event.target===this) closePetInterestsDrawer()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Interessados em <span id="pet-interests-title"></span></h2>
+        <button class="modal-close" onclick="closePetInterestsDrawer()" aria-label="Fechar">&times;</button>
+      </div>
+      <div id="pet-interests-empty" class="empty-state hidden">
+        <div class="icon">💬</div>
+        Nenhum interessado ainda por esse pet.
+      </div>
+      <div id="pet-interests-list" class="interest-list"></div>
     </div>
   </div>
 
