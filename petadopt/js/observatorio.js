@@ -100,13 +100,6 @@ const OBS = {
     },
   ],
 
-  guias: [
-    { icone: "💚", titulo: "Como funciona a adoção responsável", desc: "O passo a passo completo: da escolha consciente à chegada do pet em casa.", tempo: "5 min" },
-    { icone: "🏠", titulo: "Primeira adoção", desc: "O que avaliar antes de adotar pela primeira vez — rotina, espaço e expectativas.", tempo: "4 min" },
-    { icone: "🛋️", titulo: "Como preparar sua casa", desc: "Adaptações simples que deixam o ambiente seguro para o novo morador.", tempo: "3 min" },
-    { icone: "💸", titulo: "Custos de um pet", desc: "Alimentação, saúde e imprevistos: quanto custa cuidar bem, na prática.", tempo: "6 min" },
-    { icone: "🐾", titulo: "Dicas para novos tutores", desc: "Os primeiros 30 dias: adaptação, vínculo e sinais de que está tudo bem.", tempo: "4 min" },
-  ],
 };
 
 /* ---------------- Helpers ---------------- */
@@ -161,25 +154,56 @@ function obsAnimateBars() {
 
 /* ---------------- Componentes ---------------- */
 
-/** Cards que viram no hover: número na frente, contexto + fonte no verso. */
+/** Cards que viram: número na frente, contexto + fonte no verso. Vira no
+ * hover (desktop) e no toque (mobile) — o toque alterna a classe .flipped,
+ * então tocar de novo desvira. */
 function obsRenderFatos(el) {
   el.innerHTML = OBS.fatos
     .map((f) => `
-      <div class="obs-flip" tabindex="0" role="group" aria-label="${f.valor} ${f.label}. ${f.verso} Fonte: ${f.fonte}">
+      <button type="button" class="obs-flip" aria-label="${f.valor} ${f.label}. ${f.verso} Fonte: ${f.fonte}">
         <div class="obs-flip-inner">
           <div class="obs-flip-front">
             <span class="obs-flip-icon">${f.icone}</span>
             <span class="obs-flip-value">${f.valor}</span>
             <span class="obs-flip-label">${f.label}</span>
-            <span class="obs-flip-hint">passe o mouse ✨</span>
+            <span class="obs-flip-hint">toque para ver ✨</span>
           </div>
           <div class="obs-flip-back">
             <p>${f.verso}</p>
             <span class="obs-fonte">📌 ${f.fonte}</span>
           </div>
         </div>
-      </div>`)
+      </button>`)
     .join("");
+
+  el.querySelectorAll(".obs-flip").forEach((card) => {
+    card.addEventListener("click", () => card.classList.toggle("flipped"));
+  });
+}
+
+/** Curiosidades que dão escala ao número do abandono — o texto do hero
+ * troca a cada toque/hover, pra ter variedade em vez de uma só. */
+const OBS_CURIOSIDADES = [
+  "É mais do que a população inteira da Austrália. 🇦🇺",
+  "Daria para lotar o Maracanã quase 400 vezes. 🏟️",
+  "É como abandonar a cidade de São Paulo inteira duas vezes. 🏙️",
+  "São cerca de 82 mil animais sem lar por dia ao longo de um ano. 📆",
+  "Um para cada 7 brasileiros — dá quase um por família. 👨‍👩‍👧",
+  "Enfileirados, dariam mais de uma volta ao mundo. 🌎",
+];
+
+function obsSetupCuriosidades() {
+  const alt = document.querySelector(".obs-big-alt");
+  const wrap = document.querySelector(".obs-big-wrap");
+  if (!alt || !wrap) return;
+  let i = 0;
+  alt.textContent = OBS_CURIOSIDADES[0];
+  const proxima = () => {
+    i = (i + 1) % OBS_CURIOSIDADES.length;
+    alt.textContent = OBS_CURIOSIDADES[i];
+  };
+  wrap.addEventListener("mouseenter", proxima);
+  wrap.addEventListener("click", proxima);
 }
 
 /** Mapa do Brasil em blocos, colorido por região, com tooltip que segue o mouse. */
@@ -304,21 +328,6 @@ function obsRenderLeis(el) {
     .join("");
 }
 
-function obsRenderGuias(el) {
-  el.innerHTML = OBS.guias
-    .map((g) => `
-      <article class="obs-guide-card">
-        <span class="obs-guide-icon">${g.icone}</span>
-        <h3>${g.titulo}</h3>
-        <p>${g.desc}</p>
-        <div class="obs-guide-meta">
-          <span class="obs-guide-badge">📖 ${g.tempo} de leitura</span>
-          <span class="obs-guide-badge">Em breve</span>
-        </div>
-      </article>`)
-    .join("");
-}
-
 /* ---------------- Boot ---------------- */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -340,9 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const leis = document.getElementById("obs-leis");
   if (leis) obsRenderLeis(leis);
 
-  const guias = document.getElementById("obs-guias");
-  if (guias) obsRenderGuias(guias);
-
+  obsSetupCuriosidades();
   obsCountUp();
   obsAnimateBars();
 });

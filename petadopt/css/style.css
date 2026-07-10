@@ -1063,19 +1063,17 @@ a.stat-pill:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 900;
   line-height: 1;
   vertical-align: middle;
-  color: #fff;
+  /* Sem fundo — só o símbolo, engrossado com text-stroke pra não ficar fino. */
+  -webkit-text-stroke: 0.7px currentColor;
 }
-.pet-gender--macho { background: #4A90D9; }
-.pet-gender--femea { background: #D9558B; }
+.pet-gender--macho { color: #3B7DC4; }
+.pet-gender--femea { color: #C64884; }
 /* Sexo apenas sugerido pelo nome: mesma cor, um pouco mais suave. */
-.pet-gender--suggested { opacity: 0.72; }
+.pet-gender--suggested { opacity: 0.7; }
 
 /* Botão de compartilhar no canto superior esquerdo da foto do pet */
 .pet-card-share-btn {
@@ -1399,6 +1397,34 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: var(--radius-md);
   padding: 16px 18px 4px;
   margin-bottom: 24px;
+}
+
+/* Botão que abre os filtros — só aparece no mobile (ver media query). */
+.filters-toggle {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.filters-toggle-caret { color: var(--color-text-soft); transition: transform 0.2s ease; }
+.filters-toggle[aria-expanded="true"] .filters-toggle-caret { transform: rotate(180deg); }
+
+@media (max-width: 700px) {
+  /* Mobile: filtros recolhidos por padrão; abrem no botão e recolhem depois
+     que a busca é aplicada (ver collapseMuralFiltersOnMobile no app.js). */
+  .filters-toggle { display: flex; }
+  .interest-filters.mural-filters { display: none; }
+  .interest-filters.mural-filters.filters-open { display: flex; }
 }
 .interest-filters .field {
   margin-bottom: 12px;

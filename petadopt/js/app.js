@@ -33,9 +33,14 @@ async function loadPets() {
     renderBoard();
     loading.classList.add("hidden");
     board.classList.remove("hidden");
-    // Link compartilhado (ver sharePet) — rola até o card do pet ao abrir.
+    // Rola até o alvo do hash só depois que o mural renderizou — se rolasse
+    // no load do navegador, as imagens do topo ainda estavam carregando e
+    // empurravam o conteúdo, fazendo o #faq (vindo de outra página) parar no
+    // meio. Aqui a altura já está estável.
     if (window.location.hash.startsWith("#pet-")) {
       document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else if (window.location.hash === "#faq") {
+      document.getElementById("faq")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   } catch (err) {
     console.error("[Patinhas] Erro ao carregar pets:", err);
@@ -65,6 +70,13 @@ function populateMuralFilters() {
     renderBoard();
   });
   document.getElementById("filter-city").addEventListener("change", renderBoard);
+
+  // Ao aplicar um filtro no mobile, recolhe o painel de novo. Ignora os
+  // checkboxes de saúde pra não fechar enquanto a pessoa marca vários.
+  document.getElementById("mural-filters").addEventListener("change", (e) => {
+    if (e.target.classList.contains("filter-health-check")) return;
+    collapseMuralFiltersOnMobile();
+  });
 }
 
 function updateMuralCityOptions() {
@@ -88,6 +100,22 @@ function updateMuralCityOptions() {
   citySelect.disabled = false;
   citySelect.innerHTML =
     `<option value="">Todas</option>` + cities.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+}
+
+/** Mobile: mostra/esconde o painel de filtros do mural. */
+function toggleMuralFilters(force) {
+  const panel = document.getElementById("mural-filters");
+  const toggle = document.getElementById("mural-filters-toggle");
+  if (!panel || !toggle) return;
+  const open = typeof force === "boolean" ? force : !panel.classList.contains("filters-open");
+  panel.classList.toggle("filters-open", open);
+  toggle.setAttribute("aria-expanded", String(open));
+}
+
+/** No mobile, recolhe os filtros de volta depois que a pessoa aplica um —
+ * no desktop o painel fica sempre visível, então não faz nada. */
+function collapseMuralFiltersOnMobile() {
+  if (window.matchMedia("(max-width: 700px)").matches) toggleMuralFilters(false);
 }
 
 function clearMuralFilters() {

@@ -90,7 +90,12 @@
         </div>
       </div>
 
-      <div class="interest-filters mural-filters">
+      <button type="button" id="mural-filters-toggle" class="filters-toggle" aria-expanded="false" aria-controls="mural-filters" onclick="toggleMuralFilters()">
+        <span>🔎 Filtrar pets</span>
+        <span class="filters-toggle-caret" aria-hidden="true">▾</span>
+      </button>
+
+      <div id="mural-filters" class="interest-filters mural-filters">
         <div class="field">
           <label for="filter-species">Espécie</label>
           <select id="filter-species">
