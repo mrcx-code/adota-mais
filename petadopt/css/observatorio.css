@@ -1,0 +1,747 @@
+/* =========================================================
+   Observatório Patinhas — camada visual própria
+   Carregado DEPOIS de style.css: reaproveita os tokens do
+   design system, mas os componentes daqui são exclusivos do
+   Observatório (produto de dados, separado do marketplace).
+   ========================================================= */
+
+/* ---------- Rodapé com assinatura da marca ----------
+   Definido aqui para o Observatório não depender de nenhuma alteração no
+   style.css do marketplace. Se o mesmo rodapé for adotado no site, estas
+   regras podem migrar para o style.css e sair daqui. */
+
+.site-footer {
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--color-text-soft);
+  font-size: 13px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.footer-signature {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.footer-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--color-brand-dark);
+}
+.footer-tagline {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+}
+.footer-links a {
+  color: var(--color-text-soft);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+.footer-links a:hover { color: var(--color-brand-dark); }
+
+/* ---------- Sub-navegação do Observatório ---------- */
+
+.obs-nav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 10px clamp(16px, 4vw, 28px);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  scrollbar-width: none;
+}
+.obs-nav::-webkit-scrollbar { display: none; }
+
+.obs-nav a {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.obs-nav a:hover { background: var(--color-surface-muted); color: var(--color-text); }
+.obs-nav a.active {
+  background: var(--color-brand);
+  color: #fff;
+}
+
+/* ---------- Breadcrumbs ---------- */
+
+.obs-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-soft);
+  margin: 18px 0 0;
+}
+.obs-breadcrumbs a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+.obs-breadcrumbs a:hover { color: var(--color-brand-dark); }
+.obs-breadcrumbs .sep { opacity: 0.6; }
+
+/* ---------- Hero ---------- */
+
+.obs-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-brand-dark) 0%, #2C4029 70%, #223121 100%);
+  color: #F4F1E6;
+  border-radius: var(--radius-lg);
+  padding: clamp(36px, 6vw, 64px) clamp(24px, 5vw, 56px);
+  margin-top: 20px;
+}
+/* Padrão de pontos — sensação de "dados" sem virar dashboard corporativo. */
+.obs-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(244, 241, 230, 0.14) 1px, transparent 1.6px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+.obs-hero > * { position: relative; }
+
+.obs-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-brand-accent);
+  margin-bottom: 14px;
+}
+
+.obs-hero h1 {
+  font-size: clamp(30px, 4.6vw, 46px);
+  line-height: 1.08;
+  margin: 0 0 14px;
+  max-width: 20ch;
+  color: #FCFAF4;
+}
+
+.obs-hero p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(244, 241, 230, 0.82);
+  max-width: 54ch;
+  margin: 0 0 26px;
+}
+
+.obs-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.obs-hero .btn-secondary {
+  background: transparent;
+  color: #F4F1E6;
+  border-color: rgba(244, 241, 230, 0.4);
+}
+.obs-hero .btn-secondary:hover { background: rgba(244, 241, 230, 0.12); }
+
+/* Hero compacto das páginas internas */
+.obs-hero--lite {
+  padding: clamp(28px, 4vw, 44px) clamp(24px, 5vw, 56px);
+}
+.obs-hero--lite h1 { font-size: clamp(26px, 3.6vw, 36px); }
+
+/* ---------- Seções ---------- */
+
+.obs-section { margin-top: 48px; }
+
+.obs-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.obs-section-head h2 {
+  font-size: 24px;
+  margin: 0 0 4px;
+}
+.obs-section-head p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.obs-section-link {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.obs-section-link:hover { text-decoration: underline; }
+
+/* ---------- KPIs (indicadores) ---------- */
+
+.obs-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.obs-kpi {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.obs-kpi-icon { font-size: 20px; }
+.obs-kpi-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--color-brand-dark);
+  font-variant-numeric: tabular-nums;
+}
+.obs-kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.obs-kpi-delta {
+  align-self: flex-start;
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-status-disponivel-bg);
+  color: var(--color-brand-dark);
+}
+
+/* ---------- Mapa do Brasil (tile grid) ---------- */
+
+.obs-map-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 28px;
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .obs-map-wrap { grid-template-columns: 1fr; }
+}
+
+.obs-map {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 480px;
+}
+
+.obs-map-tile {
+  aspect-ratio: 1 / 1;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: clamp(9px, 1.4vw, 12px);
+  font-weight: 700;
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.obs-map-tile:hover, .obs-map-tile:focus-visible {
+  transform: scale(1.12);
+  box-shadow: var(--shadow-card-hover);
+  z-index: 2;
+  outline: none;
+}
+.obs-map-tile.heat-1 { background: #E3EBDC; }
+.obs-map-tile.heat-2 { background: #C4D6B8; }
+.obs-map-tile.heat-3 { background: #9FBA99; }
+.obs-map-tile.heat-4 { background: var(--color-brand); color: #fff; }
+.obs-map-tile.selected { box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-brand-dark); }
+
+.obs-map-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+.obs-map-legend span.swatch {
+  width: 14px; height: 14px; border-radius: 4px; display: inline-block;
+}
+
+/* Card lateral com o detalhe do estado selecionado */
+.obs-state-detail {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+.obs-state-detail h3 { margin: 0 0 12px; font-size: 18px; }
+.obs-state-detail .obs-kpi-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.obs-state-detail .obs-kpi { padding: 12px; }
+.obs-state-detail .obs-kpi-value { font-size: 22px; }
+
+/* ---------- Ranking (barras horizontais) ---------- */
+
+.obs-ranking { display: flex; flex-direction: column; gap: 10px; }
+
+.obs-ranking-row {
+  display: grid;
+  grid-template-columns: 28px minmax(90px, 160px) 1fr 64px;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.12s ease;
+}
+a.obs-ranking-row:hover { background: var(--color-surface-muted); }
+
+.obs-ranking-pos {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-soft);
+}
+.obs-ranking-name { font-size: 14px; font-weight: 600; }
+.obs-ranking-name small { color: var(--color-text-soft); font-weight: 500; }
+
+.obs-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+.obs-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-brand-accent), var(--color-brand));
+  width: 0;
+  transition: width 0.8s cubic-bezier(0.25, 0.9, 0.3, 1);
+}
+.obs-bar-fill.amber { background: linear-gradient(90deg, #E7C889, var(--color-status-processo)); }
+.obs-bar-fill.rose { background: linear-gradient(90deg, #E4B7B9, var(--color-status-adotado)); }
+
+.obs-ranking-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Índices ---------- */
+
+.obs-index-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.obs-index-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-brand);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+}
+.obs-index-card.amber { border-left-color: var(--color-status-processo); }
+.obs-index-card.rose { border-left-color: var(--color-status-adotado); }
+.obs-index-card h3 { margin: 0 0 2px; font-size: 14px; color: var(--color-text-muted); font-family: var(--font-sans); font-weight: 700; }
+.obs-index-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 34px;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.obs-index-desc { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--color-text-soft); }
+
+/* ---------- Split bar (comparativo de proporções) ---------- */
+
+.obs-split { margin: 10px 0 4px; }
+.obs-split-bar {
+  display: flex;
+  height: 34px;
+  border-radius: 999px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+.obs-split-bar > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 52px;
+}
+.obs-split-a { background: var(--color-brand); }
+.obs-split-b { background: var(--color-status-processo); }
+.obs-split-caption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+/* Distribuições simples (porte, idade) */
+.obs-dist { display: flex; flex-direction: column; gap: 12px; }
+.obs-dist-row { display: grid; grid-template-columns: 110px 1fr 44px; align-items: center; gap: 12px; font-size: 13.5px; }
+.obs-dist-row .obs-ranking-value { font-size: 13px; }
+
+/* ---------- Linha do tempo ---------- */
+
+.obs-timeline {
+  position: relative;
+  padding-left: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.obs-timeline::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--color-border);
+}
+.obs-timeline-item { position: relative; }
+.obs-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -25px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+.obs-timeline-year {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-brand-dark);
+}
+.obs-timeline-item h3 { margin: 2px 0 4px; font-size: 15.5px; }
+.obs-timeline-item p { margin: 0; font-size: 13.5px; color: var(--color-text-muted); line-height: 1.55; }
+
+/* ---------- Painéis (cartões de seção) ---------- */
+
+.obs-panel {
+  background: var(--color-offwhite);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 3.5vw, 32px);
+}
+.obs-panel + .obs-panel { margin-top: 20px; }
+.obs-panel h3 { margin: 0 0 16px; font-size: 17px; }
+
+.obs-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 820px) { .obs-two-col { grid-template-columns: 1fr; } }
+
+/* ---------- Guias ---------- */
+
+.obs-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+.obs-guide-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.obs-guide-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); }
+.obs-guide-icon { font-size: 26px; }
+.obs-guide-card h3 { margin: 0; font-size: 16px; }
+.obs-guide-card p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--color-text-muted); flex: 1; }
+.obs-guide-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text-soft);
+}
+.obs-guide-badge {
+  background: var(--color-surface-muted);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* ---------- CTA final ---------- */
+
+.obs-cta {
+  text-align: center;
+  background: var(--color-brand-soft);
+  border-radius: var(--radius-lg);
+  padding: clamp(32px, 5vw, 52px) 24px;
+  margin-top: 56px;
+}
+.obs-cta h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 30px); }
+.obs-cta p { margin: 0 auto 22px; max-width: 48ch; color: var(--color-text-muted); font-size: 15px; }
+.obs-cta-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- Nota de transparência ---------- */
+
+.obs-disclaimer {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--color-text-soft);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+
+/* ---------- Fonte dos dados (selo padrão) ---------- */
+
+.obs-fonte {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Número-herói (hero com dado gigante) ---------- */
+
+.obs-big-number {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(56px, 10vw, 110px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #FCFAF4;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+.obs-big-caption {
+  font-size: clamp(15px, 2vw, 19px);
+  color: rgba(244, 241, 230, 0.85);
+  margin: 8px 0 4px;
+  max-width: 40ch;
+}
+/* No hover, o número revela uma comparação que dá escala ao dado. */
+.obs-big-wrap .obs-big-alt {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-brand-accent);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.obs-big-wrap:hover .obs-big-alt,
+.obs-big-wrap:focus-within .obs-big-alt {
+  opacity: 1;
+  transform: translateY(0);
+}
+.obs-hero .obs-fonte { color: rgba(244, 241, 230, 0.6); }
+
+/* ---------- Cards que viram (fato na frente, fonte no verso) ---------- */
+
+.obs-flip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.obs-flip {
+  perspective: 1000px;
+  min-height: 210px;
+  outline: none;
+}
+.obs-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 210px;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.obs-flip:hover .obs-flip-inner,
+.obs-flip:focus .obs-flip-inner {
+  transform: rotateY(180deg);
+}
+
+.obs-flip-front,
+.obs-flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.obs-flip-front {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+.obs-flip-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(150deg, var(--color-brand-dark), #2C4029);
+  color: #F4F1E6;
+}
+.obs-flip-back p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; }
+.obs-flip-back .obs-fonte { color: var(--color-brand-accent); }
+
+.obs-flip-icon { font-size: 24px; }
+.obs-flip-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 36px;
+  line-height: 1;
+  color: var(--color-brand-dark);
+}
+.obs-flip-label { font-size: 13.5px; font-weight: 600; color: var(--color-text-muted); line-height: 1.45; }
+.obs-flip-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Mapa por região + tooltip ---------- */
+
+.obs-map-tile.reg-SE { background: var(--color-brand); color: #fff; }
+.obs-map-tile.reg-NE { background: #9FBA99; }
+.obs-map-tile.reg-S  { background: #C98A2C; color: #fff; }
+.obs-map-tile.reg-CO { background: #E7C889; }
+.obs-map-tile.reg-N  { background: #C4D6B8; }
+.obs-map-tile.dim { opacity: 0.25; }
+.obs-map-tile { transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s ease; }
+
+.obs-tooltip {
+  position: fixed;
+  z-index: 200;
+  pointer-events: none;
+  background: var(--color-text);
+  color: #FCFAF4;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-card-hover);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  max-width: 220px;
+}
+.obs-tooltip.visible { opacity: 1; transform: translateY(0); }
+
+/* Painel da região selecionada */
+.obs-regiao-share {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 46px;
+  line-height: 1;
+  color: var(--color-brand-dark);
+  margin: 4px 0;
+}
+.obs-regiao-desc { margin: 0 0 10px; font-size: 14px; line-height: 1.55; color: var(--color-text-muted); }
+.obs-regiao-ufs { margin: 0 0 12px; font-size: 12px; color: var(--color-text-soft); line-height: 1.6; }
+
+/* Split com hover que dá zoom no lado apontado */
+.obs-split-bar > div { transition: flex-grow 0.3s ease, filter 0.2s ease; cursor: default; }
+.obs-split-bar > div:hover { filter: brightness(1.12); }
+
+/* ---------- Pictograma de 100 patinhas ---------- */
+
+.obs-picto {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .obs-picto { grid-template-columns: repeat(10, 1fr); }
+}
+.obs-picto-paw {
+  font-size: clamp(12px, 1.6vw, 17px);
+  line-height: 1;
+  text-align: center;
+  opacity: 0.22;
+  filter: grayscale(1);
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  cursor: default;
+}
+/* Ao passar o mouse no pictograma, as abandonadas "acendem" de uma vez. */
+.obs-picto:hover .obs-picto-paw.abandonada {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.25);
+}
+.obs-picto:hover .obs-picto-paw:not(.abandonada) { opacity: 0.12; }
+
+.obs-picto-legenda {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+.obs-picto-legenda strong { color: var(--color-text); }
+.obs-picto-hint {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+

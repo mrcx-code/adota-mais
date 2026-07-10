@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Observatório Patinhas — dados públicos sobre adoção e abandono no Brasil</title>
+  <meta name="description" content="O Observatório Patinhas reúne dados públicos sobre adoção responsável e abandono de animais no Brasil, com fontes como OMS, Instituto Pet Brasil, Abinpet e IBGE." />
+  <link rel="canonical" href="https://patinhasbrasil.com.br/observatorio/" />
+  <meta name="theme-color" content="#527353" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Patinhas" />
+  <meta property="og:title" content="Observatório Patinhas — dados sobre adoção e abandono no Brasil" />
+  <meta property="og:description" content="Dados públicos sobre adoção responsável e abandono de animais no Brasil, com as fontes citadas em cada número." />
+  <meta property="og:url" content="https://patinhasbrasil.com.br/observatorio/" />
+  <meta property="og:image" content="https://patinhasbrasil.com.br/img/patinhas-logo-full.png" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta name="twitter:card" content="summary" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Observatório Patinhas",
+    "description": "Dados públicos sobre adoção responsável e abandono de animais no Brasil, com fontes citadas.",
+    "url": "https://patinhasbrasil.com.br/observatorio/",
+    "publisher": { "@type": "Organization", "name": "Patinhas", "url": "https://patinhasbrasil.com.br/" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Patinhas", "item": "https://patinhasbrasil.com.br/" },
+      { "@type": "ListItem", "position": 2, "name": "Observatório", "item": "https://patinhasbrasil.com.br/observatorio/" }
+    ]
+  }
+  </script>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>🐾</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/observatorio.css" />
+</head>
+<body data-obs-page="home">
+
+  <header class="site-header">
+    <a href="../index.html" class="brand"><span class="logo-wrap">
+      <img class="brand-logo" src="../img/patinhas-logo-full.png" alt="Patinhas" />
+      <span class="logo-paw logo-paw-1" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
+      <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
+    </span></a>
+    <div class="header-actions">
+      <a href="./" class="btn btn-ghost btn-sm nav-link">Observatório</a>
+      <a href="../sobre.html" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
+      <a href="../index.html#faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
+      <a href="../admin.html" class="btn btn-primary btn-sm">Sou um abrigo / ONG</a>
+    </div>
+  </header>
+
+  <nav class="obs-nav" aria-label="Seções do Observatório">
+    <a href="./" class="active">Visão geral</a>
+    <a href="brasil.html">Brasil</a>
+    <a href="infograficos.html">Infográficos</a>
+    <a href="guias.html">Guias</a>
+  </nav>
+
+  <main class="site-main">
+    <nav class="obs-breadcrumbs" aria-label="Você está em">
+      <a href="../index.html">Patinhas</a> <span class="sep">/</span> <span>Observatório</span>
+    </nav>
+
+    <section class="obs-hero">
+      <span class="obs-eyebrow">📡 Observatório Patinhas</span>
+      <div class="obs-big-wrap" tabindex="0">
+        <div class="obs-big-number" data-count="30000000">0</div>
+        <p class="obs-big-caption">de cães e gatos vivem abandonados no Brasil.</p>
+        <span class="obs-fonte">📌 Estimativa da Organização Mundial da Saúde (OMS)</span>
+        <span class="obs-big-alt">É mais do que a população inteira da Austrália. 🇦🇺</span>
+      </div>
+      <div class="obs-hero-actions" style="margin-top:28px;">
+        <a href="../index.html" class="btn btn-primary btn-cta">Quero mudar esse número 🐾</a>
+        <a href="brasil.html" class="btn btn-secondary btn-cta">Explorar os dados</a>
+      </div>
+    </section>
+
+    <section class="obs-section" aria-labelledby="titulo-fatos">
+      <div class="obs-section-head">
+        <div>
+          <h2 id="titulo-fatos">Números que o Brasil precisa ver</h2>
+          <p>Passe o mouse em cada card para ver o contexto e a fonte.</p>
+        </div>
+      </div>
+      <div id="obs-fatos" class="obs-flip-grid"></div>
+    </section>
+
+    <section class="obs-section" aria-labelledby="titulo-mapa">
+      <div class="obs-section-head">
+        <div>
+          <h2 id="titulo-mapa">Onde vivem os pets do Brasil</h2>
+          <p>Passe o mouse pelo mapa — cada região conta uma parte da história.</p>
+        </div>
+        <a class="obs-section-link" href="brasil.html">Ver panorama completo →</a>
+      </div>
+      <div class="obs-panel">
+        <div class="obs-map-wrap">
+          <div>
+            <div id="obs-map" class="obs-map" role="group" aria-label="Mapa do Brasil por região"></div>
+            <div class="obs-map-legend">
+              <span class="swatch" style="background:var(--color-brand)"></span> <span>Sudeste</span>
+              <span class="swatch" style="background:#9FBA99"></span> <span>Nordeste</span>
+              <span class="swatch" style="background:#C98A2C"></span> <span>Sul</span>
+              <span class="swatch" style="background:#E7C889"></span> <span>Centro-Oeste</span>
+              <span class="swatch" style="background:#C4D6B8"></span> <span>Norte</span>
+            </div>
+          </div>
+          <div id="obs-regiao-detail" class="obs-state-detail"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="obs-section" aria-labelledby="titulo-populacao">
+      <div class="obs-section-head">
+        <div>
+          <h2 id="titulo-populacao">Um país de cães e gatos</h2>
+          <p>A população de pets com família no Brasil é uma das maiores do mundo.</p>
+        </div>
+        <a class="obs-section-link" href="infograficos.html">Ver infográficos →</a>
+      </div>
+      <div class="obs-panel">
+        <h3>🐾 De cada 100 cães e gatos do Brasil</h3>
+        <div id="obs-pictograma"></div>
+      </div>
+
+      <div class="obs-two-col">
+        <div class="obs-panel">
+          <h3>🐶 🐱 Cães e gatos nos lares brasileiros</h3>
+          <div id="obs-split" class="obs-split"></div>
+        </div>
+        <div class="obs-panel">
+          <h3>⚖️ Leis que mudaram a causa animal</h3>
+          <div id="obs-leis" class="obs-timeline"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="obs-section" aria-labelledby="titulo-guias">
+      <div class="obs-section-head">
+        <div>
+          <h2 id="titulo-guias">Guias de adoção responsável</h2>
+          <p>Conteúdo direto ao ponto para quem está pensando em adotar.</p>
+        </div>
+        <a class="obs-section-link" href="guias.html">Ver todos os guias →</a>
+      </div>
+      <div id="obs-guias" class="obs-guide-grid"></div>
+    </section>
+
+    <section class="obs-cta">
+      <h2>Os dados são duros.<br />A resposta é simples: adotar.</h2>
+      <p>Cada adoção tira um número dessa estatística e coloca um pet no sofá de alguém.</p>
+      <div class="obs-cta-actions">
+        <a href="../index.html" class="btn btn-primary btn-cta">Conhecer pets disponíveis 🐾</a>
+        <a href="../admin.html" class="btn btn-secondary btn-cta">Sou um abrigo / ONG</a>
+      </div>
+    </section>
+
+    <p class="obs-disclaimer">📌 Números aproximados, conforme publicados pelas fontes citadas em cada bloco (OMS, Instituto Pet Brasil, Abinpet, IBGE e legislação federal).</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-signature">
+      <span class="footer-brand">Patinhas</span>
+      <span class="footer-tagline">Conectando histórias. Encontrando lares.</span>
+    </div>
+    <nav class="footer-links">
+      <a href="./">Observatório</a>
+      <a href="../sobre.html">Sobre</a>
+      <a href="../index.html#faq">FAQ</a>
+      <a href="../admin.html">Área do abrigo</a>
+    </nav>
+  </footer>
+
+  <script src="../js/observatorio.js"></script>
+</body>
+</html>
