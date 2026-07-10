@@ -61,18 +61,12 @@
     </div>
   </header>
 
-  <nav class="obs-nav" aria-label="Seções do Observatório">
-    <a href="./" class="active">Visão geral</a>
-    <a href="brasil.html">Brasil</a>
-    <a href="infograficos.html">Infográficos</a>
-    <a href="guias.html">Guias</a>
-  </nav>
-
   <main class="site-main">
     <nav class="obs-breadcrumbs" aria-label="Você está em">
       <a href="../index.html">Patinhas</a> <span class="sep">/</span> <span>Observatório</span>
     </nav>
 
+    <!-- Hero: o número que resume tudo -->
     <section class="obs-hero">
       <span class="obs-eyebrow">📡 Observatório Patinhas</span>
       <div class="obs-big-wrap" tabindex="0">
@@ -83,10 +77,11 @@
       </div>
       <div class="obs-hero-actions" style="margin-top:28px;">
         <a href="../index.html" class="btn btn-primary btn-cta">Quero mudar esse número 🐾</a>
-        <a href="brasil.html" class="btn btn-secondary btn-cta">Explorar os dados</a>
+        <a href="#obs-mapa" class="btn btn-secondary btn-cta">Explorar os dados</a>
       </div>
     </section>
 
+    <!-- Os números-chave, em cards que viram -->
     <section class="obs-section" aria-labelledby="titulo-fatos">
       <div class="obs-section-head">
         <div>
@@ -97,13 +92,13 @@
       <div id="obs-fatos" class="obs-flip-grid"></div>
     </section>
 
-    <section class="obs-section" aria-labelledby="titulo-mapa">
+    <!-- Mapa por região + distribuição -->
+    <section id="obs-mapa" class="obs-section" aria-labelledby="titulo-mapa">
       <div class="obs-section-head">
         <div>
           <h2 id="titulo-mapa">Onde vivem os pets do Brasil</h2>
-          <p>Passe o mouse pelo mapa — cada região conta uma parte da história.</p>
+          <p>Passe o mouse pelo mapa e clique para explorar cada região.</p>
         </div>
-        <a class="obs-section-link" href="brasil.html">Ver panorama completo →</a>
       </div>
       <div class="obs-panel">
         <div class="obs-map-wrap">
@@ -120,16 +115,22 @@
           <div id="obs-regiao-detail" class="obs-state-detail"></div>
         </div>
       </div>
+
+      <div class="obs-panel">
+        <h3>🗺️ Distribuição da população de pets por região</h3>
+        <div id="obs-regioes" class="obs-dist"></div>
+      </div>
     </section>
 
-    <section class="obs-section" aria-labelledby="titulo-populacao">
+    <!-- Infográficos: o abandono em imagens -->
+    <section class="obs-section" aria-labelledby="titulo-infograficos">
       <div class="obs-section-head">
         <div>
-          <h2 id="titulo-populacao">Um país de cães e gatos</h2>
-          <p>A população de pets com família no Brasil é uma das maiores do mundo.</p>
+          <h2 id="titulo-infograficos">O abandono em imagens</h2>
+          <p>Os mesmos dados públicos das manchetes — fáceis de entender e de compartilhar.</p>
         </div>
-        <a class="obs-section-link" href="infograficos.html">Ver infográficos →</a>
       </div>
+
       <div class="obs-panel">
         <h3>🐾 De cada 100 cães e gatos do Brasil</h3>
         <div id="obs-pictograma"></div>
@@ -147,13 +148,13 @@
       </div>
     </section>
 
+    <!-- Guias: fecham a página como sugestão de próximo passo -->
     <section class="obs-section" aria-labelledby="titulo-guias">
       <div class="obs-section-head">
         <div>
-          <h2 id="titulo-guias">Guias de adoção responsável</h2>
-          <p>Conteúdo direto ao ponto para quem está pensando em adotar.</p>
+          <h2 id="titulo-guias">Pensando em adotar? Comece por aqui</h2>
+          <p>Guias curtos e práticos para cada etapa: antes, durante e depois da adoção.</p>
         </div>
-        <a class="obs-section-link" href="guias.html">Ver todos os guias →</a>
       </div>
       <div id="obs-guias" class="obs-guide-grid"></div>
     </section>

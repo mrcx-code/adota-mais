@@ -8,13 +8,6 @@
  */
 
 const OBS = {
-  heroi: {
-    valor: 30000000,
-    rotulo: "de cães e gatos vivem abandonados no Brasil",
-    fonte: "Estimativa da Organização Mundial da Saúde (OMS)",
-    comparacao: "É mais do que a população inteira da Austrália. 🇦🇺",
-  },
-
   // Fatos com frente (número) e verso (contexto + fonte) — cards que viram no hover.
   fatos: [
     {
