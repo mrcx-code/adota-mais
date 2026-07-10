@@ -89,7 +89,9 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 28px;
+  /* Em telas largas o conteúdo do header acompanha a coluna central (1240px)
+     em vez de grudar na borda — o fundo/borda seguem ocupando a largura toda. */
+  padding: 18px max(28px, calc((100% - 1240px) / 2 + 20px));
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
@@ -1058,11 +1060,22 @@ a.stat-pill:hover {
 
 /* ♂/♀ ao lado do nome do pet */
 .pet-gender {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   font-size: 15px;
   font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+  color: #fff;
 }
-.pet-gender--macho { color: #4A90D9; }
-.pet-gender--femea { color: #D9558B; }
+.pet-gender--macho { background: #4A90D9; }
+.pet-gender--femea { background: #D9558B; }
+/* Sexo apenas sugerido pelo nome: mesma cor, um pouco mais suave. */
+.pet-gender--suggested { opacity: 0.72; }
 
 /* Botão de compartilhar no canto superior esquerdo da foto do pet */
 .pet-card-share-btn {

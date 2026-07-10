@@ -348,7 +348,7 @@ function adminPetCardHtml(pet, interestCount) {
       </div>
       <div class="pet-card-body">
         <div class="pet-card-top">
-          <h3 class="pet-card-name">${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender)}</h3>
+          <h3 class="pet-card-name">${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender, pet.name)}</h3>
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}

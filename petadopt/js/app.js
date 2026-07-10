@@ -189,16 +189,22 @@ function petCardHtml(pet) {
   // sentido. Sempre mostra algo (ver petDescriptionOrFallback) mesmo que a
   // ONG não tenha marcado nenhuma característica.
   const showDescription = pet.status === "disponivel";
+  // Compartilhar só faz sentido enquanto o pet está disponível para adoção —
+  // em processo ou já adotado, não há para onde encaminhar interessados.
+  const shareBtn =
+    pet.status === "disponivel"
+      ? `<button type="button" class="pet-card-share-btn" title="Compartilhar" onclick="sharePet(this, '${pet.id}', '${escapeHtml(pet.name)}')">🔗</button>`
+      : "";
 
   return `
     <article class="pet-card" id="pet-${pet.id}">
       <div class="pet-card-photo" ${photoStyle}>
-        <button type="button" class="pet-card-share-btn" title="Compartilhar" onclick="sharePet(this, '${pet.id}', '${escapeHtml(pet.name)}')">🔗</button>
+        ${shareBtn}
         ${org ? `<span class="pet-card-org-pin">📍 ${escapeHtml(org.org_name)}</span>` : ""}
       </div>
       <div class="pet-card-body">
         <div class="pet-card-top">
-          <h3 class="pet-card-name">${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender)}</h3>
+          <h3 class="pet-card-name">${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender, pet.name)}</h3>
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}

@@ -165,12 +165,30 @@ function petTraitsBadgesHtml(pet) {
   return `<div class="pet-trait-badges">${badges.join("")}</div>`;
 }
 
-/** ♂/♀ ao lado do nome do pet no card — só aparece quando o gênero foi
- * informado no cadastro. */
-function genderSymbolHtml(gender) {
-  if (gender === "macho") return `<span class="pet-gender pet-gender--macho" title="Macho">♂</span>`;
-  if (gender === "femea") return `<span class="pet-gender pet-gender--femea" title="Fêmea">♀</span>`;
-  return "";
+/** Palpite de sexo a partir do nome, pra pets cadastrados sem essa marcação.
+ * Heurística simples de nomes em português: termina em "a" → fêmea, senão
+ * macho. É só uma sugestão visual — não altera o dado no banco. */
+function inferGenderFromName(name) {
+  if (!name) return "macho";
+  const n = name.trim().toLowerCase();
+  return (n.endsWith("a") || n.endsWith("á")) ? "femea" : "macho";
+}
+
+/** ♂/♀ em selo ao lado do nome do pet no card. Quando o sexo não foi
+ * informado no cadastro, sugere um a partir do nome (marcado como sugestão
+ * no tooltip). Sempre exibe algo, pra todo pet ter a marcação. */
+function genderSymbolHtml(gender, name) {
+  let g = gender;
+  let suggested = false;
+  if (g !== "macho" && g !== "femea") {
+    g = inferGenderFromName(name);
+    suggested = true;
+  }
+  const symbol = g === "femea" ? "♀" : "♂";
+  const base = g === "femea" ? "Fêmea" : "Macho";
+  const title = suggested ? `${base} (sugerido pelo nome)` : base;
+  const suggestedClass = suggested ? " pet-gender--suggested" : "";
+  return `<span class="pet-gender pet-gender--${g}${suggestedClass}" title="${title}">${symbol}</span>`;
 }
 
 /** Opções fixas de personalidade — mesmas chaves usadas no checkbox do
