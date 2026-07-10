@@ -123,6 +123,9 @@ function obsRegiaoDaUF(uf) {
 function obsCountUp() {
   const els = document.querySelectorAll("[data-count]");
   if (!els.length) return;
+  // O HTML já traz o valor final (pra quem não roda JS). Só aqui, com JS
+  // disponível, zeramos para animar a contagem.
+  els.forEach((el) => { el.textContent = "0"; });
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
