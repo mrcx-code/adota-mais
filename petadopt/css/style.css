@@ -925,25 +925,6 @@ a.stat-pill:hover {
   border-radius: 999px;
 }
 
-.pet-trait-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0 0 10px;
-}
-
-.pet-trait-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  background: var(--color-surface-muted);
-  padding: 4px 9px;
-  border-radius: 999px;
-}
-
 .stale-banner {
   display: flex;
   align-items: center;

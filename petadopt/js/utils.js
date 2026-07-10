@@ -153,18 +153,6 @@ function petHealthBadgesHtml(pet) {
   return `<div class="pet-health-badges">${badges.join("")}</div>`;
 }
 
-/**
- * Monta as badges de informações extras do pet (só cidade — convivência
- * virou parte do texto da descrição automática pra não repetir a mesma
- * informação duas vezes no card).
- */
-function petTraitsBadgesHtml(pet) {
-  const badges = [];
-  if (pet.city) badges.push(`<span class="pet-trait-badge">📍 ${escapeHtml(pet.city)}</span>`);
-  if (!badges.length) return "";
-  return `<div class="pet-trait-badges">${badges.join("")}</div>`;
-}
-
 /** Palpite de sexo a partir do nome, pra pets cadastrados sem essa marcação.
  * Heurística simples de nomes em português: termina em "a" → fêmea, senão
  * macho. É só uma sugestão visual — não altera o dado no banco. */
@@ -238,10 +226,10 @@ function ageLabelWithRange(ageLabel) {
   return range ? `${ageLabel} (${range})` : ageLabel;
 }
 
-// Saúde, cidade e faixa etária já aparecem na linha de meta / badges do card
-// (ver ageLabelWithRange, petHealthBadgesHtml, petTraitsBadgesHtml) — a
-// descrição cobre só comportamento: personalidade, convivência e brinquedo/
-// hobby favorito.
+// Saúde e faixa etária já aparecem na linha de meta / badges do card
+// (ver ageLabelWithRange, petHealthBadgesHtml) — a descrição cobre só
+// comportamento: personalidade, convivência e brinquedo/hobby favorito.
+// A localização é da ONG (filtro estado/cidade), não do pet.
 function buildPetDescription(pet) {
   const parts = [];
 

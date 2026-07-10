@@ -352,7 +352,6 @@ function adminPetCardHtml(pet, interestCount) {
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}
-        ${petTraitsBadgesHtml(pet)}
         <p class="pet-card-desc">${escapeHtml(petDescriptionOrFallback(pet))}</p>
         ${staleBanner}
         <div class="pet-card-move">${moveButtons}</div>

@@ -236,7 +236,6 @@ function petCardHtml(pet) {
         </div>
         <p class="pet-card-meta">${metaParts.map(escapeHtml).join(" · ")}</p>
         ${petHealthBadgesHtml(pet)}
-        ${petTraitsBadgesHtml(pet)}
         ${showDescription ? `<p class="pet-card-desc">${escapeHtml(petDescriptionOrFallback(pet))}</p>` : ""}
         <div class="pet-card-actions">${interestBtn}</div>
       </div>
@@ -290,7 +289,7 @@ function openInterestModal(petId) {
   const metaParts = [speciesLabel(pet.species), pet.size, ageLabelWithRange(pet.age_label)].filter(Boolean);
   document.getElementById("interest-pet-meta").textContent = metaParts.join(" · ");
   document.getElementById("interest-pet-badges").innerHTML =
-    petHealthBadgesHtml(pet) + petTraitsBadgesHtml(pet);
+    petHealthBadgesHtml(pet);
   document.getElementById("interest-pet-description").textContent = petDescriptionOrFallback(pet);
   const orgEl = document.getElementById("interest-pet-org");
   orgEl.textContent = org ? `📍 ${org.org_name}` : "";
