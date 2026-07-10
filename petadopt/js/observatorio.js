@@ -284,8 +284,9 @@ function obsRenderPictograma(el) {
     Array.from({ length: 100 }, (_, i) => `<span class="obs-picto-paw ${i < abandonadas ? "abandonada" : ""}">🐾</span>`).join("") +
     `</div>
     <p class="obs-picto-legenda">
-      <strong>Cerca de 26 em cada 100</strong> cães e gatos do Brasil vivem abandonados.
-      <span class="obs-picto-hint">passe o mouse ✨</span>
+      <span><strong>Cerca de 26 em cada 100</strong> cães e gatos do Brasil vivem abandonados.</span>
+      <span class="obs-picto-key abandono">Abandonados</span>
+      <span class="obs-picto-key familia">Com família</span>
     </p>
     <span class="obs-fonte">📌 Cálculo sobre estimativas da OMS (30 mi abandonados) e Abinpet / Instituto Pet Brasil (85 mi com família)</span>`;
 }

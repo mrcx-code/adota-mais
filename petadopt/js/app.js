@@ -249,11 +249,24 @@ function openInterestModal(petId) {
   if (!pet) return;
   CURRENT_INTEREST_PET = pet;
 
+  const org = ORG_BY_ID[pet.org_id] || pet.org || null;
+
   document.getElementById("interest-pet-name").textContent = pet.name;
   const contextPhoto = document.getElementById("interest-pet-photo");
   contextPhoto.style.backgroundImage = pet.photo_url ? `url('${pet.photo_url}')` : "";
   contextPhoto.style.backgroundSize = pet.photo_url ? "cover" : "";
+  contextPhoto.classList.toggle("interest-pet-context-photo--empty", !pet.photo_url);
+
+  document.getElementById("interest-pet-headline").innerHTML =
+    `${escapeHtml(pet.name)} ${genderSymbolHtml(pet.gender, pet.name)}`;
+  const metaParts = [speciesLabel(pet.species), pet.size, ageLabelWithRange(pet.age_label)].filter(Boolean);
+  document.getElementById("interest-pet-meta").textContent = metaParts.join(" · ");
+  document.getElementById("interest-pet-badges").innerHTML =
+    petHealthBadgesHtml(pet) + petTraitsBadgesHtml(pet);
   document.getElementById("interest-pet-description").textContent = petDescriptionOrFallback(pet);
+  const orgEl = document.getElementById("interest-pet-org");
+  orgEl.textContent = org ? `📍 ${org.org_name}` : "";
+  orgEl.classList.toggle("hidden", !org);
   document.getElementById("interest-form").reset();
   document.getElementById("interest-error").classList.remove("visible");
   document.getElementById("interest-success").classList.remove("visible");

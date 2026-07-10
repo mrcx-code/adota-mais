@@ -536,6 +536,37 @@ button { font-family: inherit; cursor: pointer; }
 .obs-timeline-item h3 { margin: 2px 0 4px; font-size: 15.5px; }
 .obs-timeline-item p { margin: 0; font-size: 13.5px; color: var(--color-text-muted); line-height: 1.55; }
 
+/* Variante horizontal: leis lado a lado, ocupando a largura toda e com
+   altura menor. A "linha do tempo" vira uma régua no topo das colunas. */
+.obs-timeline--row {
+  flex-direction: row;
+  padding-left: 0;
+  gap: 24px;
+}
+.obs-timeline--row::before {
+  left: 6px;
+  right: 6px;
+  top: 5px;
+  bottom: auto;
+  width: auto;
+  height: 2px;
+}
+.obs-timeline--row .obs-timeline-item {
+  flex: 1;
+  padding-top: 20px;
+}
+.obs-timeline--row .obs-timeline-item::before {
+  left: 0;
+  top: 0;
+}
+.obs-timeline--row .obs-timeline-item h3 { margin: 4px 0; }
+@media (max-width: 720px) {
+  .obs-timeline--row { flex-direction: column; padding-left: 26px; gap: 22px; }
+  .obs-timeline--row::before { left: 7px; right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; }
+  .obs-timeline--row .obs-timeline-item { padding-top: 0; }
+  .obs-timeline--row .obs-timeline-item::before { left: -25px; top: 4px; }
+}
+
 /* ---------- Painéis (cartões de seção) ---------- */
 
 .obs-panel {
@@ -779,43 +810,57 @@ button { font-family: inherit; cursor: pointer; }
 .obs-picto {
   display: grid;
   grid-template-columns: repeat(20, 1fr);
-  gap: 4px;
+  gap: clamp(4px, 0.6vw, 8px);
   margin-bottom: 16px;
 }
 @media (max-width: 640px) {
   .obs-picto { grid-template-columns: repeat(10, 1fr); }
 }
 .obs-picto-paw {
-  font-size: clamp(12px, 1.6vw, 17px);
+  font-size: clamp(14px, 2vw, 22px);
   line-height: 1;
   text-align: center;
-  opacity: 0.22;
-  filter: grayscale(1);
-  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   cursor: default;
 }
-/* Ao passar o mouse no pictograma, as abandonadas "acendem" de uma vez. */
-.obs-picto:hover .obs-picto-paw.abandonada {
-  opacity: 1;
-  filter: none;
-  transform: scale(1.25);
+/* As "com família" ficam apagadas; as 26 abandonadas já nascem em destaque
+   (âmbar), pra leitura "26 em 100" ser imediata, sem depender de hover. */
+.obs-picto-paw:not(.abandonada) {
+  opacity: 0.28;
+  filter: grayscale(1);
 }
-.obs-picto:hover .obs-picto-paw:not(.abandonada) { opacity: 0.12; }
+.obs-picto-paw.abandonada {
+  filter: sepia(1) saturate(4.5) hue-rotate(-18deg) brightness(0.95);
+}
+/* Interação leve: a patinha apontada cresce. */
+.obs-picto-paw:hover { transform: scale(1.6); opacity: 1; filter: none; }
 
 .obs-picto-legenda {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   margin: 0 0 8px;
   font-size: 14px;
   line-height: 1.55;
   color: var(--color-text-muted);
 }
 .obs-picto-legenda strong { color: var(--color-text); }
-.obs-picto-hint {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-text-soft);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+/* Chip-legenda com a bolinha da cor correspondente. */
+.obs-picto-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
 }
+.obs-picto-key::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.obs-picto-key.abandono::before { background: #C97A2C; }
+.obs-picto-key.familia::before { background: var(--color-surface-muted); border: 1px solid var(--color-border); }
 
