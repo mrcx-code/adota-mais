@@ -191,7 +191,12 @@ begin
   insert into public.profiles (id, org_name, contact_email, contact_whatsapp, city, state)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'org_name', 'Abrigo sem nome'),
+    coalesce(
+      new.raw_user_meta_data ->> 'org_name',
+      new.raw_user_meta_data ->> 'full_name',
+      new.raw_user_meta_data ->> 'name',
+      'Abrigo sem nome'
+    ),
     coalesce(new.raw_user_meta_data ->> 'contact_email', new.email),
     new.raw_user_meta_data ->> 'contact_whatsapp',
     new.raw_user_meta_data ->> 'city',

@@ -198,6 +198,18 @@ async function enterDashboardWithSession(session) {
   showDashboard();
 }
 
+async function handleGoogleAuth() {
+  if (window.DEMO_MODE) return;
+  const { error } = await window.sb.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.origin + window.location.pathname },
+  });
+  if (error) {
+    console.error("[Patinhas] Erro no login com Google:", error);
+    alertInline("Não foi possível iniciar o login com Google.");
+  }
+}
+
 async function handleLogout() {
   if (!window.DEMO_MODE) {
     await window.sb.auth.signOut();
