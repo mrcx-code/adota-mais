@@ -295,3 +295,24 @@ create policy "Anyone can log a visit"
   on site_visits for insert
   to anon, authenticated
   with check (true);
+
+-- =========================================================
+-- Fila de sugestões de melhoria (widget de feedback, js/utils.js).
+-- Qualquer visitante pode enviar; ninguém consegue ler pela API pública
+-- (sem policy de select) — a fila é consumida pelo painel do Supabase.
+-- =========================================================
+
+create table platform_feedback (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  message text not null,
+  page text,
+  user_agent text
+);
+
+alter table platform_feedback enable row level security;
+
+create policy "Qualquer pessoa envia sugestão"
+  on platform_feedback for insert
+  to anon, authenticated
+  with check (true);

@@ -495,3 +495,117 @@ function formatDate(isoString) {
     return "";
   }
 }
+
+/* ======================================================================
+   Widget de feedback ("Sugira uma melhoria")
+   ----------------------------------------------------------------------
+   Botão fixo no canto superior esquerdo (mesmo estilo do "voltar ao topo").
+   Ao clicar, abre uma caixinha com um campo de texto e o botão Enviar.
+   O que a pessoa escrever é tratado como uma sugestão para melhorar a
+   plataforma e vai para a fila em platform_feedback (Supabase). Se o banco
+   não estiver disponível, guarda em localStorage pra não perder nada.
+   ====================================================================== */
+
+async function submitPlatformFeedback(message) {
+  const payload = {
+    message: message,
+    page: location.pathname,
+    user_agent: (navigator.userAgent || "").slice(0, 300),
+  };
+  if (window.sb && !window.DEMO_MODE) {
+    const { error } = await window.sb.from("platform_feedback").insert([payload]);
+    if (error) throw error;
+    return;
+  }
+  // Sem banco (modo demo / offline): mantém a fila local.
+  const key = "patinhas_feedback_queue";
+  const queue = JSON.parse(localStorage.getItem(key) || "[]");
+  queue.push(Object.assign({ created_at: new Date().toISOString() }, payload));
+  localStorage.setItem(key, JSON.stringify(queue));
+}
+
+function initFeedbackWidget() {
+  if (document.getElementById("feedback-fab")) return;
+
+  const fab = document.createElement("button");
+  fab.id = "feedback-fab";
+  fab.type = "button";
+  fab.className = "feedback-fab";
+  fab.setAttribute("aria-label", "Sugerir uma melhoria");
+  fab.setAttribute("aria-expanded", "false");
+  fab.textContent = "💡";
+
+  const pop = document.createElement("div");
+  pop.id = "feedback-pop";
+  pop.className = "feedback-pop hidden";
+  pop.innerHTML =
+    '<div class="feedback-pop-head">' +
+    '<strong>Tem uma ideia?</strong>' +
+    '<button type="button" class="feedback-pop-close" aria-label="Fechar">&times;</button>' +
+    "</div>" +
+    '<p class="feedback-pop-sub">Conte o que deixaria o Patinhas melhor. Sua sugestão vai direto pra nossa fila.</p>' +
+    '<textarea id="feedback-text" rows="4" placeholder="Escreva sua sugestão..."></textarea>' +
+    '<div id="feedback-msg" class="feedback-pop-msg"></div>' +
+    '<button type="button" id="feedback-send" class="btn btn-primary btn-block">Enviar sugestão</button>';
+
+  document.body.appendChild(fab);
+  document.body.appendChild(pop);
+
+  const textarea = pop.querySelector("#feedback-text");
+  const sendBtn = pop.querySelector("#feedback-send");
+  const msg = pop.querySelector("#feedback-msg");
+
+  function openPop() {
+    pop.classList.remove("hidden");
+    fab.setAttribute("aria-expanded", "true");
+    msg.textContent = "";
+    msg.className = "feedback-pop-msg";
+    setTimeout(() => textarea.focus(), 30);
+  }
+  function closePop() {
+    pop.classList.add("hidden");
+    fab.setAttribute("aria-expanded", "false");
+  }
+  function togglePop() {
+    pop.classList.contains("hidden") ? openPop() : closePop();
+  }
+
+  fab.addEventListener("click", togglePop);
+  pop.querySelector(".feedback-pop-close").addEventListener("click", closePop);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !pop.classList.contains("hidden")) closePop();
+  });
+  // Fecha ao clicar fora.
+  document.addEventListener("click", (e) => {
+    if (pop.classList.contains("hidden")) return;
+    if (!pop.contains(e.target) && e.target !== fab) closePop();
+  });
+
+  sendBtn.addEventListener("click", async () => {
+    const text = textarea.value.trim();
+    if (!text) {
+      msg.textContent = "Escreva algo antes de enviar. 🙂";
+      msg.className = "feedback-pop-msg error";
+      textarea.focus();
+      return;
+    }
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="paw-spinner">🐾</span> Enviando...';
+    try {
+      await submitPlatformFeedback(text);
+      msg.textContent = "Obrigado! Sua sugestão foi registrada. 💚";
+      msg.className = "feedback-pop-msg success";
+      textarea.value = "";
+      setTimeout(closePop, 1600);
+    } catch (err) {
+      console.error("[Patinhas] Erro ao enviar feedback:", err);
+      msg.textContent = "Não foi possível enviar agora. Tente de novo em instantes.";
+      msg.className = "feedback-pop-msg error";
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Enviar sugestão";
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initFeedbackWidget);
