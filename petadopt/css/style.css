@@ -215,13 +215,18 @@ button {
 
 @media (max-width: 640px) {
   .site-header {
-    flex-wrap: wrap;
-    row-gap: 10px;
-    padding: 14px 20px;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  /* No celular, esconde os links secundários do header pra não empurrarem
+     e bloquearem o botão "Sou um abrigo / ONG". Eles seguem acessíveis pelo
+     rodapé. */
+  .site-header .header-actions .nav-link {
+    display: none;
   }
   .header-actions {
-    flex-wrap: wrap;
     gap: 8px;
+    flex-shrink: 0;
   }
 }
 
@@ -1045,11 +1050,9 @@ a.stat-pill:hover {
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   vertical-align: middle;
-  /* Sem fundo — só o símbolo, engrossado com text-stroke pra não ficar fino. */
-  -webkit-text-stroke: 0.7px currentColor;
 }
 .pet-gender--macho { color: #3B7DC4; }
 .pet-gender--femea { color: #C64884; }
