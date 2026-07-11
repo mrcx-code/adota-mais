@@ -456,17 +456,14 @@ a.stat-pill:hover {
    respiro lateral próprio; só o carrossel de colunas usa a largura completa. */
 @media (max-width: 640px) {
   .mural-panel {
+    /* full-bleed: a margem -20 cancela o padding do .site-main, e o padding de
+       20 devolve o mesmo respiro lateral do resto da página para todos os
+       filhos (título, chips, filtro). Só o carrossel sangra esses 20 de volta. */
     margin: 12px -20px 0;
-    padding: 24px 0 8px;
+    padding: 24px 20px 8px;
     background: transparent;
     border: none;
     border-radius: 0;
-  }
-  .mural-panel > .mural-intro-row,
-  .mural-panel > .filters-toggle,
-  .mural-panel > #mural-filters {
-    padding-left: 20px;
-    padding-right: 20px;
   }
 }
 
@@ -662,6 +659,24 @@ a.stat-pill:hover {
   font-size: 14px;
 }
 
+/* No mobile, o fluxo Disponível → Em processo → Adotado fica em uma linha só,
+   com chips e setas mais compactos, em vez de quebrar em duas linhas. */
+@media (max-width: 640px) {
+  .kanban-flow,
+  .mural-intro-row .kanban-flow {
+    flex-wrap: nowrap;
+    gap: 5px;
+    margin-top: 12px;
+  }
+  .kanban-flow-step {
+    font-size: 11px;
+    padding: 6px 9px;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .kanban-flow-arrow { font-size: 11px; }
+}
+
 /* ---------- Kanban ---------- */
 
 .kanban-board {
@@ -687,10 +702,12 @@ a.stat-pill:hover {
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* O mural é full-bleed no mobile (ver .mural-panel abaixo), então o
-       carrossel usa só um respiro lateral pequeno em vez de sangrar de novo. */
-    margin: 0;
-    padding: 0 16px;
+    /* Sangra os 20px de padding do .mural-panel para usar a largura toda, mas
+       mantém 20px de gutter antes da 1ª coluna (padding + scroll-padding, para
+       o scroll-snap não colar a coluna na borda). */
+    margin: 0 -20px;
+    padding: 0 20px;
+    scroll-padding: 0 20px;
   }
   .kanban-board::-webkit-scrollbar {
     display: none;
