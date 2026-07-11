@@ -698,15 +698,60 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 0.08em;
 }
 
-/* ---------- Mapa por região + tooltip ---------- */
+/* ---------- Mapa da rede (aceso onde tem ONG) + tooltip ---------- */
 
-.obs-map-tile.reg-SE { background: var(--color-brand); color: #fff; }
-.obs-map-tile.reg-NE { background: #9FBA99; }
-.obs-map-tile.reg-S  { background: #C98A2C; color: #fff; }
-.obs-map-tile.reg-CO { background: #E7C889; }
-.obs-map-tile.reg-N  { background: #C4D6B8; }
-.obs-map-tile.dim { opacity: 0.25; }
-.obs-map-tile { transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s ease; }
+.obs-map-tile { position: relative; transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s ease; }
+
+.obs-map-tile.apagado {
+  background: var(--color-surface-muted);
+  color: var(--color-text-soft);
+}
+.obs-map-tile.lit {
+  background: var(--color-brand);
+  color: #fff;
+}
+/* Anel de radar: o estado aceso pulsa devagar, como um farol da rede. */
+.obs-map-tile.lit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(82, 115, 83, 0.55);
+  animation: obs-radar 2.6s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes obs-radar {
+  0% { box-shadow: 0 0 0 0 rgba(82, 115, 83, 0.5); }
+  70% { box-shadow: 0 0 0 9px rgba(82, 115, 83, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(82, 115, 83, 0); }
+}
+
+.obs-map-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #C98A2C;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px var(--color-offwhite);
+}
+
+.obs-uf-orgs {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--color-text-muted);
+}
 
 .obs-tooltip {
   position: fixed;
@@ -802,6 +847,585 @@ button { font-family: inherit; cursor: pointer; }
 .obs-picto-key.familia::before { background: var(--color-surface-muted); border: 1px solid var(--color-border); }
 
 /* =========================================================
+   "Da rua ao lar, ao vivo" — componentes do redesign
+   ========================================================= */
+
+/* ---------- Selo AO VIVO ---------- */
+
+.obs-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(244, 241, 230, 0.1);
+  border: 1px solid rgba(244, 241, 230, 0.25);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #F4F1E6;
+  letter-spacing: 0.02em;
+}
+.obs-live-paw {
+  font-size: 13px;
+  line-height: 1;
+  animation: obs-pulso 1.6s ease-in-out infinite;
+}
+@keyframes obs-pulso {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  12% { transform: scale(1.35); opacity: 1; }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.25); }
+  48% { transform: scale(1); }
+}
+.obs-live-badge.erro {
+  border-color: rgba(231, 200, 137, 0.6);
+  color: #E7C889;
+}
+.obs-live-badge.erro .obs-live-paw { animation: none; opacity: 0.7; }
+
+/* ---------- Contadores-herói ---------- */
+
+.obs-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 26px 0 30px;
+}
+.obs-hero-stat {
+  flex: 1 1 150px;
+  min-width: 150px;
+  background: rgba(244, 241, 230, 0.08);
+  border: 1px solid rgba(244, 241, 230, 0.18);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.obs-hero-stat-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 1;
+  color: #FCFAF4;
+  font-variant-numeric: tabular-nums;
+}
+.obs-hero-stat-label {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(244, 241, 230, 0.75);
+}
+/* Brilho quando um número muda ao vivo. */
+.obs-hero-stat.glow, .obs-encontro-card.glow {
+  animation: obs-glow 1.2s ease;
+}
+@keyframes obs-glow {
+  0% { box-shadow: 0 0 0 0 rgba(201, 138, 44, 0); }
+  25% { box-shadow: 0 0 0 4px rgba(201, 138, 44, 0.45); border-color: #C98A2C; }
+  100% { box-shadow: 0 0 0 0 rgba(201, 138, 44, 0); }
+}
+
+/* ---------- Trilha de patinhas entre capítulos ---------- */
+
+.obs-trilha {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 26px;
+  padding: 26px 0 6px;
+}
+.obs-trilha-paw {
+  width: 22px;
+  height: 22px;
+  color: var(--color-brand-accent);
+  opacity: 0.15;
+  transform: scale(0.6);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.obs-trilha-paw.esq { rotate: -14deg; translate: 0 -5px; }
+.obs-trilha-paw.dir { rotate: 14deg; translate: 0 5px; }
+.obs-trilha.pisada .obs-trilha-paw { opacity: 0.85; transform: scale(1); }
+.obs-trilha-paw svg { width: 100%; height: 100%; display: block; }
+
+/* ---------- Capítulos ---------- */
+
+.obs-cap { margin-top: 34px; }
+
+.obs-cap-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.obs-cap-head h2 { font-size: 24px; margin: 0 0 4px; }
+.obs-cap-sub { margin: 0; color: var(--color-text-muted); font-size: 14px; max-width: 62ch; }
+
+.obs-cap-medal {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--color-brand) 0%, var(--color-brand-dark) 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  box-shadow: 0 6px 14px rgba(82, 115, 83, 0.3);
+  transform: scale(0.4) rotate(-12deg);
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+.obs-cap-medal.stamped { transform: scale(1) rotate(0deg); opacity: 1; }
+.obs-cap-medal--lar { background: linear-gradient(145deg, #C98A2C, #A96F1E); }
+
+/* ---------- Cap. 1: A rua ---------- */
+
+.obs-rua {
+  background: linear-gradient(150deg, #2C4029 0%, #223121 100%);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 4vw, 40px);
+  color: #F4F1E6;
+}
+.obs-rua-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.obs-rua-chip {
+  background: rgba(244, 241, 230, 0.07);
+  border: 1px solid rgba(244, 241, 230, 0.14);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.obs-rua-chip strong {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: #E7C889;
+}
+.obs-rua-chip span { font-size: 13px; line-height: 1.5; color: rgba(244, 241, 230, 0.85); }
+.obs-rua-chip .obs-fonte { color: rgba(244, 241, 230, 0.5); }
+.obs-rua-ponte {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(244, 241, 230, 0.9);
+}
+
+/* ---------- Cap. 2: chegadas ---------- */
+
+.obs-chegadas {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  scrollbar-width: thin;
+}
+.obs-chegada {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--color-text);
+  width: 86px;
+}
+.obs-chegada-foto {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-brand-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-brand-accent);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.obs-chegada:hover .obs-chegada-foto { transform: scale(1.08); border-color: var(--color-brand); }
+.obs-chegada-foto img { width: 100%; height: 100%; object-fit: cover; }
+.obs-chegada-paw { font-size: 26px; }
+.obs-chegada-nome { font-weight: 700; font-size: 13px; text-align: center; }
+.obs-chegada-quando { font-size: 11px; color: var(--color-text-soft); }
+
+.obs-vazio {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Cap. 3: censo de patinhas ---------- */
+
+.obs-censo { position: relative; }
+
+.obs-censo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.4vw, 14px);
+  padding: 6px 0 2px;
+  touch-action: pan-y; /* varrer na horizontal faz carinho; vertical ainda rola */
+}
+.obs-censo-paw {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 4px;
+  margin: 0;
+  width: clamp(40px, 6vw, 54px);
+  height: clamp(40px, 6vw, 54px);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+.obs-censo-paw svg { width: 100%; height: 100%; }
+.obs-censo-paw.sp-gato { width: clamp(32px, 4.6vw, 42px); height: clamp(32px, 4.6vw, 42px); }
+.obs-censo-paw.st-disponivel { color: #6FA671; }
+.obs-censo-paw.st-em_processo { color: #C98A2C; }
+.obs-censo-paw.st-adotado { color: #B96468; }
+.obs-censo-paw:hover { transform: translateY(-3px) scale(1.12); }
+.obs-censo-paw:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-offwhite), 0 0 0 4px var(--color-brand);
+}
+/* Carinho: pulinho + brilho quando o dedo passa. */
+.obs-censo-paw.carinho { animation: obs-carinho 0.45s ease; }
+@keyframes obs-carinho {
+  0% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 0 rgba(201, 138, 44, 0)); }
+  40% { transform: translateY(-6px) scale(1.22); filter: drop-shadow(0 4px 8px rgba(201, 138, 44, 0.55)); }
+  100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 0 rgba(201, 138, 44, 0)); }
+}
+/* Alguém mudou de coluna entre uma leitura e outra. */
+.obs-censo-paw.mudou { animation: obs-mudou 1.6s ease 2; }
+@keyframes obs-mudou {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.35) rotate(-8deg); }
+  60% { transform: scale(1.1) rotate(6deg); }
+}
+
+.obs-censo-pop[hidden] { display: none; }
+.obs-censo-pop {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 230px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  padding: 12px;
+}
+.obs-censo-pop img,
+.obs-censo-pop-emoji {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: var(--color-brand-soft);
+}
+.obs-censo-pop-body { display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+.obs-censo-pop-body strong { font-size: 14.5px; }
+.obs-censo-pop-body span { color: var(--color-text-muted); }
+.obs-censo-pop-body a { font-weight: 700; font-size: 12.5px; }
+.obs-censo-pop-x {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: var(--color-text-soft);
+  padding: 2px;
+}
+
+.obs-censo-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.obs-censo-key { display: inline-flex; align-items: center; gap: 6px; }
+.obs-censo-key::before { content: ""; width: 11px; height: 11px; border-radius: 50%; }
+.obs-censo-key.esperando::before { background: #6FA671; }
+.obs-censo-key.processo::before { background: #C98A2C; }
+.obs-censo-key.lar::before { background: #B96468; }
+
+.obs-censo-egg {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-brand-dark);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  min-height: 20px;
+}
+.obs-censo-egg.on { opacity: 1; transform: translateY(0); }
+
+.obs-censo-dica {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+
+/* ---------- Cap. 4: o encontro ---------- */
+
+.obs-encontro {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.obs-encontro-card {
+  background: var(--color-offwhite);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+  text-align: center;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.obs-coracao {
+  display: inline-block;
+  font-size: 30px;
+  animation: obs-batimento 1.8s ease-in-out infinite;
+}
+.obs-coracao--paw { animation-delay: 0.9s; }
+@keyframes obs-batimento {
+  0%, 100% { transform: scale(1); }
+  10% { transform: scale(1.18); }
+  20% { transform: scale(1); }
+  30% { transform: scale(1.12); }
+  40% { transform: scale(1); }
+}
+.obs-encontro-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1.1;
+  color: var(--color-brand-dark);
+  font-variant-numeric: tabular-nums;
+}
+.obs-encontro-card p { margin: 6px 0 0; font-size: 14px; color: var(--color-text-muted); }
+
+/* ---------- Cap. 5: mural de reencontros ---------- */
+
+.obs-reencontros {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 2px 10px;
+  scrollbar-width: thin;
+}
+.obs-reencontro {
+  flex: 0 0 220px;
+  scroll-snap-align: start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.obs-reencontro-foto {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--color-brand-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+.obs-reencontro-foto img { width: 100%; height: 100%; object-fit: cover; }
+.obs-carimbo {
+  position: absolute;
+  top: 10px;
+  right: -6px;
+  background: #B96468;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  padding: 5px 14px;
+  border-radius: 6px;
+  transform: rotate(-8deg);
+  box-shadow: 0 3px 8px rgba(185, 100, 104, 0.4);
+}
+.obs-reencontro-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.obs-reencontro-body strong { font-size: 15px; color: var(--color-text); }
+.obs-reencontro-espera { font-weight: 600; color: var(--color-brand-dark); }
+
+.obs-lar-metrica {
+  margin: 14px 0 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ---------- Cap. 6: barra-osso do progresso da rede ---------- */
+
+.obs-osso-wrap { margin-top: 18px; max-width: 480px; }
+.obs-osso {
+  position: relative;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+/* As "pontas" do osso. */
+.obs-osso::before, .obs-osso::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+}
+.obs-osso::before { left: -4px; box-shadow: 0 16px 0 -1px var(--color-surface-muted); }
+.obs-osso::after { right: -4px; box-shadow: 0 16px 0 -1px var(--color-surface-muted); }
+.obs-osso-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #E7C889, #C98A2C);
+  transition: width 1s cubic-bezier(0.25, 0.9, 0.3, 1);
+}
+.obs-osso-label {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Cap. 7: conquistas ---------- */
+
+.obs-conquistas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.obs-conquista {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  opacity: 0.72;
+}
+.obs-conquista.ok {
+  opacity: 1;
+  border-color: #E7C889;
+  background: linear-gradient(150deg, #FDF8EC, #FAF0DA);
+}
+.obs-conquista-icone {
+  font-size: 24px;
+  filter: grayscale(1) opacity(0.6);
+}
+.obs-conquista.ok .obs-conquista-icone { filter: none; }
+.obs-conquista strong { display: block; font-size: 13.5px; }
+.obs-conquista span { font-size: 12px; color: var(--color-text-muted); }
+.obs-conquista.ok span { color: #A96F1E; font-weight: 700; }
+
+/* ---------- Acervo nacional (details) ---------- */
+
+.obs-acervo {
+  margin-top: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.obs-acervo summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 22px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.obs-acervo summary::-webkit-details-marker { display: none; }
+.obs-acervo-caret { transition: transform 0.25s ease; font-size: 14px; color: var(--color-text-soft); }
+.obs-acervo[open] .obs-acervo-caret { transform: rotate(180deg); }
+.obs-acervo-body {
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.obs-acervo-body .obs-panel { background: var(--color-bg); }
+
+/* ---------- Toast ao vivo ---------- */
+
+.obs-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translate(-50%, 16px);
+  z-index: 300;
+  background: var(--color-text);
+  color: #FCFAF4;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-card-hover);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  max-width: min(92vw, 420px);
+  text-align: center;
+}
+.obs-toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Movimento reduzido ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-live-paw,
+  .obs-coracao,
+  .obs-map-tile.lit::after { animation: none !important; }
+  .obs-censo-paw.carinho,
+  .obs-censo-paw.mudou,
+  .obs-hero-stat.glow,
+  .obs-encontro-card.glow { animation: none !important; }
+  .obs-trilha-paw { transition: none; opacity: 0.85; transform: scale(1); }
+  .obs-cap-medal { transition: none; transform: none; opacity: 1; }
+}
+
+/* =========================================================
    Mobile (mobile-first: aqui ficam só os ajustes de telas
    estreitas; o layout base acima já vale pro desktop).
    ========================================================= */
@@ -837,6 +1461,21 @@ button { font-family: inherit; cursor: pointer; }
   .obs-cta { margin-top: 40px; padding: 32px 20px; }
   .obs-cta-actions { flex-direction: column; align-items: stretch; }
   .obs-cta-actions .btn { width: 100%; }
+
+  /* Redesign "da rua ao lar" no mobile */
+  .obs-hero-stats { gap: 10px; }
+  .obs-hero-stat { flex: 1 1 calc(50% - 10px); min-width: 130px; padding: 14px 16px; }
+  .obs-cap { margin-top: 26px; }
+  .obs-cap-head h2 { font-size: 20px; }
+  .obs-cap-medal { width: 38px; height: 38px; font-size: 15px; border-radius: 13px; }
+  .obs-trilha { gap: 18px; padding: 18px 0 4px; }
+  .obs-trilha-paw { width: 18px; height: 18px; }
+  .obs-rua-ponte { font-size: 14px; }
+  .obs-encontro-num { font-size: 36px; }
+  .obs-reencontro { flex-basis: 190px; }
+  .obs-conquistas { grid-template-columns: 1fr 1fr; }
+  .obs-conquista { padding: 12px; gap: 10px; flex-direction: column; align-items: flex-start; }
+  .obs-acervo summary { padding: 15px 16px; font-size: 14.5px; }
 }
 
 @media (max-width: 400px) {

@@ -1,14 +1,27 @@
 /**
- * Observatório Patinhas — dados públicos sobre adoção e abandono no Brasil.
+ * Observatório Patinhas — "Da rua ao lar, ao vivo".
  *
- * Todos os números vêm de fontes públicas amplamente publicadas (OMS,
- * Instituto Pet Brasil, Abinpet, IBGE, legislação federal) e cada bloco
- * exibe a própria fonte. Valores são aproximados, conforme divulgados
- * pelas fontes — nada aqui é dado interno do Patinhas.
+ * A página é uma caminhada: rua → chegada → espera → encontro → lar → rede.
+ * Os dados dos capítulos vêm AO VIVO do Supabase (mesmas leituras públicas do
+ * mural: pets, perfis de ONGs e a RPC get_public_stats) e se atualizam
+ * sozinhos por polling. Os dados nacionais (OMS, IBGE, Instituto Pet Brasil)
+ * continuam aqui como contexto — no capítulo "A rua" e no acervo recolhido.
+ *
+ * Nada aqui acessa dado privado: interessados/feedback seguem bloqueados
+ * pela RLS; total_interests é só a contagem agregada da RPC pública.
  */
 
+/* =====================================================================
+   Dados nacionais (estáticos, com fonte citada)
+   ===================================================================== */
+
 const OBS = {
-  // Fatos com frente (número) e verso (contexto + fonte) — cards que viram no hover.
+  ruaChips: [
+    { valor: "≈30 milhões", texto: "de cães e gatos vivem abandonados no Brasil", fonte: "OMS" },
+    { valor: "≈10 milhões", texto: "em condição de vulnerabilidade", fonte: "Instituto Pet Brasil (2021)" },
+    { valor: "185 mil", texto: "acolhidos por ONGs e protetores", fonte: "Instituto Pet Brasil — Censo Pet (2020)" },
+  ],
+
   fatos: [
     {
       icone: "🏠",
@@ -46,13 +59,12 @@ const OBS = {
     fonte: "Abinpet / Instituto Pet Brasil (2021)",
   },
 
-  // Distribuição aproximada da população de pets por região.
   regioes: {
-    SE: { nome: "Sudeste", share: 44, ufs: ["SP", "RJ", "MG", "ES"] },
-    NE: { nome: "Nordeste", share: 24, ufs: ["BA", "PE", "CE", "MA", "PB", "RN", "AL", "PI", "SE"] },
-    S:  { nome: "Sul", share: 14, ufs: ["PR", "SC", "RS"] },
-    CO: { nome: "Centro-Oeste", share: 9, ufs: ["GO", "MT", "MS", "DF"] },
-    N:  { nome: "Norte", share: 9, ufs: ["AM", "PA", "TO", "RO", "AC", "AP", "RR"] },
+    SE: { nome: "Sudeste", share: 44 },
+    NE: { nome: "Nordeste", share: 24 },
+    S:  { nome: "Sul", share: 14 },
+    CO: { nome: "Centro-Oeste", share: 9 },
+    N:  { nome: "Norte", share: 9 },
   },
   regiaoFonte: "Distribuição aproximada — Instituto Pet Brasil",
 
@@ -78,7 +90,6 @@ const OBS = {
     RS: [5, 8],
   },
 
-  // Marcos legais reais da proteção animal no Brasil.
   leis: [
     {
       ano: "1998",
@@ -99,43 +110,698 @@ const OBS = {
       fonte: "Lei nº 14.228/2021 — Planalto",
     },
   ],
-
 };
 
-/* ---------------- Helpers ---------------- */
+/* =====================================================================
+   Helpers
+   ===================================================================== */
+
+const OBS_REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const OBS_PAW_SVG =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z"/></svg>';
 
 function obsFmt(n) {
-  return n.toLocaleString("pt-BR");
+  return Number(n).toLocaleString("pt-BR");
 }
 
-function obsRegiaoDaUF(uf) {
-  return Object.entries(OBS.regioes).find(([, r]) => r.ufs.includes(uf))?.[0];
+function obsEsc(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-/** Anima números com data-count quando entram na tela. */
-function obsCountUp() {
-  const els = document.querySelectorAll("[data-count]");
-  if (!els.length) return;
-  // O HTML já traz o valor final (pra quem não roda JS). Só aqui, com JS
-  // disponível, zeramos para animar a contagem.
-  els.forEach((el) => { el.textContent = "0"; });
+/** Só aceita http(s) — mesma proteção anti-XSS de URL usada no mural. */
+function obsSafeUrl(url) {
+  const s = String(url == null ? "" : url).trim();
+  return /^https?:\/\//i.test(s) ? s : "";
+}
+
+function obsDaysSince(iso) {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+}
+
+function obsRelDias(n) {
+  if (n === null) return "";
+  if (n === 0) return "hoje";
+  if (n === 1) return "ontem";
+  return `há ${n} dias`;
+}
+
+function obsEspecieEmoji(sp) {
+  return sp === "gato" ? "🐱" : sp === "cachorro" ? "🐶" : "🐾";
+}
+
+/** Anima um número de `from` até `to` dentro do elemento. */
+function obsAnimateNumber(el, from, to, dur = 1200) {
+  if (OBS_REDUCED || from === to) {
+    el.textContent = obsFmt(to);
+    return;
+  }
+  const t0 = performance.now();
+  const tick = (t) => {
+    const p = Math.min((t - t0) / dur, 1);
+    el.textContent = obsFmt(Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))));
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/** Brilho âmbar rápido num card cujo valor mudou. */
+function obsGlow(el) {
+  const alvo = el.closest(".obs-hero-stat, .obs-encontro-card") || el;
+  alvo.classList.remove("glow");
+  void alvo.offsetWidth; // reinicia a animação
+  alvo.classList.add("glow");
+}
+
+/* =====================================================================
+   Toasts (um por vez, fila curta)
+   ===================================================================== */
+
+const OBS_TOAST_QUEUE = [];
+let OBS_TOAST_BUSY = false;
+
+function obsToast(msg) {
+  if (OBS_TOAST_QUEUE.length >= 3) return; // cap de recuperação
+  OBS_TOAST_QUEUE.push(msg);
+  obsToastNext();
+}
+
+function obsToastNext() {
+  if (OBS_TOAST_BUSY) return;
+  const msg = OBS_TOAST_QUEUE.shift();
+  if (!msg) return;
+  OBS_TOAST_BUSY = true;
+  const el = document.getElementById("obs-toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  setTimeout(() => {
+    el.classList.remove("on");
+    setTimeout(() => { OBS_TOAST_BUSY = false; obsToastNext(); }, 350);
+  }, 5200);
+}
+
+/* =====================================================================
+   Motor ao vivo — fetch, snapshot, diff e polling
+   ===================================================================== */
+
+const OBS_LIVE = {
+  pollMs: 45000,
+  snap: null,       // { stats, pets, orgs, fetchedAt, sample }
+  prev: null,
+  timer: null,
+  tickTimer: null,
+  erro: false,
+};
+
+/** Amostra usada só se o Supabase não estiver disponível (demo/offline). */
+const OBS_AMOSTRA = {
+  stats: { total_orgs: 3, total_pets: 7, total_adopted: 2, total_interests: 5 },
+  pets: [
+    { id: "d1", name: "Caramelo", species: "cachorro", status: "disponivel", created_at: new Date(Date.now() - 5 * 864e5).toISOString(), updated_at: new Date().toISOString(), photo_url: "" },
+    { id: "d2", name: "Mia", species: "gato", status: "disponivel", created_at: new Date(Date.now() - 9 * 864e5).toISOString(), updated_at: new Date().toISOString(), photo_url: "" },
+    { id: "d3", name: "Rex", species: "cachorro", status: "em_processo", created_at: new Date(Date.now() - 12 * 864e5).toISOString(), updated_at: new Date().toISOString(), photo_url: "" },
+    { id: "d4", name: "Luna", species: "gato", status: "disponivel", created_at: new Date(Date.now() - 2 * 864e5).toISOString(), updated_at: new Date().toISOString(), photo_url: "" },
+    { id: "d5", name: "Thor", species: "cachorro", status: "adotado", created_at: new Date(Date.now() - 20 * 864e5).toISOString(), updated_at: new Date(Date.now() - 6 * 864e5).toISOString(), photo_url: "" },
+    { id: "d6", name: "Amora", species: "gato", status: "adotado", created_at: new Date(Date.now() - 30 * 864e5).toISOString(), updated_at: new Date(Date.now() - 12 * 864e5).toISOString(), photo_url: "" },
+    { id: "d7", name: "Bidu", species: "cachorro", status: "disponivel", created_at: new Date(Date.now() - 1 * 864e5).toISOString(), updated_at: new Date().toISOString(), photo_url: "" },
+  ],
+  orgs: [
+    { id: "o1", org_name: "Abrigo Amigo Fiel (exemplo)", city: "São Paulo", state: "SP" },
+    { id: "o2", org_name: "Patas do Cerrado (exemplo)", city: "Goiânia", state: "GO" },
+    { id: "o3", org_name: "Recanto Feliz (exemplo)", city: "Recife", state: "PE" },
+  ],
+  sample: true,
+};
+
+async function obsFetchLive() {
+  if (!window.sb || window.DEMO_MODE) throw new Error("sem-supabase");
+  const [stats, pets, orgs] = await Promise.all([
+    window.sb.rpc("get_public_stats"),
+    window.sb.from("pets").select("id,name,species,status,gender,photo_url,created_at,updated_at"),
+    window.sb.from("profiles").select("id,org_name,city,state"),
+  ]);
+  if (stats.error || pets.error || orgs.error) {
+    throw stats.error || pets.error || orgs.error;
+  }
+  const s = Array.isArray(stats.data) ? stats.data[0] : stats.data;
+  return {
+    stats: s || { total_orgs: 0, total_pets: 0, total_adopted: 0, total_interests: 0 },
+    pets: pets.data || [],
+    orgs: orgs.data || [],
+    fetchedAt: Date.now(),
+    sample: false,
+  };
+}
+
+/** Compara o snapshot novo com o anterior e devolve eventos amigáveis. */
+function obsDiff(prev, next) {
+  const eventos = [];
+  if (!prev || prev.sample || next.sample) return eventos;
+  const antes = new Map(prev.pets.map((p) => [p.id, p]));
+  next.pets.forEach((p) => {
+    const velho = antes.get(p.id);
+    if (!velho) {
+      eventos.push({ tipo: "chegada", pet: p, msg: `🐾 ${p.name} acabou de chegar (${obsEspecieEmoji(p.species)})` });
+    } else if (velho.status !== p.status && p.status === "adotado") {
+      eventos.push({ tipo: "adocao", pet: p, msg: `🎉 Agora mesmo: ${p.name} encontrou um lar!` });
+    }
+  });
+  return eventos;
+}
+
+function obsBadge(texto, erro) {
+  const badge = document.getElementById("obs-live-badge");
+  const label = document.getElementById("obs-live-text");
+  if (!badge || !label) return;
+  badge.classList.toggle("erro", !!erro);
+  label.textContent = texto;
+}
+
+/** Relógio do selo: "atualizado há Xs", a cada segundo. */
+function obsStartTicker() {
+  clearInterval(OBS_LIVE.tickTimer);
+  OBS_LIVE.tickTimer = setInterval(() => {
+    if (!OBS_LIVE.snap) return;
+    if (OBS_LIVE.snap.sample) {
+      obsBadge("amostra de demonstração — sem conexão com o mural", true);
+      return;
+    }
+    const s = Math.max(0, Math.round((Date.now() - OBS_LIVE.snap.fetchedAt) / 1000));
+    const quando = s < 3 ? "agora" : s < 60 ? `há ${s}s` : `há ${Math.floor(s / 60)}min`;
+    obsBadge(OBS_LIVE.erro ? `reconectando… · última leitura ${quando}` : `ao vivo · atualizado ${quando}`, OBS_LIVE.erro);
+  }, 1000);
+}
+
+async function obsRefresh(inicial = false) {
+  try {
+    const next = await obsFetchLive();
+    const eventos = obsDiff(OBS_LIVE.snap, next);
+    OBS_LIVE.prev = OBS_LIVE.snap;
+    OBS_LIVE.snap = next;
+    OBS_LIVE.erro = false;
+    obsRenderLive(inicial);
+    eventos.slice(0, 3).forEach((ev) => obsToast(ev.msg));
+    if (eventos.length) obsMarcarMudancas(eventos);
+  } catch (err) {
+    if (!OBS_LIVE.snap) {
+      // Sem nenhuma leitura ainda: usa a amostra pra página não ficar vazia.
+      OBS_LIVE.snap = { ...OBS_AMOSTRA, fetchedAt: Date.now() };
+      obsRenderLive(true);
+    }
+    OBS_LIVE.erro = true;
+  }
+}
+
+function obsStartPolling() {
+  clearInterval(OBS_LIVE.timer);
+  OBS_LIVE.timer = setInterval(() => obsRefresh(false), OBS_LIVE.pollMs);
+}
+
+/* =====================================================================
+   Renderização ao vivo — capítulos
+   ===================================================================== */
+
+function obsRenderLive(inicial) {
+  const snap = OBS_LIVE.snap;
+  if (!snap) return;
+  obsRenderHero(snap, inicial);
+  obsRenderChegadas(snap);
+  obsRenderCenso(snap);
+  obsRenderEncontro(snap, inicial);
+  obsRenderReencontros(snap);
+  obsRenderMapa(snap);
+  obsRenderConquistas(snap);
+}
+
+/* ----- §0 Hero: contadores ----- */
+
+function obsRenderHero(snap, inicial) {
+  const alvos = [
+    ["live-pets", snap.stats.total_pets],
+    ["live-adopted", snap.stats.total_adopted],
+    ["live-orgs", snap.stats.total_orgs],
+  ];
+  alvos.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const atual = parseInt(String(el.textContent).replace(/\D/g, ""), 10);
+    const de = Number.isNaN(atual) ? 0 : atual;
+    if (!inicial && de === val) return;
+    obsAnimateNumber(el, inicial ? 0 : de, val, inicial ? 1300 : 700);
+    if (!inicial && de !== val) obsGlow(el);
+  });
+}
+
+/* ----- §2 A chegada ----- */
+
+function obsRenderChegadas(snap) {
+  const wrap = document.getElementById("obs-chegadas");
+  const sub = document.getElementById("obs-chegada-sub");
+  if (!wrap) return;
+  const recentes = snap.pets
+    .filter((p) => (obsDaysSince(p.created_at) ?? 99) <= 30)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 10);
+
+  if (sub) {
+    sub.textContent = recentes.length
+      ? `${recentes.length} patinha${recentes.length > 1 ? "s" : ""} chegara${recentes.length > 1 ? "m" : ""} à trilha nos últimos 30 dias.`
+      : "A trilha está pronta para as próximas chegadas.";
+  }
+
+  wrap.innerHTML = recentes.length
+    ? recentes.map((p) => {
+        const foto = obsSafeUrl(p.photo_url);
+        const dias = obsDaysSince(p.created_at);
+        return `
+          <a class="obs-chegada" href="../index.html#pet-${obsEsc(p.id)}" aria-label="${obsEsc(p.name)}, chegou ${obsRelDias(dias)}">
+            <span class="obs-chegada-foto">${foto
+              ? `<img src="${obsEsc(foto)}" alt="" loading="lazy" decoding="async" />`
+              : `<span class="obs-chegada-paw">${obsEspecieEmoji(p.species)}</span>`}</span>
+            <span class="obs-chegada-nome">${obsEsc(p.name)}</span>
+            <span class="obs-chegada-quando">${obsRelDias(dias)}</span>
+          </a>`;
+      }).join("")
+    : `<p class="obs-vazio">Nenhuma chegada nos últimos 30 dias — mas a trilha nunca fica vazia por muito tempo. 🐾</p>`;
+}
+
+/* ----- §3 O censo de patinhas (1 patinha = 1 pet real) ----- */
+
+const OBS_CENSO = { petted: new Set(), total: 0, eggShown: false };
+
+function obsRenderCenso(snap) {
+  const wrap = document.getElementById("obs-censo");
+  const sub = document.getElementById("obs-espera-sub");
+  if (!wrap) return;
+
+  const ordem = { disponivel: 0, em_processo: 1, adotado: 2 };
+  const pets = [...snap.pets].sort((a, b) => (ordem[a.status] ?? 9) - (ordem[b.status] ?? 9));
+  const esperando = pets.filter((p) => p.status === "disponivel").length;
+
+  if (sub) {
+    sub.textContent = snap.sample
+      ? "Cada patinha abaixo representa um animal (amostra de demonstração)."
+      : `${esperando} esperando agora — cada patinha abaixo é um animal de verdade, com nome e história. Sem estimativas.`;
+  }
+
+  OBS_CENSO.total = pets.length;
+  OBS_CENSO.petted = new Set();
+  OBS_CENSO.eggShown = false;
+
+  wrap.innerHTML =
+    `<div class="obs-censo-grid" id="obs-censo-grid">` +
+    pets.map((p, i) => {
+      const dias = obsDaysSince(p.created_at);
+      const statusTxt = p.status === "disponivel" ? `esperando um lar ${obsRelDias(dias)}`
+        : p.status === "em_processo" ? "em processo de adoção"
+        : "já está em casa";
+      return `<button type="button" class="obs-censo-paw st-${obsEsc(p.status)} sp-${obsEsc(p.species || "outro")}"
+        data-i="${i}" aria-label="${obsEsc(p.name)}: ${statusTxt}">${OBS_PAW_SVG}</button>`;
+    }).join("") +
+    `</div><div id="obs-censo-pop" class="obs-censo-pop" hidden></div>`;
+
+  const grid = document.getElementById("obs-censo-grid");
+  const pop = document.getElementById("obs-censo-pop");
+
+  // Popover: toque numa patinha → quem é ela.
+  grid.addEventListener("click", (e) => {
+    const paw = e.target.closest(".obs-censo-paw");
+    if (!paw) return;
+    const p = pets[Number(paw.dataset.i)];
+    if (!p) return;
+    const foto = obsSafeUrl(p.photo_url);
+    const dias = obsDaysSince(p.created_at);
+    const statusTxt = p.status === "disponivel" ? `esperando um lar ${obsRelDias(dias)}`
+      : p.status === "em_processo" ? "a um passo do lar 🤝"
+      : "já encontrou a família 🏡";
+    pop.innerHTML = `
+      ${foto ? `<img src="${obsEsc(foto)}" alt="" loading="lazy" />` : `<span class="obs-censo-pop-emoji">${obsEspecieEmoji(p.species)}</span>`}
+      <div class="obs-censo-pop-body">
+        <strong>${obsEsc(p.name)}</strong>
+        <span>${statusTxt}</span>
+        ${p.status === "disponivel" && !snap.sample ? `<a href="../index.html#pet-${obsEsc(p.id)}">conhecer no mural →</a>` : ""}
+      </div>
+      <button type="button" class="obs-censo-pop-x" aria-label="Fechar">×</button>`;
+    pop.hidden = false;
+    // Posiciona perto da patinha, sem sair do painel.
+    const wr = wrap.getBoundingClientRect();
+    const pr = paw.getBoundingClientRect();
+    const left = Math.max(8, Math.min(pr.left - wr.left - 60, wr.width - 240));
+    pop.style.left = left + "px";
+    pop.style.top = pr.bottom - wr.top + 10 + "px";
+    pop.querySelector(".obs-censo-pop-x").addEventListener("click", () => { pop.hidden = true; });
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".obs-censo-paw") && !e.target.closest(".obs-censo-pop")) pop.hidden = true;
+  });
+
+  // Carinho: varrer o dedo/mouse acende as patinhas. Todas = easter egg.
+  const carinho = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    const paw = el && el.closest ? el.closest(".obs-censo-paw") : null;
+    if (!paw) return;
+    paw.classList.remove("carinho");
+    void paw.offsetWidth;
+    paw.classList.add("carinho");
+    OBS_CENSO.petted.add(paw.dataset.i);
+    if (!OBS_CENSO.eggShown && OBS_CENSO.petted.size >= OBS_CENSO.total && OBS_CENSO.total > 0) {
+      OBS_CENSO.eggShown = true;
+      const egg = document.getElementById("obs-censo-egg");
+      if (egg) {
+        egg.textContent = "✨ Você fez carinho em todo mundo 🐾💚";
+        egg.classList.add("on");
+      }
+    }
+  };
+  grid.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "mouse" || e.buttons > 0) carinho(e.clientX, e.clientY);
+  });
+}
+
+/** Destaca no censo as patinhas que mudaram de vida entre uma leitura e outra. */
+function obsMarcarMudancas(eventos) {
+  const snap = OBS_LIVE.snap;
+  const grid = document.getElementById("obs-censo-grid");
+  if (!grid || !snap) return;
+  const ordem = { disponivel: 0, em_processo: 1, adotado: 2 };
+  const pets = [...snap.pets].sort((a, b) => (ordem[a.status] ?? 9) - (ordem[b.status] ?? 9));
+  eventos.forEach((ev) => {
+    const idx = pets.findIndex((p) => p.id === ev.pet.id);
+    const paw = grid.querySelector(`[data-i="${idx}"]`);
+    if (paw) paw.classList.add("mudou");
+  });
+}
+
+/* ----- §4 O encontro ----- */
+
+function obsRenderEncontro(snap, inicial) {
+  const interesses = document.getElementById("obs-interesses");
+  const processo = document.getElementById("obs-processo");
+  const desc = document.getElementById("obs-processo-desc");
+  if (interesses) {
+    const de = parseInt(String(interesses.textContent).replace(/\D/g, ""), 10) || 0;
+    obsAnimateNumber(interesses, inicial ? 0 : de, snap.stats.total_interests, inicial ? 1300 : 700);
+  }
+  const emProcesso = snap.pets.filter((p) => p.status === "em_processo");
+  if (processo) {
+    const de = parseInt(String(processo.textContent).replace(/\D/g, ""), 10) || 0;
+    obsAnimateNumber(processo, inicial ? 0 : de, emProcesso.length, inicial ? 1300 : 700);
+  }
+  if (desc) {
+    if (emProcesso.length === 0) {
+      desc.textContent = "patinhas a um passo do lar — a próxima pode ser graças a você";
+    } else {
+      const nomes = emProcesso.slice(0, 3).map((p) => p.name);
+      const resto = emProcesso.length - nomes.length;
+      const lista = nomes.join(", ") + (resto > 0 ? ` e mais ${resto}` : "");
+      desc.textContent = `a um passo do lar agora: ${lista} 🤞`;
+    }
+  }
+}
+
+/* ----- §5 O lar (mural de reencontros) ----- */
+
+function obsRenderReencontros(snap) {
+  const wrap = document.getElementById("obs-reencontros");
+  const metrica = document.getElementById("obs-lar-metrica");
+  const sub = document.getElementById("obs-lar-sub");
+  if (!wrap) return;
+
+  const adotados = snap.pets
+    .filter((p) => p.status === "adotado")
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+  if (sub) {
+    sub.textContent = adotados.length
+      ? `Onde toda trilha quer chegar — ${adotados.length} já chegara${adotados.length > 1 ? "m" : "m"}.`
+      : "Onde toda trilha quer chegar.";
+  }
+
+  wrap.innerHTML = adotados.length
+    ? adotados.map((p) => {
+        const foto = obsSafeUrl(p.photo_url);
+        const espera = Math.max(0, Math.round((new Date(p.updated_at) - new Date(p.created_at)) / 86400000));
+        const quando = obsRelDias(obsDaysSince(p.updated_at));
+        return `
+          <article class="obs-reencontro">
+            <div class="obs-reencontro-foto">
+              ${foto ? `<img src="${obsEsc(foto)}" alt="Foto de ${obsEsc(p.name)}" loading="lazy" decoding="async" />`
+                     : `<span>${obsEspecieEmoji(p.species)}</span>`}
+              <span class="obs-carimbo" aria-hidden="true">ADOTADO</span>
+            </div>
+            <div class="obs-reencontro-body">
+              <strong>${obsEsc(p.name)}</strong>
+              <span>encontrou um lar ${quando}</span>
+              <span class="obs-reencontro-espera">esperou ${espera === 0 ? "menos de um dia" : espera === 1 ? "1 dia" : espera + " dias"} até o abraço</span>
+            </div>
+          </article>`;
+      }).join("")
+    : `<p class="obs-vazio">O primeiro reencontro ainda vai acontecer. Talvez comece com você. 💚</p>`;
+
+  if (metrica) {
+    if (adotados.length >= 5) {
+      const media = Math.round(
+        adotados.reduce((acc, p) => acc + Math.max(0, (new Date(p.updated_at) - new Date(p.created_at)) / 86400000), 0) / adotados.length
+      );
+      metrica.textContent = `⏱️ Da chegada ao abraço: em média ${media} dia${media === 1 ? "" : "s"}.`;
+    } else {
+      metrica.textContent = "✍️ As primeiras histórias estão sendo escritas.";
+    }
+  }
+}
+
+/* ----- §6 A rede (mapa por UF, aceso onde tem ONG) ----- */
+
+function obsRenderMapa(snap) {
+  const mapEl = document.getElementById("obs-map");
+  const detail = document.getElementById("obs-uf-detail");
+  if (!mapEl) return;
+
+  const porUF = {};
+  snap.orgs.forEach((o) => {
+    const uf = (o.state || "").toUpperCase();
+    if (!OBS.nomesUF[uf]) return;
+    (porUF[uf] = porUF[uf] || []).push(o);
+  });
+  const acesos = Object.keys(porUF);
+
+  mapEl.innerHTML = Object.keys(OBS.mapaUF).map((uf) => {
+    const [col, row] = OBS.mapaUF[uf];
+    const n = (porUF[uf] || []).length;
+    return `<button type="button" class="obs-map-tile ${n ? "lit" : "apagado"}" data-uf="${uf}"
+      style="grid-column:${col};grid-row:${row};"
+      aria-label="${OBS.nomesUF[uf]}${n ? `: ${n} ONG${n > 1 ? "s" : ""} na rede` : ": ainda sem ONGs na rede"}">
+      ${uf}${n ? `<span class="obs-map-badge">${n}</span>` : ""}</button>`;
+  }).join("");
+
+  // Tooltip flutuante (reuso do padrão da página).
+  let tip = document.querySelector(".obs-tooltip");
+  if (!tip) {
+    tip = document.createElement("div");
+    tip.className = "obs-tooltip";
+    document.body.appendChild(tip);
+  }
+  mapEl.onmousemove = (e) => {
+    const tile = e.target.closest(".obs-map-tile");
+    if (!tile) { tip.classList.remove("visible"); return; }
+    const uf = tile.dataset.uf;
+    const orgs = porUF[uf] || [];
+    tip.innerHTML = orgs.length
+      ? `<strong>${OBS.nomesUF[uf]}</strong><br />🐾 ${orgs.length} ONG${orgs.length > 1 ? "s" : ""} na rede`
+      : `<strong>${OBS.nomesUF[uf]}</strong><br />Ainda sem patinhas por aqui.<br />Conhece uma ONG? Chame ela pra trilha!`;
+    tip.style.left = e.clientX + 14 + "px";
+    tip.style.top = e.clientY + 14 + "px";
+    tip.classList.add("visible");
+  };
+  mapEl.onmouseleave = () => tip.classList.remove("visible");
+
+  mapEl.onclick = (e) => {
+    const tile = e.target.closest(".obs-map-tile");
+    if (!tile || !detail) return;
+    mapEl.querySelectorAll(".obs-map-tile").forEach((t) => t.classList.remove("selected"));
+    tile.classList.add("selected");
+    obsRenderUfDetail(detail, tile.dataset.uf, porUF, snap.sample);
+  };
+
+  // Barra-osso: progresso de estados com rede.
+  const fill = document.getElementById("obs-osso-fill");
+  const label = document.getElementById("obs-osso-label");
+  const osso = document.getElementById("obs-osso");
+  if (fill && label) {
+    const pct = Math.round((acesos.length / 27) * 100);
+    requestAnimationFrame(() => { fill.style.width = Math.max(pct, acesos.length ? 6 : 0) + "%"; });
+    label.textContent = `${acesos.length} de 27 estados já têm patinhas na rede`;
+    if (osso) osso.setAttribute("aria-label", `${acesos.length} de 27 estados com ONGs na rede`);
+  }
+
+  if (detail) {
+    const inicial = acesos[0] || "SP";
+    const tileInicial = mapEl.querySelector(`[data-uf="${inicial}"]`);
+    if (tileInicial) tileInicial.classList.add("selected");
+    obsRenderUfDetail(detail, inicial, porUF, snap.sample);
+  }
+}
+
+function obsRenderUfDetail(el, uf, porUF, sample) {
+  const orgs = porUF[uf] || [];
+  if (orgs.length) {
+    el.innerHTML = `
+      <h3>📍 ${OBS.nomesUF[uf]}</h3>
+      <p class="obs-regiao-desc">A rede está acesa por aqui — ${orgs.length} ONG${orgs.length > 1 ? "s" : ""} caminhando junto${sample ? " (amostra)" : ""}:</p>
+      <ul class="obs-uf-orgs">${orgs.map((o) => `<li>🐾 <strong>${obsEsc(o.org_name)}</strong>${o.city ? ` · ${obsEsc(o.city)}` : ""}</li>`).join("")}</ul>
+      <a class="btn btn-secondary btn-sm" href="../index.html">ver os pets do mural →</a>`;
+  } else {
+    el.innerHTML = `
+      <h3>📍 ${OBS.nomesUF[uf]}</h3>
+      <p class="obs-regiao-desc">Ainda sem patinhas por aqui. É o próximo estado a acender?</p>
+      <p class="obs-regiao-ufs">Se você conhece uma ONG ou protetor em ${OBS.nomesUF[uf]}, chame pra trilha — cadastrar leva minutos e é de graça.</p>
+      <a class="btn btn-primary btn-sm" href="../admin.html">convidar uma ONG 🐾</a>`;
+  }
+}
+
+/* ----- §7 Conquistas ----- */
+
+function obsRenderConquistas(snap) {
+  const wrap = document.getElementById("obs-conquistas");
+  if (!wrap) return;
+  const estados = new Set(snap.orgs.map((o) => (o.state || "").toUpperCase()).filter((uf) => OBS.nomesUF[uf])).size;
+  const s = snap.stats;
+  const lista = [
+    { icone: "🌟", titulo: "Primeira patinha na trilha", cur: s.total_pets, meta: 1 },
+    { icone: "🏡", titulo: "Primeira adoção", cur: s.total_adopted, meta: 1 },
+    { icone: "🐾", titulo: "10 patinhas cadastradas", cur: s.total_pets, meta: 10 },
+    { icone: "💚", titulo: "5 ONGs na rede", cur: s.total_orgs, meta: 5 },
+    { icone: "💌", titulo: "10 corações demonstrados", cur: s.total_interests, meta: 10 },
+    { icone: "🗺️", titulo: "3 estados no mapa", cur: estados, meta: 3 },
+  ];
+  wrap.innerHTML = lista.map((c) => {
+    const ok = c.cur >= c.meta;
+    return `<div class="obs-conquista ${ok ? "ok" : ""}">
+      <span class="obs-conquista-icone" aria-hidden="true">${c.icone}</span>
+      <div>
+        <strong>${c.titulo}</strong>
+        <span>${ok ? "desbloqueada! 🎉" : `falta pouco: ${obsFmt(c.cur)}/${obsFmt(c.meta)}`}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* =====================================================================
+   Trilha de patinhas + medalhões dos capítulos (reveal no scroll)
+   ===================================================================== */
+
+function obsSetupTrilha() {
+  const trilhas = document.querySelectorAll(".obs-trilha");
+  trilhas.forEach((t) => {
+    t.innerHTML = Array.from({ length: 5 }, (_, i) =>
+      `<span class="obs-trilha-paw ${i % 2 ? "dir" : "esq"}" style="transition-delay:${i * 90}ms">${OBS_PAW_SVG}</span>`
+    ).join("");
+  });
+  const medals = document.querySelectorAll(".obs-cap-medal");
+  if (OBS_REDUCED) {
+    trilhas.forEach((t) => t.classList.add("pisada"));
+    medals.forEach((m) => m.classList.add("stamped"));
+    return;
+  }
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
+      entry.target.classList.add(entry.target.classList.contains("obs-trilha") ? "pisada" : "stamped");
       io.unobserve(entry.target);
-      const el = entry.target;
-      const target = Number(el.dataset.count);
-      const dur = 1400;
-      const t0 = performance.now();
-      const tick = (t) => {
-        const p = Math.min((t - t0) / dur, 1);
-        el.textContent = obsFmt(Math.round(target * (1 - Math.pow(1 - p, 3))));
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
     });
-  }, { threshold: 0.4 });
-  els.forEach((el) => io.observe(el));
+  }, { threshold: 0.35 });
+  trilhas.forEach((t) => io.observe(t));
+  medals.forEach((m) => io.observe(m));
+}
+
+/* =====================================================================
+   Acervo nacional (componentes estáticos preservados)
+   ===================================================================== */
+
+function obsRenderRuaChips(el) {
+  el.innerHTML = OBS.ruaChips.map((c) => `
+    <div class="obs-rua-chip">
+      <strong>${c.valor}</strong>
+      <span>${c.texto}</span>
+      <span class="obs-fonte">📌 ${c.fonte}</span>
+    </div>`).join("");
+}
+
+function obsRenderFatos(el) {
+  el.innerHTML = OBS.fatos.map((f) => `
+      <button type="button" class="obs-flip" aria-label="${f.valor} ${f.label}. ${f.verso} Fonte: ${f.fonte}">
+        <div class="obs-flip-inner">
+          <div class="obs-flip-front">
+            <span class="obs-flip-icon">${f.icone}</span>
+            <span class="obs-flip-value">${f.valor}</span>
+            <span class="obs-flip-label">${f.label}</span>
+            <span class="obs-flip-hint">toque para ver ✨</span>
+          </div>
+          <div class="obs-flip-back">
+            <p>${f.verso}</p>
+            <span class="obs-fonte">📌 ${f.fonte}</span>
+          </div>
+        </div>
+      </button>`).join("");
+  el.querySelectorAll(".obs-flip").forEach((card) => {
+    card.addEventListener("click", () => card.classList.toggle("flipped"));
+  });
+}
+
+function obsRenderPictograma(el) {
+  const abandonadas = 26;
+  el.innerHTML =
+    `<div class="obs-picto" role="img" aria-label="De cada 100 cães e gatos no Brasil, cerca de 26 vivem abandonados.">` +
+    Array.from({ length: 100 }, (_, i) => `<span class="obs-picto-paw ${i < abandonadas ? "abandonada" : ""}">🐾</span>`).join("") +
+    `</div>
+    <p class="obs-picto-legenda">
+      <span><strong>Cerca de 26 em cada 100</strong> cães e gatos do Brasil vivem abandonados.</span>
+      <span class="obs-picto-key abandono">Abandonados</span>
+      <span class="obs-picto-key familia">Com família</span>
+    </p>
+    <span class="obs-fonte">📌 Cálculo sobre estimativas da OMS (30 mi abandonados) e Abinpet / Instituto Pet Brasil (85 mi com família)</span>`;
+}
+
+function obsRenderSplit(el) {
+  const { caes, gatos, fonte } = OBS.populacao;
+  const total = caes.valor + gatos.valor;
+  const pctCaes = Math.round((caes.valor / total) * 100);
+  el.innerHTML = `
+    <div class="obs-split-bar" role="img" aria-label="Cães: ${caes.valor} milhões. Gatos: ${gatos.valor} milhões.">
+      <div class="obs-split-a" style="width:${pctCaes}%"><span>🐶 ${String(caes.valor).replace(".", ",")} mi</span></div>
+      <div class="obs-split-b" style="width:${100 - pctCaes}%"><span>🐱 ${String(gatos.valor).replace(".", ",")} mi</span></div>
+    </div>
+    <div class="obs-split-caption"><span>Cães</span><span>Gatos</span></div>
+    <span class="obs-fonte">📌 ${fonte}</span>`;
+}
+
+function obsRenderRegioesBarras(el) {
+  const regs = Object.values(OBS.regioes).sort((a, b) => b.share - a.share);
+  const max = regs[0].share;
+  el.innerHTML =
+    regs.map((r) => `
+        <div class="obs-dist-row">
+          <span>${r.nome}</span>
+          <div class="obs-bar-track"><div class="obs-bar-fill" data-pct="${Math.round((r.share / max) * 100)}"></div></div>
+          <span class="obs-ranking-value">~${r.share}%</span>
+        </div>`).join("") +
+    `<span class="obs-fonte" style="margin-top:10px;display:inline-block;">📌 ${OBS.regiaoFonte}</span>`;
+}
+
+function obsRenderLeis(el) {
+  el.innerHTML = OBS.leis.map((l) => `
+      <div class="obs-timeline-item">
+        <span class="obs-timeline-year">${l.ano}</span>
+        <h3>${l.titulo}</h3>
+        <p>${l.texto}</p>
+        <span class="obs-fonte">📌 ${l.fonte}</span>
+      </div>`).join("");
 }
 
 /** Preenche as barras (largura via data-pct) quando entram na tela. */
@@ -152,204 +818,41 @@ function obsAnimateBars() {
   bars.forEach((b) => io.observe(b));
 }
 
-/* ---------------- Componentes ---------------- */
-
-/** Cards que viram: número na frente, contexto + fonte no verso. Vira no
- * hover (desktop) e no toque (mobile) — o toque alterna a classe .flipped,
- * então tocar de novo desvira. */
-function obsRenderFatos(el) {
-  el.innerHTML = OBS.fatos
-    .map((f) => `
-      <button type="button" class="obs-flip" aria-label="${f.valor} ${f.label}. ${f.verso} Fonte: ${f.fonte}">
-        <div class="obs-flip-inner">
-          <div class="obs-flip-front">
-            <span class="obs-flip-icon">${f.icone}</span>
-            <span class="obs-flip-value">${f.valor}</span>
-            <span class="obs-flip-label">${f.label}</span>
-            <span class="obs-flip-hint">toque para ver ✨</span>
-          </div>
-          <div class="obs-flip-back">
-            <p>${f.verso}</p>
-            <span class="obs-fonte">📌 ${f.fonte}</span>
-          </div>
-        </div>
-      </button>`)
-    .join("");
-
-  el.querySelectorAll(".obs-flip").forEach((card) => {
-    card.addEventListener("click", () => card.classList.toggle("flipped"));
-  });
-}
-
-/** Curiosidades que dão escala ao número do abandono — o texto do hero
- * troca a cada toque/hover, pra ter variedade em vez de uma só. */
-const OBS_CURIOSIDADES = [
-  "É mais do que a população inteira da Austrália. 🇦🇺",
-  "Daria para lotar o Maracanã quase 400 vezes. 🏟️",
-  "É como abandonar a cidade de São Paulo inteira duas vezes. 🏙️",
-  "São cerca de 82 mil animais sem lar por dia ao longo de um ano. 📆",
-  "Um para cada 7 brasileiros — dá quase um por família. 👨‍👩‍👧",
-  "Enfileirados, dariam mais de uma volta ao mundo. 🌎",
-];
-
-function obsSetupCuriosidades() {
-  const alt = document.querySelector(".obs-big-alt");
-  const wrap = document.querySelector(".obs-big-wrap");
-  if (!alt || !wrap) return;
-  let i = 0;
-  alt.textContent = OBS_CURIOSIDADES[0];
-  const proxima = () => {
-    i = (i + 1) % OBS_CURIOSIDADES.length;
-    alt.textContent = OBS_CURIOSIDADES[i];
-  };
-  wrap.addEventListener("mouseenter", proxima);
-  wrap.addEventListener("click", proxima);
-}
-
-/** Mapa do Brasil em blocos, colorido por região, com tooltip que segue o mouse. */
-function obsRenderMapa(mapEl, detailEl) {
-  mapEl.innerHTML = Object.keys(OBS.mapaUF)
-    .map((uf) => {
-      const [col, row] = OBS.mapaUF[uf];
-      const reg = obsRegiaoDaUF(uf);
-      return `<button type="button" class="obs-map-tile reg-${reg}" data-uf="${uf}" data-reg="${reg}"
-        style="grid-column:${col};grid-row:${row};"
-        aria-label="${OBS.nomesUF[uf]}, região ${OBS.regioes[reg].nome}">${uf}</button>`;
-    })
-    .join("");
-
-  // Tooltip flutuante
-  const tip = document.createElement("div");
-  tip.className = "obs-tooltip";
-  document.body.appendChild(tip);
-
-  mapEl.addEventListener("mousemove", (e) => {
-    const tile = e.target.closest(".obs-map-tile");
-    if (!tile) { tip.classList.remove("visible"); return; }
-    const reg = OBS.regioes[tile.dataset.reg];
-    tip.innerHTML = `<strong>${OBS.nomesUF[tile.dataset.uf]}</strong><br />${reg.nome} · ~${reg.share}% dos pets do país`;
-    tip.style.left = e.clientX + 14 + "px";
-    tip.style.top = e.clientY + 14 + "px";
-    tip.classList.add("visible");
-  });
-  mapEl.addEventListener("mouseleave", () => tip.classList.remove("visible"));
-
-  // Hover/clique acende a região inteira e mostra o painel dela.
-  mapEl.addEventListener("mouseover", (e) => {
-    const tile = e.target.closest(".obs-map-tile");
-    if (!tile) return;
-    mapEl.querySelectorAll(".obs-map-tile").forEach((t) =>
-      t.classList.toggle("dim", t.dataset.reg !== tile.dataset.reg)
-    );
-  });
-  mapEl.addEventListener("mouseout", () => {
-    mapEl.querySelectorAll(".obs-map-tile").forEach((t) => t.classList.remove("dim"));
-  });
-  mapEl.addEventListener("click", (e) => {
-    const tile = e.target.closest(".obs-map-tile");
-    if (!tile || !detailEl) return;
-    obsRenderRegiaoDetalhe(detailEl, tile.dataset.reg);
-  });
-
-  if (detailEl) obsRenderRegiaoDetalhe(detailEl, "SE");
-}
-
-function obsRenderRegiaoDetalhe(el, regId) {
-  const reg = OBS.regioes[regId];
-  const totalPets = OBS.populacao.caes.valor + OBS.populacao.gatos.valor; // milhões
-  const estimativa = ((reg.share / 100) * totalPets).toFixed(1).replace(".", ",");
-  el.innerHTML = `
-    <h3>📍 Região ${reg.nome}</h3>
-    <div class="obs-regiao-share">~${reg.share}%</div>
-    <p class="obs-regiao-desc">da população de pets do Brasil vive aqui — cerca de <strong>${estimativa} milhões</strong> de cães e gatos.</p>
-    <p class="obs-regiao-ufs">${reg.ufs.map((uf) => OBS.nomesUF[uf]).join(" · ")}</p>
-    <span class="obs-fonte">📌 ${OBS.regiaoFonte}</span>`;
-}
-
-/** Barras de distribuição regional. */
-function obsRenderRegioesBarras(el) {
-  const regs = Object.values(OBS.regioes).sort((a, b) => b.share - a.share);
-  const max = regs[0].share;
-  el.innerHTML =
-    regs
-      .map((r) => `
-        <div class="obs-dist-row">
-          <span>${r.nome}</span>
-          <div class="obs-bar-track"><div class="obs-bar-fill" data-pct="${Math.round((r.share / max) * 100)}"></div></div>
-          <span class="obs-ranking-value">~${r.share}%</span>
-        </div>`)
-      .join("") +
-    `<span class="obs-fonte" style="margin-top:10px;display:inline-block;">📌 ${OBS.regiaoFonte}</span>`;
-}
-
-/** Cães vs. gatos com números reais e hover que destaca cada lado. */
-function obsRenderSplit(el) {
-  const { caes, gatos, fonte } = OBS.populacao;
-  const total = caes.valor + gatos.valor;
-  const pctCaes = Math.round((caes.valor / total) * 100);
-  el.innerHTML = `
-    <div class="obs-split-bar" role="img" aria-label="Cães: ${caes.valor} milhões. Gatos: ${gatos.valor} milhões.">
-      <div class="obs-split-a" style="width:${pctCaes}%"><span>🐶 ${String(caes.valor).replace(".", ",")} mi</span></div>
-      <div class="obs-split-b" style="width:${100 - pctCaes}%"><span>🐱 ${String(gatos.valor).replace(".", ",")} mi</span></div>
-    </div>
-    <div class="obs-split-caption"><span>Cães</span><span>Gatos</span></div>
-    <span class="obs-fonte">📌 ${fonte}</span>`;
-}
-
-/**
- * Pictograma: 100 patinhas representando os cães e gatos do Brasil.
- * ~26 delas estão abandonadas (30 mi abandonados / 115 mi no total).
- * Passar o mouse em qualquer patinha destaca todas as abandonadas.
- */
-function obsRenderPictograma(el) {
-  const abandonadas = 26;
-  el.innerHTML =
-    `<div class="obs-picto" role="img" aria-label="De cada 100 cães e gatos no Brasil, cerca de 26 vivem abandonados.">` +
-    Array.from({ length: 100 }, (_, i) => `<span class="obs-picto-paw ${i < abandonadas ? "abandonada" : ""}">🐾</span>`).join("") +
-    `</div>
-    <p class="obs-picto-legenda">
-      <span><strong>Cerca de 26 em cada 100</strong> cães e gatos do Brasil vivem abandonados.</span>
-      <span class="obs-picto-key abandono">Abandonados</span>
-      <span class="obs-picto-key familia">Com família</span>
-    </p>
-    <span class="obs-fonte">📌 Cálculo sobre estimativas da OMS (30 mi abandonados) e Abinpet / Instituto Pet Brasil (85 mi com família)</span>`;
-}
-
-/** Linha do tempo das leis de proteção animal. */
-function obsRenderLeis(el) {
-  el.innerHTML = OBS.leis
-    .map((l) => `
-      <div class="obs-timeline-item">
-        <span class="obs-timeline-year">${l.ano}</span>
-        <h3>${l.titulo}</h3>
-        <p>${l.texto}</p>
-        <span class="obs-fonte">📌 ${l.fonte}</span>
-      </div>`)
-    .join("");
-}
-
-/* ---------------- Boot ---------------- */
+/* =====================================================================
+   Boot
+   ===================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Capítulo 1 + acervo nacional (estáticos).
+  const chips = document.getElementById("obs-rua-chips");
+  if (chips) obsRenderRuaChips(chips);
   const fatos = document.getElementById("obs-fatos");
   if (fatos) obsRenderFatos(fatos);
-
-  const map = document.getElementById("obs-map");
-  if (map) obsRenderMapa(map, document.getElementById("obs-regiao-detail"));
-
-  const regioes = document.getElementById("obs-regioes");
-  if (regioes) obsRenderRegioesBarras(regioes);
-
-  const split = document.getElementById("obs-split");
-  if (split) obsRenderSplit(split);
-
   const picto = document.getElementById("obs-pictograma");
   if (picto) obsRenderPictograma(picto);
-
+  const split = document.getElementById("obs-split");
+  if (split) obsRenderSplit(split);
+  const regioes = document.getElementById("obs-regioes");
+  if (regioes) obsRenderRegioesBarras(regioes);
   const leis = document.getElementById("obs-leis");
   if (leis) obsRenderLeis(leis);
-
-  obsSetupCuriosidades();
-  obsCountUp();
   obsAnimateBars();
+
+  obsSetupTrilha();
+
+  // Motor ao vivo.
+  obsRefresh(true).then(() => {
+    obsStartPolling();
+    obsStartTicker();
+  });
+
+  // Aba escondida não gasta rede; ao voltar, atualiza na hora.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      clearInterval(OBS_LIVE.timer);
+    } else {
+      obsRefresh(false);
+      obsStartPolling();
+    }
+  });
 });
