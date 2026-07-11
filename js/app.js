@@ -266,8 +266,9 @@ function petCardHtml(pet) {
   // Foto renderizada como <img> (não background-image) para ganhar
   // lazy-loading e decodificação assíncrona nativos do navegador — essencial
   // para a performance mobile quando há muitos pets no mural.
-  const photoImg = pet.photo_url
-    ? `<img class="pet-card-photo-img" src="${escapeHtml(pet.photo_url)}" alt="Foto de ${escapeHtml(pet.name)}, ${escapeHtml(speciesLabel(pet.species).replace(/[^\p{L}\s]/gu, "").trim().toLowerCase())} para adoção" loading="lazy" decoding="async" />`
+  const photoSrc = safeHttpUrl(pet.photo_url);
+  const photoImg = photoSrc
+    ? `<img class="pet-card-photo-img" src="${escapeHtml(photoSrc)}" alt="Foto de ${escapeHtml(pet.name)}, ${escapeHtml(speciesLabel(pet.species).replace(/[^\p{L}\s]/gu, "").trim().toLowerCase())} para adoção" loading="lazy" decoding="async" />`
     : "";
   const interestBtn =
     pet.status === "disponivel"
@@ -343,7 +344,8 @@ function openInterestModal(petId) {
 
   document.getElementById("interest-pet-name").textContent = pet.name;
   const contextPhoto = document.getElementById("interest-pet-photo");
-  contextPhoto.style.backgroundImage = pet.photo_url ? `url('${pet.photo_url}')` : "";
+  const ctxPhotoUrl = safeHttpUrl(pet.photo_url);
+  contextPhoto.style.backgroundImage = ctxPhotoUrl ? `url('${ctxPhotoUrl}')` : "";
   contextPhoto.style.backgroundSize = pet.photo_url ? "cover" : "";
   contextPhoto.classList.toggle("interest-pet-context-photo--empty", !pet.photo_url);
 
@@ -366,8 +368,9 @@ function openInterestModal(petId) {
 
   // Abrigo com formulário próprio: mostra primeiro a escolha entre os dois
   // caminhos, em vez de ir direto pro formulário do Patinhas.
-  if (pet.adoption_form_url) {
-    document.getElementById("interest-org-form-link").href = pet.adoption_form_url;
+  const orgFormUrl = safeHttpUrl(pet.adoption_form_url);
+  if (orgFormUrl) {
+    document.getElementById("interest-org-form-link").href = orgFormUrl;
     document.getElementById("interest-choice-step").classList.remove("hidden");
     document.getElementById("interest-form-step").classList.add("hidden");
   } else {

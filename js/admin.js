@@ -1044,7 +1044,7 @@ async function handlePetFormSubmit(event) {
     vaccinated: document.getElementById("pet-vaccinated").checked,
     dewormed: document.getElementById("pet-dewormed").checked,
     neutered: document.getElementById("pet-neutered").checked,
-    adoption_form_url: document.getElementById("pet-adoption-form-url").value.trim() || null,
+    adoption_form_url: normalizeHttpUrl(document.getElementById("pet-adoption-form-url").value),
     lives_with_dogs: document.getElementById("pet-lives-with-dogs").checked,
     lives_with_cats: document.getElementById("pet-lives-with-cats").checked,
     lives_with_kids: document.getElementById("pet-lives-with-kids").checked,
@@ -1216,7 +1216,7 @@ async function handleProfileFormSubmit(event) {
     city: document.getElementById("profile-city").value.trim(),
     state: document.getElementById("profile-state").value.trim().toUpperCase(),
     instagram: document.getElementById("profile-instagram").value.trim(),
-    website: document.getElementById("profile-website").value.trim(),
+    website: normalizeHttpUrl(document.getElementById("profile-website").value) || "",
     description: document.getElementById("profile-description").value.trim(),
   };
 

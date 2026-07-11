@@ -158,6 +158,31 @@ async function populateCitySelect(citySelect, uf, selectedCity) {
     cities.map((c) => `<option value="${escapeHtml(c)}" ${c === selectedCity ? "selected" : ""}>${escapeHtml(c)}</option>`).join("");
 }
 
+/**
+ * Devolve a URL só se for http(s) — caso contrário, string vazia. Serve para
+ * neutralizar URLs perigosas (javascript:, data:, vbscript:) que uma ONG possa
+ * ter salvado (ou que entrem direto pela API) e que virariam XSS ao serem
+ * usadas como href. Allowlist é mais seguro que blocklist de esquemas.
+ */
+function safeHttpUrl(url) {
+  const s = String(url == null ? "" : url).trim();
+  return /^https?:\/\//i.test(s) ? s : "";
+}
+
+/**
+ * Normaliza uma URL digitada pela ONG antes de salvar no banco: descarta
+ * esquemas perigosos, prefixa https:// quando o esquema foi omitido e devolve
+ * null para valor vazio. Defesa em profundidade — o display já sanitiza com
+ * safeHttpUrl, mas isto evita gravar lixo/URLs perigosas de saída.
+ */
+function normalizeHttpUrl(url) {
+  const s = String(url == null ? "" : url).trim();
+  if (!s) return null;
+  if (/^(javascript|data|vbscript|file):/i.test(s)) return null;
+  if (/^https?:\/\//i.test(s)) return s;
+  return "https://" + s;
+}
+
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
   return String(str)
