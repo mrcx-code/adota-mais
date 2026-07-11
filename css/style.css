@@ -1664,9 +1664,15 @@ textarea { resize: vertical; min-height: 80px; }
   max-width: 520px;
 }
 
-@media (max-width: 560px) {
-  .modal {
+/* No mobile o modal ocupa a largura toda (vira uma folha de tela cheia), em vez
+   do drawer lateral usado no desktop. Os seletores com #id repetem o max-width
+   para vencer a especificidade de "#pet-modal .modal" / "#profile-modal .modal". */
+@media (max-width: 768px) {
+  .modal,
+  #pet-modal .modal,
+  #profile-modal .modal {
     max-width: 100%;
+    border-radius: 0;
   }
 }
 
