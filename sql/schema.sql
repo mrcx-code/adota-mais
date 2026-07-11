@@ -114,7 +114,8 @@ create policy "Abrigo cria seu próprio perfil"
 
 create policy "Abrigo edita seu próprio perfil"
   on profiles for update
-  using (auth.uid() = id);
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
 
 -- pets: visíveis publicamente; só o abrigo dono pode criar/editar/excluir.
 create policy "Pets são visíveis publicamente"
@@ -127,7 +128,8 @@ create policy "Abrigo cria pets para si mesmo"
 
 create policy "Abrigo edita seus próprios pets"
   on pets for update
-  using (auth.uid() = org_id);
+  using (auth.uid() = org_id)
+  with check (auth.uid() = org_id);
 
 create policy "Abrigo exclui seus próprios pets"
   on pets for delete
@@ -152,6 +154,13 @@ create policy "Abrigo vê interesses dos seus pets"
 create policy "Abrigo atualiza status dos interesses dos seus pets"
   on interests for update
   using (
+    exists (
+      select 1 from pets
+      where pets.id = interests.pet_id
+        and pets.org_id = auth.uid()
+    )
+  )
+  with check (
     exists (
       select 1 from pets
       where pets.id = interests.pet_id
@@ -233,17 +242,36 @@ on conflict (id) do nothing;
 -- Uma policy de SELECT permitiria listar todos os arquivos do bucket via
 -- API, o que não é necessário.
 
-create policy "Usuários logados enviam fotos de pets"
+-- Cada ONG só grava/edita/exclui dentro da sua própria pasta ("<org_id>/..."),
+-- para não conseguir sobrescrever ou apagar arquivos de outra ONG.
+create policy "ONG envia arquivos na sua própria pasta"
   on storage.objects for insert
-  with check (bucket_id = 'pet-photos' and auth.role() = 'authenticated');
+  with check (
+    bucket_id = 'pet-photos'
+    and auth.role() = 'authenticated'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
-create policy "Usuários logados atualizam fotos de pets"
+create policy "ONG atualiza arquivos da sua própria pasta"
   on storage.objects for update
-  using (bucket_id = 'pet-photos' and auth.role() = 'authenticated');
+  using (
+    bucket_id = 'pet-photos'
+    and auth.role() = 'authenticated'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'pet-photos'
+    and auth.role() = 'authenticated'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
-create policy "Usuários logados excluem fotos de pets"
+create policy "ONG exclui arquivos da sua própria pasta"
   on storage.objects for delete
-  using (bucket_id = 'pet-photos' and auth.role() = 'authenticated');
+  using (
+    bucket_id = 'pet-photos'
+    and auth.role() = 'authenticated'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 -- =========================================================
 -- Estatísticas públicas agregadas (página "Sobre Nós") — só contagens,

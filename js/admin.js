@@ -1191,7 +1191,10 @@ function handleLogoInputChange(event) {
 async function uploadOrgLogo(file) {
   const compressed = await compressImage(file, { maxDimension: 512 });
   const ext = compressed.__ext || (file.name.split(".").pop() || "jpg").toLowerCase();
-  const path = `logos/${CURRENT_ORG_ID}.${ext}`;
+  // Logo fica DENTRO da pasta da ONG (mesmo prefixo das fotos de pet) para que
+  // a policy de storage possa exigir que o 1º nível do caminho seja o auth.uid()
+  // — assim uma ONG não consegue sobrescrever/excluir arquivos de outra.
+  const path = `${CURRENT_ORG_ID}/logo.${ext}`;
   const { error: uploadError } = await window.sb.storage.from("pet-photos").upload(path, compressed, {
     upsert: true,
     cacheControl: "31536000",
