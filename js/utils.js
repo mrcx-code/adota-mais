@@ -416,6 +416,48 @@ document.addEventListener("keydown", (event) => {
   if (open) open.querySelector(".modal-close")?.click();
 });
 
+/**
+ * Trava o scroll da página enquanto um drawer/modal está aberto — assim só o
+ * conteúdo do drawer rola, e não a página atrás dele (os dois scrolls juntos
+ * confundem). Observa mudanças de classe nos overlays e liga/desliga a trava
+ * conforme houver algum `.modal-overlay.open`. Usa a técnica de `position:fixed`
+ * no body (com CSS em .scroll-locked) para funcionar de forma confiável também
+ * no iOS Safari, preservando a posição de rolagem ao fechar.
+ */
+(function setupScrollLock() {
+  let savedScrollY = 0;
+  function syncScrollLock() {
+    const anyOpen = !!document.querySelector(".modal-overlay.open");
+    const locked = document.body.classList.contains("scroll-locked");
+    if (anyOpen && !locked) {
+      savedScrollY = window.scrollY;
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.classList.add("scroll-locked");
+    } else if (!anyOpen && locked) {
+      document.body.classList.remove("scroll-locked");
+      document.body.style.top = "";
+      // Força o layout a voltar do position:fixed ANTES de restaurar o scroll —
+      // sem isso o scrollTo é limitado pela altura "congelada" e volta pro topo.
+      void document.body.offsetHeight;
+      window.scrollTo(0, savedScrollY);
+    }
+  }
+  const observer = new MutationObserver(syncScrollLock);
+  function start() {
+    observer.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    syncScrollLock();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+
 /** Botão flutuante "voltar ao topo" — aparece depois de rolar a página e some
  * de volta perto do topo. Usado nas páginas públicas mais longas. */
 function setupBackToTop() {
