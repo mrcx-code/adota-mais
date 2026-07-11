@@ -452,7 +452,6 @@ const BULK_IMPORT_COLUMNS = [
   "vacinado",
   "vermifugado",
   "castrado",
-  "cidade",
   "brinquedo_favorito",
 ];
 
@@ -589,7 +588,6 @@ function parseBulkImportRows() {
       vaccinated: yes("vacinado"),
       dewormed: yes("vermifugado"),
       neutered: yes("castrado"),
-      city: get("cidade") || null,
       favorite_toy: get("brinquedo_favorito") || null,
       personality: [],
     });
@@ -859,7 +857,6 @@ function openPetModal(petId) {
   document.getElementById("pet-dewormed").checked = pet ? Boolean(pet.dewormed) : false;
   document.getElementById("pet-neutered").checked = pet ? Boolean(pet.neutered) : false;
   document.getElementById("pet-adoption-form-url").value = pet ? pet.adoption_form_url || "" : "";
-  document.getElementById("pet-city").value = pet ? pet.city || "" : CURRENT_ORG_PROFILE?.city || "";
   document.getElementById("pet-lives-with-dogs").checked = pet ? Boolean(pet.lives_with_dogs) : false;
   document.getElementById("pet-lives-with-cats").checked = pet ? Boolean(pet.lives_with_cats) : false;
   document.getElementById("pet-lives-with-kids").checked = pet ? Boolean(pet.lives_with_kids) : false;
@@ -933,7 +930,6 @@ async function handlePetFormSubmit(event) {
     dewormed: document.getElementById("pet-dewormed").checked,
     neutered: document.getElementById("pet-neutered").checked,
     adoption_form_url: document.getElementById("pet-adoption-form-url").value.trim() || null,
-    city: document.getElementById("pet-city").value.trim() || null,
     lives_with_dogs: document.getElementById("pet-lives-with-dogs").checked,
     lives_with_cats: document.getElementById("pet-lives-with-cats").checked,
     lives_with_kids: document.getElementById("pet-lives-with-kids").checked,
