@@ -51,8 +51,22 @@ async function loadPets() {
 
 /* ---------------- Filtros do mural ---------------- */
 
-/** Estado/cidade dos filtros vêm só de onde já existe pet cadastrado — evita
- * deixar escolher uma combinação que nunca vai dar resultado. */
+/** Valores dos chips ativos de um grupo (espécie, porte ou saúde). */
+function selectedChipValues(groupId) {
+  return Array.from(document.querySelectorAll(`#${groupId} .filter-chip.active`)).map((c) => c.dataset.value);
+}
+
+/** Marca como ativos só os chips cujos valores estão na lista. */
+function setChipValues(groupId, values) {
+  document.querySelectorAll(`#${groupId} .filter-chip`).forEach((chip) => {
+    const on = values.includes(chip.dataset.value);
+    chip.classList.toggle("active", on);
+    chip.setAttribute("aria-pressed", String(on));
+  });
+}
+
+/** Estado/cidade e a lista de ONGs vêm só de onde já existe pet cadastrado —
+ * evita deixar escolher uma combinação que nunca vai dar resultado. */
 function populateMuralFilters() {
   const states = Array.from(
     new Set(ALL_PETS.map((pet) => (ORG_BY_ID[pet.org_id] || pet.org)?.state).filter(Boolean))
@@ -63,20 +77,92 @@ function populateMuralFilters() {
     `<option value="">Todos</option>` +
     states.map((uf) => `<option value="${uf}">${uf}</option>`).join("");
 
-  document.getElementById("filter-species").addEventListener("change", renderBoard);
-  document.getElementById("filter-size").addEventListener("change", renderBoard);
+  // Lista de abrigos/ONGs (valor = id, rótulo = nome) — usado no filtro e no
+  // link compartilhável (?ong=<id>).
+  const orgs = [];
+  const seen = new Set();
+  ALL_PETS.forEach((pet) => {
+    const o = ORG_BY_ID[pet.org_id] || pet.org;
+    if (o && o.id && !seen.has(o.id)) {
+      seen.add(o.id);
+      orgs.push(o);
+    }
+  });
+  orgs.sort((a, b) => (a.org_name || "").localeCompare(b.org_name || "", "pt-BR"));
+  document.getElementById("filter-org").innerHTML =
+    `<option value="">Todos</option>` +
+    orgs.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.org_name)}</option>`).join("");
+
+  // Chips (espécie, porte, saúde): um clique alterna; multi-seleção.
+  document.getElementById("mural-filters").addEventListener("click", (e) => {
+    const chip = e.target.closest(".filter-chip");
+    if (!chip) return;
+    const active = chip.classList.toggle("active");
+    chip.setAttribute("aria-pressed", String(active));
+    applyAndRenderFilters();
+  });
+
+  const onSelectChange = () => {
+    applyAndRenderFilters();
+    collapseMuralFiltersOnMobile();
+  };
   stateSelect.addEventListener("change", () => {
     updateMuralCityOptions();
-    renderBoard();
+    onSelectChange();
   });
-  document.getElementById("filter-city").addEventListener("change", renderBoard);
+  document.getElementById("filter-city").addEventListener("change", onSelectChange);
+  document.getElementById("filter-org").addEventListener("change", onSelectChange);
 
-  // Ao aplicar um filtro no mobile, recolhe o painel de novo. Ignora os
-  // checkboxes de saúde pra não fechar enquanto a pessoa marca vários.
-  document.getElementById("mural-filters").addEventListener("change", (e) => {
-    if (e.target.classList.contains("filter-health-check")) return;
-    collapseMuralFiltersOnMobile();
-  });
+  // Aplica os filtros que vierem na URL (link compartilhado) antes do 1º render.
+  applyFiltersFromURL();
+}
+
+/** Reflete os filtros atuais na URL (sem recarregar) pra o link ser
+ * compartilhável — ex.: um abrigo manda ?ong=<id> e o mural já abre só com
+ * os pets dele. */
+function updateURLFromFilters() {
+  const p = new URLSearchParams();
+  const sp = selectedChipValues("filter-species-chips");
+  if (sp.length) p.set("especie", sp.join(","));
+  const sz = selectedChipValues("filter-size-chips");
+  if (sz.length) p.set("porte", sz.join(","));
+  const he = selectedChipValues("filter-health-chips");
+  if (he.length) p.set("saude", he.join(","));
+  const st = document.getElementById("filter-state").value;
+  if (st) p.set("estado", st);
+  const ci = document.getElementById("filter-city").value;
+  if (ci) p.set("cidade", ci);
+  const og = document.getElementById("filter-org").value;
+  if (og) p.set("ong", og);
+  const qs = p.toString();
+  history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+}
+
+function applyAndRenderFilters() {
+  updateURLFromFilters();
+  renderBoard();
+}
+
+/** Lê os filtros da query string e aplica nos controles (só valores válidos). */
+function applyFiltersFromURL() {
+  const p = new URLSearchParams(location.search);
+  setChipValues("filter-species-chips", (p.get("especie") || "").split(",").filter(Boolean));
+  setChipValues("filter-size-chips", (p.get("porte") || "").split(",").filter(Boolean));
+  setChipValues("filter-health-chips", (p.get("saude") || "").split(",").filter(Boolean));
+
+  const st = p.get("estado");
+  const stateSelect = document.getElementById("filter-state");
+  if (st && Array.from(stateSelect.options).some((o) => o.value === st)) {
+    stateSelect.value = st;
+    updateMuralCityOptions();
+  }
+  const ci = p.get("cidade");
+  const citySelect = document.getElementById("filter-city");
+  if (ci && Array.from(citySelect.options).some((o) => o.value === ci)) citySelect.value = ci;
+
+  const og = p.get("ong");
+  const orgSelect = document.getElementById("filter-org");
+  if (og && Array.from(orgSelect.options).some((o) => o.value === og)) orgSelect.value = og;
 }
 
 function updateMuralCityOptions() {
@@ -119,62 +205,34 @@ function collapseMuralFiltersOnMobile() {
 }
 
 function clearMuralFilters() {
-  document.getElementById("filter-species").value = "";
-  document.getElementById("filter-size").value = "";
+  setChipValues("filter-species-chips", []);
+  setChipValues("filter-size-chips", []);
+  setChipValues("filter-health-chips", []);
   document.getElementById("filter-state").value = "";
-  document.querySelectorAll(".filter-health-check").forEach((checkbox) => {
-    checkbox.checked = false;
-  });
-  updateHealthFilterLabel();
+  document.getElementById("filter-org").value = "";
   updateMuralCityOptions();
-  renderBoard();
+  applyAndRenderFilters();
 }
-
-const HEALTH_FILTER_LABELS = { vaccinated: "Vacinado", dewormed: "Vermifugado", neutered: "Castrado" };
-
-function toggleHealthFilterDropdown() {
-  document.getElementById("health-filter-panel").classList.toggle("hidden");
-}
-
-function onHealthFilterChange() {
-  updateHealthFilterLabel();
-  renderBoard();
-}
-
-function updateHealthFilterLabel() {
-  const checked = Array.from(document.querySelectorAll(".filter-health-check:checked")).map(
-    (checkbox) => HEALTH_FILTER_LABELS[checkbox.value]
-  );
-  document.getElementById("health-filter-label").textContent = checked.length ? checked.join(", ") : "Todos";
-}
-
-// Fecha o dropdown de saúde ao clicar fora dele.
-document.addEventListener("click", (event) => {
-  const dropdown = document.getElementById("health-filter-dropdown");
-  if (dropdown && !dropdown.contains(event.target)) {
-    document.getElementById("health-filter-panel")?.classList.add("hidden");
-  }
-});
 
 function getFilteredPets() {
-  const species = document.getElementById("filter-species").value;
-  const size = document.getElementById("filter-size").value;
+  const species = selectedChipValues("filter-species-chips");
+  const sizes = selectedChipValues("filter-size-chips");
+  const health = selectedChipValues("filter-health-chips");
   const state = document.getElementById("filter-state").value;
   const city = document.getElementById("filter-city").value;
-  const healthFilters = Array.from(document.querySelectorAll(".filter-health-check:checked")).map(
-    (checkbox) => checkbox.value
-  );
+  const orgId = document.getElementById("filter-org").value;
 
   return ALL_PETS.filter((pet) => {
     // Anúncio "disponível" sem atualização há muito tempo some do mural até
     // a ONG confirmar que o pet ainda está disponível (ver isPetStale).
     if (isPetStale(pet)) return false;
-    if (species && pet.species !== species) return false;
-    if (size && pet.size !== size) return false;
-    if (healthFilters.some((key) => !pet[key])) return false;
+    if (species.length && !species.includes(pet.species)) return false;
+    if (sizes.length && !sizes.includes(pet.size)) return false;
+    if (health.some((key) => !pet[key])) return false;
     const org = ORG_BY_ID[pet.org_id] || pet.org;
     if (state && org?.state !== state) return false;
     if (city && org?.city !== city) return false;
+    if (orgId && String(pet.org_id) !== orgId) return false;
     return true;
   });
 }
