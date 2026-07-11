@@ -853,10 +853,25 @@ a.stat-pill:hover {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
+  overflow: hidden;
   background: var(--color-surface-muted)
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C3CBB8'><path d='M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z'/></svg>")
     center / 40px no-repeat;
+}
+
+.pet-card-photo-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Aparece suavemente quando a imagem lazy termina de carregar. */
+  animation: petPhotoFadeIn 0.3s ease;
+}
+
+@keyframes petPhotoFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .pet-card-body {

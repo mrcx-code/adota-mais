@@ -1,6 +1,81 @@
 /** Funções auxiliares compartilhadas entre index.html e admin.html */
 
 /**
+ * Comprime e redimensiona uma imagem no navegador ANTES de enviar ao Supabase.
+ * Fotos de celular chegam com vários MB e em resolução altíssima; para um card
+ * de adoção não precisa de mais que ~1280px. Isso reduz o peso das imagens de
+ * MB para poucas centenas de KB — essencial para a performance mobile do mural.
+ *
+ * Retorna um Blob (WebP quando o navegador suporta, senão JPEG). Se qualquer
+ * etapa falhar, devolve o arquivo original para não bloquear o cadastro.
+ */
+async function compressImage(file, { maxDimension = 1280, quality = 0.82 } = {}) {
+  try {
+    if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    // GIF pode ser animado — recomprimir viraria um quadro estático. Deixa passar.
+    if (file.type === "image/gif") return file;
+
+    const bitmap = await loadBitmap(file);
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    if (bitmap.close) bitmap.close();
+
+    const preferWebp = canvasSupportsType(canvas, "image/webp");
+    const type = preferWebp ? "image/webp" : "image/jpeg";
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, type, quality)
+    );
+    // Se a compressão não gerou blob ou ficou maior que o original, usa o original.
+    if (!blob) return file;
+    if (blob.size >= file.size && file.size > 0) return file;
+    blob.__ext = preferWebp ? "webp" : "jpg";
+    return blob;
+  } catch (err) {
+    console.warn("[Patinhas] Falha ao comprimir imagem, enviando original.", err);
+    return file;
+  }
+}
+
+/** Carrega o arquivo como bitmap desenhável (createImageBitmap com fallback <img>). */
+async function loadBitmap(file) {
+  if (window.createImageBitmap) {
+    try {
+      return await createImageBitmap(file);
+    } catch (_) {
+      /* alguns formatos falham no createImageBitmap; cai no fallback abaixo */
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = url;
+    });
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** Testa se o canvas consegue exportar um tipo de imagem (ex: WebP). */
+function canvasSupportsType(canvas, type) {
+  try {
+    return canvas.toDataURL(type).indexOf(`data:${type}`) === 0;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
  * Estados e cidades do Brasil, usados nos dropdowns de localização (cadastro
  * de ONG e filtros do mural). Estados são uma lista fixa; cidades vêm da API
  * pública do IBGE (só quando o estado é escolhido, e com cache em memória

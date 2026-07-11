@@ -263,8 +263,11 @@ function renderBoard() {
 
 function petCardHtml(pet) {
   const org = ORG_BY_ID[pet.org_id] || pet.org || null;
-  const photoStyle = pet.photo_url
-    ? `style="background-image:url('${escapeHtml(pet.photo_url)}');background-size:cover;background-position:center;"`
+  // Foto renderizada como <img> (não background-image) para ganhar
+  // lazy-loading e decodificação assíncrona nativos do navegador — essencial
+  // para a performance mobile quando há muitos pets no mural.
+  const photoImg = pet.photo_url
+    ? `<img class="pet-card-photo-img" src="${escapeHtml(pet.photo_url)}" alt="Foto de ${escapeHtml(pet.name)}, ${escapeHtml(speciesLabel(pet.species).replace(/[^\p{L}\s]/gu, "").trim().toLowerCase())} para adoção" loading="lazy" decoding="async" />`
     : "";
   const interestBtn =
     pet.status === "disponivel"
@@ -285,7 +288,8 @@ function petCardHtml(pet) {
 
   return `
     <article class="pet-card" id="pet-${pet.id}">
-      <div class="pet-card-photo" ${photoStyle}>
+      <div class="pet-card-photo">
+        ${photoImg}
         ${shareBtn}
         ${org ? `<span class="pet-card-org-pin">📍 ${escapeHtml(org.org_name)}</span>` : ""}
       </div>

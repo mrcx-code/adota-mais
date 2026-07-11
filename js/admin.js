@@ -1113,12 +1113,14 @@ async function handlePetFormSubmit(event) {
 }
 
 async function uploadPetPhoto(file) {
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const compressed = await compressImage(file);
+  const ext = compressed.__ext || (file.name.split(".").pop() || "jpg").toLowerCase();
   const uid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
   const path = `${CURRENT_ORG_ID}/${uid}.${ext}`;
-  const { error: uploadError } = await window.sb.storage.from("pet-photos").upload(path, file, {
+  const { error: uploadError } = await window.sb.storage.from("pet-photos").upload(path, compressed, {
     upsert: false,
-    cacheControl: "3600",
+    cacheControl: "31536000",
+    contentType: compressed.type || undefined,
   });
   if (uploadError) throw uploadError;
   const { data } = window.sb.storage.from("pet-photos").getPublicUrl(path);
@@ -1187,11 +1189,13 @@ function handleLogoInputChange(event) {
 }
 
 async function uploadOrgLogo(file) {
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const compressed = await compressImage(file, { maxDimension: 512 });
+  const ext = compressed.__ext || (file.name.split(".").pop() || "jpg").toLowerCase();
   const path = `logos/${CURRENT_ORG_ID}.${ext}`;
-  const { error: uploadError } = await window.sb.storage.from("pet-photos").upload(path, file, {
+  const { error: uploadError } = await window.sb.storage.from("pet-photos").upload(path, compressed, {
     upsert: true,
-    cacheControl: "3600",
+    cacheControl: "31536000",
+    contentType: compressed.type || undefined,
   });
   if (uploadError) throw uploadError;
   const { data } = window.sb.storage.from("pet-photos").getPublicUrl(path);

@@ -1,0 +1,18 @@
+{
+  "name": "Patinhas Brasil",
+  "short_name": "Patinhas",
+  "description": "Adoção de pets, transparente e em tempo real.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#527353",
+  "icons": [
+    {
+      "src": "img/patinhas-logo-full.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
