@@ -307,7 +307,10 @@ create table platform_feedback (
   created_at timestamptz not null default now(),
   message text not null,
   page text,
-  user_agent text
+  user_agent text,
+  -- Marcado como true quando a sugestão já foi implementada (controle manual
+  -- de quem processa a fila).
+  implemented boolean not null default false
 );
 
 alter table platform_feedback enable row level security;
