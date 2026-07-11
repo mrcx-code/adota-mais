@@ -444,11 +444,13 @@ document.addEventListener("keydown", (event) => {
   }
   const observer = new MutationObserver(syncScrollLock);
   function start() {
-    observer.observe(document.body, {
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"],
-    });
+    // Observa apenas a classe dos próprios overlays (que são estáticos no HTML),
+    // e não o body inteiro — assim o drag do kanban e outros toggles de classe
+    // não disparam a checagem à toa.
+    const overlays = document.querySelectorAll(".modal-overlay");
+    overlays.forEach((el) =>
+      observer.observe(el, { attributes: true, attributeFilter: ["class"] })
+    );
     syncScrollLock();
   }
   if (document.readyState === "loading") {
