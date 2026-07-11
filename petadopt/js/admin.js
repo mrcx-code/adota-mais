@@ -230,6 +230,7 @@ async function loadMyPets() {
     .from("pets")
     .select("*")
     .eq("org_id", CURRENT_ORG_ID)
+    .order("sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
   if (error) {
     console.error("[Patinhas] Erro ao carregar pets:", error);
@@ -662,7 +663,11 @@ async function submitBulkImport() {
         );
       });
     } else {
-      const payload = BULK_IMPORT_ROWS.map((pet) => Object.assign({}, pet, { org_id: CURRENT_ORG_ID }));
+      // sort_order decrescente preserva a ordem do CSV, com todos no topo.
+      const base = -Date.now();
+      const payload = BULK_IMPORT_ROWS.map((pet, i) =>
+        Object.assign({}, pet, { org_id: CURRENT_ORG_ID, sort_order: base - (BULK_IMPORT_ROWS.length - i) })
+      );
       const { error } = await window.sb.from("pets").insert(payload);
       if (error) throw error;
       await loadMyPets();
@@ -748,19 +753,69 @@ function alertInline(message) {
    Mover pet entre colunas (botões + drag and drop)
    ====================================================================== */
 
+/** Pets de uma coluna (status), fora o arrastado, em ordem de exibição. */
+function columnPets(status, exceptId) {
+  return MY_PETS.filter((p) => p.status === status && p.id !== exceptId).sort(
+    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+  );
+}
+
+/** Novo sort_order entre dois vizinhos. null = ponta da coluna. */
+function midpointOrder(a, b) {
+  if (a == null && b == null) return -Date.now();
+  if (a == null) return b - 1;
+  if (b == null) return a + 1;
+  return (a + b) / 2;
+}
+
+/** Botão de status: move o pet para o topo da coluna destino. */
 async function changeStatus(petId, newStatus) {
+  const first = columnPets(newStatus, petId)[0];
+  await movePet(petId, newStatus, first ? first.id : null);
+}
+
+/**
+ * Move um pet para `newStatus`, posicionado imediatamente antes de
+ * `beforePetId` (ou no fim da coluna, se null). Atualiza status + sort_order
+ * numa tacada só; persiste no banco (ou reordena o array, no modo demo).
+ */
+async function movePet(petId, newStatus, beforePetId) {
+  const pet = MY_PETS.find((p) => p.id === petId);
+  if (!pet) return;
+
   if (window.DEMO_MODE) {
-    const pet = MY_PETS.find((p) => p.id === petId);
-    if (pet) {
-      pet.status = newStatus;
-      pet.updated_at = new Date().toISOString();
+    pet.status = newStatus;
+    pet.updated_at = new Date().toISOString();
+    MY_PETS = MY_PETS.filter((p) => p.id !== petId);
+    if (beforePetId) {
+      const idx = MY_PETS.findIndex((p) => p.id === beforePetId);
+      MY_PETS.splice(idx === -1 ? MY_PETS.length : idx, 0, pet);
+    } else {
+      let lastIdx = -1;
+      MY_PETS.forEach((p, i) => {
+        if (p.status === newStatus) lastIdx = i;
+      });
+      MY_PETS.splice(lastIdx + 1, 0, pet);
     }
     renderAdminBoard();
     return;
   }
-  // updated_at não precisa ser setado aqui — o trigger pets_touch_updated_at
-  // no banco toca o campo automaticamente em qualquer UPDATE.
-  const { error } = await window.sb.from("pets").update({ status: newStatus }).eq("id", petId);
+
+  const list = columnPets(newStatus, petId);
+  let newPos;
+  if (beforePetId) {
+    const bIdx = list.findIndex((p) => p.id === beforePetId);
+    newPos = midpointOrder(list[bIdx - 1]?.sort_order, list[bIdx]?.sort_order);
+  } else {
+    const last = list[list.length - 1];
+    newPos = last ? (last.sort_order ?? 0) + 1 : -Date.now();
+  }
+
+  // updated_at é tocado pelo trigger pets_touch_updated_at no banco.
+  const { error } = await window.sb
+    .from("pets")
+    .update({ status: newStatus, sort_order: newPos })
+    .eq("id", petId);
   if (error) {
     console.error("[Patinhas] Erro ao mover pet:", error);
     alertInline("Não foi possível mover o pet agora.");
@@ -770,44 +825,104 @@ async function changeStatus(petId, newStatus) {
   renderAdminBoard();
 }
 
+/** Card antes do qual o arrastado deve entrar, dada a posição do ponteiro. */
+function cardAfterPoint(container, y) {
+  const cards = [...container.querySelectorAll(".pet-card:not(.dragging)")];
+  let closest = { offset: -Infinity, el: null };
+  for (const card of cards) {
+    const box = card.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) closest = { offset, el: card };
+  }
+  return closest.el;
+}
+
+/* Auto-scroll durante o arraste: com cards altos, a coluna não cabe na tela;
+   quando o cursor chega perto do topo ou do rodapé, a página rola sozinha e
+   suave para alcançar a posição desejada. Um loop de requestAnimationFrame lê
+   a última posição do cursor, então rola mesmo se ele ficar parado na borda. */
+let dragPointerY = null;
+let dragScrollRAF = null;
+
+function startDragAutoScroll() {
+  if (dragScrollRAF) return;
+  const EDGE = 110; // altura da zona sensível no topo/rodapé
+  const MAX = 18; // velocidade máxima (px por frame)
+  const step = () => {
+    if (dragPointerY != null) {
+      const fromTop = dragPointerY;
+      const fromBottom = window.innerHeight - dragPointerY;
+      let dy = 0;
+      if (fromTop < EDGE) dy = -MAX * (1 - fromTop / EDGE);
+      else if (fromBottom < EDGE) dy = MAX * (1 - fromBottom / EDGE);
+      if (dy) window.scrollBy(0, dy);
+    }
+    dragScrollRAF = requestAnimationFrame(step);
+  };
+  dragScrollRAF = requestAnimationFrame(step);
+}
+
+function stopDragAutoScroll() {
+  if (dragScrollRAF) cancelAnimationFrame(dragScrollRAF);
+  dragScrollRAF = null;
+  dragPointerY = null;
+}
+
+// Atualiza a posição do cursor em qualquer ponto da página durante o arraste
+// (inclusive fora das colunas, como no header) — anexado uma única vez.
+if (!window.__dragScrollHooked) {
+  window.__dragScrollHooked = true;
+  document.addEventListener("dragover", (e) => {
+    if (dragScrollRAF) dragPointerY = e.clientY;
+  });
+}
+
 function setupDragAndDrop() {
   document.querySelectorAll(".pet-card[draggable='true']").forEach((card) => {
     card.addEventListener("dragstart", (e) => {
       card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", card.dataset.petId);
+      startDragAutoScroll();
     });
-    card.addEventListener("dragend", () => card.classList.remove("dragging"));
-
-    // Sem isto, soltar exatamente em cima de outro card (em vez do espaço
-    // vazio da coluna) não disparava o "drop" — o navegador só libera o
-    // drop num elemento que tenha seu próprio "dragover" com preventDefault.
-    card.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-    });
-    card.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const column = card.closest(".kanban-column");
-      if (!column) return;
-      column.classList.remove("drag-over");
-      const petId = e.dataTransfer.getData("text/plain");
-      if (petId) changeStatus(petId, column.dataset.status);
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+      document.querySelectorAll(".kanban-column").forEach((c) => c.classList.remove("drag-over"));
+      stopDragAutoScroll();
     });
   });
 
   document.querySelectorAll(".kanban-column").forEach((column) => {
-    const status = column.dataset.status;
+    const container = column.querySelector(".kanban-cards") || column;
+
     column.addEventListener("dragover", (e) => {
       e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
       column.classList.add("drag-over");
+      // Pré-visualização ao vivo: reposiciona o próprio card arrastado
+      // no ponto sob o cursor, para reordenar dentro/entre colunas.
+      const dragging = document.querySelector(".pet-card.dragging");
+      if (!dragging) return;
+      const after = cardAfterPoint(container, e.clientY);
+      if (after == null) container.appendChild(dragging);
+      else container.insertBefore(dragging, after);
     });
-    column.addEventListener("dragleave", () => column.classList.remove("drag-over"));
+
+    column.addEventListener("dragleave", (e) => {
+      if (!column.contains(e.relatedTarget)) column.classList.remove("drag-over");
+    });
+
     column.addEventListener("drop", (e) => {
       e.preventDefault();
       column.classList.remove("drag-over");
       const petId = e.dataTransfer.getData("text/plain");
-      if (petId) changeStatus(petId, status);
+      if (!petId) return;
+      // O card já foi levado até a posição final pela pré-visualização;
+      // o vizinho de baixo define o "antes de quem" ele deve ficar.
+      const dragging = container.querySelector(`.pet-card[data-pet-id="${petId}"]`);
+      const next = dragging && dragging.nextElementSibling;
+      const beforePetId = next && next.classList.contains("pet-card") ? next.dataset.petId : null;
+      movePet(petId, column.dataset.status, beforePetId);
     });
   });
 }
@@ -978,6 +1093,7 @@ async function handlePetFormSubmit(event) {
         if (error) throw error;
       } else {
         payload.org_id = CURRENT_ORG_ID;
+        payload.sort_order = -Date.now(); // entra no topo da coluna
         const { error } = await window.sb.from("pets").insert([payload]);
         if (error) throw error;
       }

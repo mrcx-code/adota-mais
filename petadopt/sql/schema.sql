@@ -40,6 +40,10 @@ create table pets (
   -- 'macho' | 'femea' | null (não informado) — usado pro símbolo ♂/♀ no card
   -- e pra concordância de gênero na descrição automática.
   gender text check (gender in ('macho', 'femea')),
+  -- Ordem manual dentro da coluna do kanban (drag and drop). Menor valor =
+  -- mais no topo. Pets novos entram com valor negativo (topo); reordenar usa
+  -- o ponto médio entre os vizinhos. Ordena por sort_order asc, created_at desc.
+  sort_order double precision,
   -- Legado: texto livre da época anterior à descrição automática (ver
   -- "personality"/"favorite_toy" abaixo). Mantido só para não perder o
   -- histórico de pets já cadastrados — o formulário não edita mais este campo.

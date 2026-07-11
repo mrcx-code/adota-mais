@@ -21,6 +21,7 @@ async function loadPets() {
       const { data, error } = await window.sb
         .from("pets")
         .select("*, org:profiles(id, org_name, contact_whatsapp, contact_email, city, state)")
+        .order("sort_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
       ALL_PETS = data || [];
