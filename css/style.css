@@ -450,6 +450,26 @@ a.stat-pill:hover {
   border-radius: var(--radius-lg);
 }
 
+/* No mobile o mural deixa de ser uma "caixa" e passa a ocupar a largura toda
+   da tela — sem fundo, borda ou cantos arredondados —, dando mais espaço para
+   as colunas do kanban, que estavam apertadas. Os textos e filtros ganham um
+   respiro lateral próprio; só o carrossel de colunas usa a largura completa. */
+@media (max-width: 640px) {
+  .mural-panel {
+    margin: 12px -20px 0;
+    padding: 24px 0 8px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+  .mural-panel > .mural-intro-row,
+  .mural-panel > .filters-toggle,
+  .mural-panel > #mural-filters {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
 .board-intro {
   margin: 0 0 24px;
 }
@@ -667,14 +687,16 @@ a.stat-pill:hover {
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    margin: 0 -20px;
-    padding: 0 20px;
+    /* O mural é full-bleed no mobile (ver .mural-panel abaixo), então o
+       carrossel usa só um respiro lateral pequeno em vez de sangrar de novo. */
+    margin: 0;
+    padding: 0 16px;
   }
   .kanban-board::-webkit-scrollbar {
     display: none;
   }
   .kanban-board .kanban-column {
-    flex: 0 0 88%;
+    flex: 0 0 90%;
     scroll-snap-align: start;
   }
   .kanban-board {
