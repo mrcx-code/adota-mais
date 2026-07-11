@@ -3,6 +3,7 @@
 let ALL_PETS = [];
 let ORG_BY_ID = {};
 let CURRENT_INTEREST_PET = null;
+let INTEREST_MODAL_OPENED_AT = 0;
 
 async function loadPets() {
   const board = document.getElementById("kanban-board");
@@ -343,6 +344,8 @@ function openInterestModal(petId) {
   const org = ORG_BY_ID[pet.org_id] || pet.org || null;
 
   document.getElementById("interest-pet-name").textContent = pet.name;
+  // Horário de abertura — usado no anti-spam (envio instantâneo = bot).
+  INTEREST_MODAL_OPENED_AT = Date.now();
   const contextPhoto = document.getElementById("interest-pet-photo");
   const ctxPhotoUrl = safeHttpUrl(pet.photo_url);
   contextPhoto.style.backgroundImage = ctxPhotoUrl ? `url('${ctxPhotoUrl}')` : "";
@@ -411,6 +414,41 @@ function closeInterestModal() {
   CURRENT_INTEREST_PET = null;
 }
 
+/** Mostra o passo de sucesso do formulário (sem inserir nada). */
+function showInterestSuccess() {
+  document.getElementById("interest-form").classList.add("hidden");
+  const box = document.getElementById("interest-success");
+  box.textContent = "Interesse enviado! O abrigo vai entrar em contato em breve. 🎉";
+  box.classList.add("visible");
+}
+
+/* Cooldown anti-spam por pet, guardado no navegador: no máx. 1 envio a cada 30s
+   por pet e 6 no total por hora. Não substitui o trigger do banco — só evita
+   floods acidentais e reduz spam casual. */
+const INTEREST_SEND_KEY = "patinhas_interest_sends";
+function readInterestSends() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(INTEREST_SEND_KEY) || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch (_) {
+    return [];
+  }
+}
+function interestRateLimited(petId) {
+  const now = Date.now();
+  const sends = readInterestSends().filter((s) => now - s.t < 3600000);
+  const samePetRecent = sends.filter((s) => s.pet === petId && now - s.t < 30000);
+  return samePetRecent.length > 0 || sends.length >= 6;
+}
+function recordInterestSend(petId) {
+  const now = Date.now();
+  const sends = readInterestSends().filter((s) => now - s.t < 3600000);
+  sends.push({ pet: petId, t: now });
+  try {
+    localStorage.setItem(INTEREST_SEND_KEY, JSON.stringify(sends));
+  } catch (_) {}
+}
+
 async function submitInterest(event) {
   event.preventDefault();
   if (!CURRENT_INTEREST_PET) return;
@@ -424,6 +462,22 @@ async function submitInterest(event) {
 
   if (!name || (!email && !phone)) {
     errorBox.textContent = "Preencha seu nome e pelo menos um contato (telefone ou e-mail).";
+    errorBox.classList.add("visible");
+    return;
+  }
+
+  // --- Anti-spam (camadas leves no cliente; a proteção real é o trigger no
+  //     banco). Em todos os casos de bot, fingimos sucesso para não dar pista. ---
+  const honeypot = document.getElementById("interest-hp");
+  const looksLikeBot =
+    (honeypot && honeypot.value.trim() !== "") || // honeypot preenchido
+    Date.now() - INTEREST_MODAL_OPENED_AT < 1500;  // enviado rápido demais
+  if (looksLikeBot) {
+    showInterestSuccess();
+    return;
+  }
+  if (interestRateLimited(CURRENT_INTEREST_PET.id)) {
+    errorBox.textContent = "Você já enviou interesse agora há pouco. Aguarde um instante antes de tentar de novo.";
     errorBox.classList.add("visible");
     return;
   }
@@ -463,6 +517,7 @@ async function submitInterest(event) {
       cta.href = link;
       cta.classList.remove("hidden");
     }
+    recordInterestSend(CURRENT_INTEREST_PET.id);
   } catch (err) {
     console.error("[Patinhas] Erro ao registrar interesse:", err);
     errorBox.textContent = "Não foi possível enviar agora. Tente novamente em instantes.";

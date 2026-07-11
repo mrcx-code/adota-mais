@@ -298,6 +298,13 @@
         <div id="interest-success" class="form-success"></div>
 
         <form id="interest-form">
+          <!-- Honeypot anti-spam: invisível para humanos (fora da tela), sem
+               autofill e fora da ordem de tabulação. Bots costumam preencher
+               campos como "website" — se vier preenchido, tratamos como spam. -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="interest-hp">Deixe este campo em branco</label>
+            <input type="text" id="interest-hp" name="website" tabindex="-1" autocomplete="off" />
+          </div>
           <div class="field">
             <label for="interest-name">Seu nome</label>
             <input type="text" id="interest-name" required />

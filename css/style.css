@@ -1689,6 +1689,17 @@ body.scroll-locked {
   overflow: hidden;
 }
 
+/* Campo honeypot anti-spam: totalmente fora da tela, mas ainda "preenchível"
+   por bots. Não usar display:none (alguns bots ignoram campos escondidos). */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .modal {
   background: var(--color-surface);
   box-shadow: var(--shadow-modal);
