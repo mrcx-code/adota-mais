@@ -222,7 +222,7 @@ function obsLeituraRotativa() {
 
   function agenda() {
     clearInterval(timer);
-    if (!OBS_REDUCED) timer = setInterval(() => show((i + 1) % items.length), 4800);
+    if (!OBS_REDUCED) timer = setInterval(() => show((i + 1) % items.length), 7500);
   }
 
   dotsEl.addEventListener("click", (e) => {
@@ -760,27 +760,30 @@ function obsFisicaBolhas(host) {
    Boot
    ===================================================================== */
 
-/** O céu do hero acompanha o mouse de leve (parallax) — dá vida à cena. */
-function obsHeroParallax() {
+/** Lente/olho do observatório: segue o cursor no hero; ao sair, o radar volta
+ * a girar sozinho. Sem cursor (toque), a cena segue no automático. */
+function obsHeroScanner() {
   const hero = document.getElementById("obs-hero");
-  const sky = hero && hero.querySelector(".obs-sky");
-  if (!sky || OBS_REDUCED) return;
-  let raf = 0, cx = 0, cy = 0;
-  sky.style.transition = "transform 0.5s ease-out";
+  const lens = document.getElementById("obs-lens");
+  if (!hero || !lens || OBS_REDUCED) return;
+  const HALF = 75; // metade do tamanho da lente (150px)
+  let raf = 0, x = 0, y = 0;
   hero.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") return; // sem hover no toque
     const r = hero.getBoundingClientRect();
-    cx = ((e.clientX - r.left) / r.width - 0.5) * 26;
-    cy = ((e.clientY - r.top) / r.height - 0.5) * 26;
+    x = e.clientX - r.left;
+    y = e.clientY - r.top;
+    hero.classList.add("scanning");
     if (!raf) raf = requestAnimationFrame(apply);
   });
-  hero.addEventListener("pointerleave", () => { cx = 0; cy = 0; if (!raf) raf = requestAnimationFrame(apply); });
-  function apply() { raf = 0; sky.style.transform = `translate(${cx}px, ${cy}px)`; }
+  hero.addEventListener("pointerleave", () => hero.classList.remove("scanning"));
+  function apply() { raf = 0; lens.style.transform = `translate(${x - HALF}px, ${y - HALF}px)`; }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   obsCeu();
   obsLeituraRotativa();
-  obsHeroParallax();
+  obsHeroScanner();
 
   const abandono = document.getElementById("obs-abandono");
   if (abandono) obsRenderAbandono(abandono);

@@ -335,7 +335,40 @@ button { font-family: inherit; cursor: pointer; }
   background: radial-gradient(120% 100% at 30% 20%, transparent 55%, rgba(6, 14, 22, 0.5) 100%);
   pointer-events: none;
 }
-.obs-hero > *:not(.obs-sky) { position: relative; z-index: 2; }
+.obs-hero > *:not(.obs-sky):not(.obs-lens) { position: relative; z-index: 2; }
+
+/* Lente/olho que acompanha o cursor (o "observatório" olhando onde você aponta). */
+.obs-lens {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(231, 200, 137, 0.5);
+  background: radial-gradient(circle, rgba(231, 200, 137, 0.16) 0%, rgba(231, 200, 137, 0.04) 45%, transparent 70%);
+  box-shadow: 0 0 44px rgba(231, 200, 137, 0.22);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translate(-9999px, -9999px);
+  will-change: transform;
+}
+.obs-lens::before {  /* íris/pupila — dá o ar de "olho" */
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(231, 200, 137, 0.6);
+  box-shadow: 0 0 12px rgba(231, 200, 137, 0.7);
+}
+.obs-hero.scanning .obs-lens { opacity: 1; }
+/* Enquanto a lente segue o cursor, o radar pausa e some. Sem cursor, ele gira. */
+.obs-hero.scanning .obs-sweep { opacity: 0.14; animation-play-state: paused; }
 
 /* ---- Céu: estrelas + varredura de radar + órbita de satélite ---- */
 .obs-sky { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
