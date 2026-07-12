@@ -1,84 +1,67 @@
 /**
  * Observatório Patinhas — dados públicos sobre adoção, abandono e pets no Brasil.
  *
- * A página reúne os levantamentos mais recentes de fontes oficiais e de
- * referência (IBGE, MMA/SinPatinhas, Instituto Pet Brasil/Abempet, Mars
- * Petcare, GoldeN/Opinion Box, Cobasi Cuida, Infodados) — cada número traz a
- * fonte e a data. Onde existe API pública com CORS liberado, os dados são
- * consultados AO VIVO no navegador:
- *   - IBGE / PNS (servicodados.ibge.gov.br) → posse de cães/gatos e vacinação
- *   - Querido Diário (api.queridodiario.ok.org.br) → atos municipais da causa animal
- *
- * As duas únicas coisas que vêm da própria plataforma Patinhas (Supabase) são
- * decorativas e ficam no fim: o mural de reencontros (pets adotados) e as
- * bolhas de fotos no CTA final.
+ * Reúne os levantamentos mais recentes de fontes oficiais e de referência
+ * (MMA/SinPatinhas, Mars Petcare, GoldeN/Opinion Box, Instituto Pet Brasil,
+ * Cobasi Cuida, Infodados, PetCenso/Petlove, Abempet, IBGE) — cada número com
+ * fonte e data. O mapa por estado é alimentado ao vivo pela API pública do
+ * IBGE (com fallback embutido). O mural de reencontros e as bolhas do CTA
+ * final vêm do Supabase (decorativos).
  */
 
 const OBS_REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* =====================================================================
-   Dados estáticos (levantamentos com fonte e data)
+   Dados
    ===================================================================== */
 
 const OBS = {
-  // Cards que viram — dados de ADOÇÃO 2025/2026 (os mais frescos).
+  // Carrossel do hero — os grandes números, cada um com fonte e data.
+  numeros: [
+    { valor: "30,2", unidade: "mi", label: "de cães e gatos em situação de <strong>abandono</strong> — 1 em cada 4", fonte: "Mars · State of Pet Homelessness (2024)", cor: "danger" },
+    { valor: "80", unidade: "%", label: "dos pets nos lares brasileiros chegaram por <strong>adoção</strong>", fonte: "GoldeN / Opinion Box (2025)", cor: "brand" },
+    { valor: "1,3", unidade: "mi", label: "de animais ganharam “RG” no 1º ano do <strong>SinPatinhas</strong>", fonte: "MMA / Gov. Federal (abr 2026)", cor: "brand" },
+    { valor: "675", unidade: "mil", label: "<strong>castrações gratuitas</strong> pelo programa ProPatinhas", fonte: "MMA / ProPatinhas (2026)", cor: "brand" },
+    { valor: "4,8", unidade: "mi", label: "de cães e gatos em condição de <strong>vulnerabilidade</strong>", fonte: "Instituto Pet Brasil (2024)", cor: "amber" },
+    { valor: "44", unidade: "%", label: "dos tutores são <strong>contra comprar</strong> animais — preferem adotar", fonte: "Opinion Box · Mercado Pet (fev 2026)", cor: "brand" },
+    { valor: "201", unidade: "mil", label: "animais acolhidos por cerca de <strong>400 ONGs</strong> e protetores", fonte: "Instituto Pet Brasil (2024)", cor: "amber" },
+    { valor: "160,9", unidade: "mi", label: "de pets no Brasil — a <strong>3ª maior população</strong> do mundo", fonte: "Abempet (ref. 2023)", cor: "brand" },
+    { valor: "1,35", unidade: "→1", label: "entram no abrigo para cada <strong>1 que sai</strong> — a conta não fecha", fonte: "Infodados / Medicina de Abrigos (2025)", cor: "danger" },
+  ],
+
   fatosAdocao: [
     {
-      icone: "💚",
-      valor: "80%",
+      icone: "💚", valor: "80%",
       label: "dos pets nos lares brasileiros chegaram por adoção",
       verso: "37% vieram por doação de conhecidos, 29% foram resgatados da rua e 21% adotados em ONGs. E 90% dos tutores adotariam de novo.",
       fonte: "GoldeN / Opinion Box (2025)",
     },
     {
-      icone: "🚫",
-      valor: "44%",
+      icone: "🚫", valor: "44%",
       label: "dos tutores são contra a compra de animais",
       verso: "A adoção virou consenso: 7 em cada 10 tutores já consideram os pets como filhos da família.",
       fonte: "Opinion Box — Mercado Pet (fev 2026)",
     },
     {
-      icone: "🖤",
-      valor: "69%",
+      icone: "🖤", valor: "69%",
       label: "das ONGs dizem que pelagem preta dificulta a adoção",
-      verso: "Idade avançada é barreira para 86% delas, e deficiência para 75%. O “vira-lata caramelo” é febre, mas cor, idade e porte ainda definem o destino de muitos.",
+      verso: "Idade avançada é barreira para 86% delas, e deficiência para 75%. Cor, idade e porte ainda definem o destino de muitos animais.",
       fonte: "Panorama da Adoção – ONGs · GoldeN/IMVC (jun 2026)",
     },
     {
-      icone: "🐕",
-      valor: "26% e 86%",
+      icone: "🐕", valor: "26% e 86%",
       label: "dos cães e gatos cadastrados são vira-latas (SRD)",
       verso: "O SRD lidera o ranking de raças desde 2016. O vira-lata é, de longe, o pet favorito do Brasil.",
       fonte: "PetCenso 2025 · Petlove (base de 1,8 mi de animais)",
     },
   ],
 
-  // Split de população (Abempet, ref. 2024).
-  populacao: {
-    caes: 63.7,
-    gatos: 32.2,
-    fonte: "Abempet (ex-Abinpet / Instituto Pet Brasil), ref. 2024",
-  },
+  populacao: { caes: 63.7, gatos: 32.2, fonte: "Abempet (ex-Abinpet / Instituto Pet Brasil), ref. 2024" },
 
   leis: [
-    {
-      ano: "1998",
-      titulo: "Maus-tratos viram crime",
-      texto: "A Lei de Crimes Ambientais (9.605/1998) torna crime praticar abuso ou maus-tratos contra animais.",
-      fonte: "Lei nº 9.605/1998 — Planalto",
-    },
-    {
-      ano: "2020",
-      titulo: "Lei Sansão endurece a pena",
-      texto: "Maus-tratos a cães e gatos passam a dar reclusão de 2 a 5 anos, multa e proibição de guarda.",
-      fonte: "Lei nº 14.064/2020 — Planalto",
-    },
-    {
-      ano: "2021",
-      titulo: "Fim da eliminação em canis públicos",
-      texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis — o controle passa por castração e adoção.",
-      fonte: "Lei nº 14.228/2021 — Planalto",
-    },
+    { ano: "1998", titulo: "Maus-tratos viram crime", texto: "A Lei de Crimes Ambientais (9.605/1998) torna crime praticar abuso ou maus-tratos contra animais.", fonte: "Lei nº 9.605/1998 — Planalto" },
+    { ano: "2020", titulo: "Lei Sansão endurece a pena", texto: "Maus-tratos a cães e gatos passam a dar reclusão de 2 a 5 anos, multa e proibição de guarda.", fonte: "Lei nº 14.064/2020 — Planalto" },
+    { ano: "2021", titulo: "Fim da eliminação em canis públicos", texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis — o controle passa por castração e adoção.", fonte: "Lei nº 14.228/2021 — Planalto" },
   ],
 
   nomesUF: {
@@ -102,10 +85,7 @@ const OBS = {
     RS: [5, 8],
   },
 
-  // Fonte completa (bloco "todas as fontes").
   fontes: [
-    { nome: "IBGE — Pesquisa Nacional de Saúde (PNS 2019), via API de agregados", url: "https://servicodados.ibge.gov.br/api/v3/agregados/4930/metadados" },
-    { nome: "Querido Diário — Open Knowledge Brasil (API pública)", url: "https://queridodiario.ok.org.br/" },
     { nome: "Mars Petcare — State of Pet Homelessness Index (2024)", url: "https://www.pedigree.com.br/adocao/acoes-pedigree/relatorio-global-aponta-que-1-em-cada-3-animais-de-estimacao-nao-tem-onde-morar" },
     { nome: "GoldeN / Opinion Box — 80% dos pets são adotados (2025)", url: "https://www.cnnbrasil.com.br/nacional/sudeste/sp/80-dos-pets-nos-lares-brasileiros-foram-adotados-indica-pesquisa/" },
     { nome: "Panorama da Adoção no Brasil – ONGs · GoldeN/IMVC/Opinion Box (jun 2026)", url: "https://www.otempo.com.br/pets/2026/6/30/a-realidade-da-adocao-pesquisa-inedita-revela-como-idade-cor-e-porte-definem-o-destino-de-animais-em-abrigos-no-brasil" },
@@ -116,15 +96,13 @@ const OBS = {
     { nome: "Infodados / Medicina de Abrigos Brasil — dinâmica de abrigos (2025)", url: "https://caesegatos.com.br/abandono-animal-abrigos-politicas-publicas/" },
     { nome: "MMA — SinPatinhas / ProPatinhas, balanço de 1 ano (abr 2026)", url: "https://www.folhabv.com.br/cotidiano/programa-sinpatinhas-completa-um-ano-com-mais-de-13-milhao-de-animais-cadastrados-no-brasil" },
     { nome: "Abempet (ex-Abinpet / Instituto Pet Brasil) — população e mercado (2024)", url: "https://abempet.org.br/informacoes-gerais-do-setor/" },
+    { nome: "IBGE — Pesquisa Nacional de Saúde (posse de cães por estado), via API de agregados", url: "https://servicodados.ibge.gov.br/api/v3/agregados/4930/metadados" },
   ],
 };
 
 /* =====================================================================
    Helpers
    ===================================================================== */
-
-const OBS_PAW =
-  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z"/></svg>';
 
 function obsEsc(s) {
   if (s === null || s === undefined) return "";
@@ -135,117 +113,98 @@ function obsSafeUrl(url) {
   const s = String(url == null ? "" : url).trim();
   return /^https?:\/\//i.test(s) ? s : "";
 }
-function obsFmtNum(n) {
-  return Number(n).toLocaleString("pt-BR");
-}
 function obsFmtPct(n, dec = 1) {
   return Number(n).toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + "%";
 }
-function obsEspecieEmoji(sp) {
-  return sp === "gato" ? "🐱" : sp === "cachorro" ? "🐶" : "🐾";
+function obsEspecieEmoji(sp) { return sp === "gato" ? "🐱" : sp === "cachorro" ? "🐶" : "🐾"; }
+
+const OBS_PAW =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z"/></svg>';
+
+/* =====================================================================
+   Hero — carrossel de números
+   ===================================================================== */
+
+function obsRenderCarrossel() {
+  const track = document.getElementById("obs-hero-track");
+  const dotsWrap = document.getElementById("obs-hero-dots");
+  if (!track) return;
+
+  track.innerHTML = OBS.numeros.map((n) => `
+    <article class="obs-num-card cor-${n.cor}">
+      <div class="obs-num-value"><span class="obs-num-n">${obsEsc(n.valor)}</span><span class="obs-num-u">${obsEsc(n.unidade)}</span></div>
+      <p class="obs-num-label">${n.label}</p>
+      <span class="obs-num-fonte">📌 ${obsEsc(n.fonte)}</span>
+    </article>`).join("");
+
+  if (dotsWrap) {
+    dotsWrap.innerHTML = OBS.numeros.map((_, i) => `<button type="button" class="obs-dot" data-i="${i}" aria-label="Ir para o número ${i + 1}"></button>`).join("");
+  }
+
+  const cards = [...track.querySelectorAll(".obs-num-card")];
+  const scrollToCard = (i) => {
+    const card = cards[Math.max(0, Math.min(i, cards.length - 1))];
+    if (card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: OBS_REDUCED ? "auto" : "smooth" });
+  };
+
+  document.querySelectorAll(".obs-carousel-arrow").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const dir = Number(btn.dataset.dir);
+      const cur = obsCardAtual(track, cards);
+      scrollToCard(cur + dir);
+    });
+  });
+  if (dotsWrap) {
+    dotsWrap.addEventListener("click", (e) => {
+      const dot = e.target.closest(".obs-dot");
+      if (dot) scrollToCard(Number(dot.dataset.i));
+    });
+  }
+
+  // Atualiza dots ativos + estado das setas conforme rola.
+  const sync = () => {
+    const cur = obsCardAtual(track, cards);
+    if (dotsWrap) dotsWrap.querySelectorAll(".obs-dot").forEach((d, i) => d.classList.toggle("on", i === cur));
+    const prev = document.querySelector(".obs-carousel-arrow.prev");
+    const next = document.querySelector(".obs-carousel-arrow.next");
+    if (prev) prev.disabled = track.scrollLeft <= 2;
+    if (next) next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+  };
+  track.addEventListener("scroll", () => { window.requestAnimationFrame(sync); }, { passive: true });
+  sync();
 }
 
-/** Count-up dos números com data-count quando entram na tela. */
-function obsCountUp() {
-  const els = document.querySelectorAll("[data-count]");
-  if (!els.length) return;
-  if (OBS_REDUCED) return;
-  els.forEach((el) => { el.dataset.final = el.textContent; el.textContent = "0"; });
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      io.unobserve(entry.target);
-      const el = entry.target;
-      const target = Number(el.dataset.count);
-      const dec = Number(el.dataset.decimals || 0);
-      const dur = 1300;
-      const t0 = performance.now();
-      const tick = (t) => {
-        const p = Math.min((t - t0) / dur, 1);
-        const val = target * (1 - Math.pow(1 - p, 3));
-        el.textContent = dec
-          ? val.toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec })
-          : obsFmtNum(Math.round(val));
-        if (p < 1) requestAnimationFrame(tick);
-        else el.textContent = el.dataset.final;
-      };
-      requestAnimationFrame(tick);
-    });
-  }, { threshold: 0.5 });
-  els.forEach((el) => io.observe(el));
+function obsCardAtual(track, cards) {
+  const x = track.scrollLeft + track.clientWidth / 2;
+  let best = 0, bestD = Infinity;
+  cards.forEach((c, i) => {
+    const center = c.offsetLeft - track.offsetLeft + c.offsetWidth / 2;
+    const d = Math.abs(center - x);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
 }
 
 /* =====================================================================
-   IBGE ao vivo (PNS — posse de cães/gatos e vacinação antirrábica)
+   Mapa por estado + lista rolável (dado IBGE, ao vivo com fallback)
    ===================================================================== */
 
 const IBGE_BASE = "https://servicodados.ibge.gov.br/api/v3/agregados";
+const UF_POR_ID = {
+  "11": "RO", "12": "AC", "13": "AM", "14": "RR", "15": "PA", "16": "AP", "17": "TO",
+  "21": "MA", "22": "PI", "23": "CE", "24": "RN", "25": "PB", "26": "PE", "27": "AL", "28": "SE", "29": "BA",
+  "31": "MG", "32": "ES", "33": "RJ", "35": "SP", "41": "PR", "42": "SC", "43": "RS",
+  "50": "MS", "51": "MT", "52": "GO", "53": "DF",
+};
 
-/** Busca a série mais recente (periodo -1) de uma variável no nível Brasil. */
-async function ibgeSerieBR(tabela, variavel) {
-  const url = `${IBGE_BASE}/${tabela}/periodos/-1/variaveis/${variavel}?localidades=N1[all]`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error("IBGE " + resp.status);
-  const data = await resp.json();
-  const serie = data[0].resultados[0].series[0].serie;
-  const ano = Object.keys(serie)[0];
-  return { ano, valor: Number(serie[ano]) };
-}
+const OBS_PNS2019 = {
+  RO: 64.8, MS: 61.5, MT: 61.2, AC: 60.0, RR: 58.9, PR: 58.7, TO: 57.9, GO: 56.4,
+  SC: 55.8, RS: 54.6, MG: 52.0, ES: 51.2, AP: 50.8, PA: 49.6, AM: 48.7, DF: 47.9,
+  SP: 45.1, RJ: 41.9, MA: 41.0, BA: 39.5, CE: 38.8, PI: 38.2, RN: 37.4, PB: 36.1,
+  SE: 34.7, PE: 34.2, AL: 34.0,
+};
 
-async function obsCarregaIBGE() {
-  const selo = document.getElementById("obs-ibge-selo");
-  const cards = document.getElementById("obs-ibge-cards");
-  const banner = document.getElementById("obs-pns-banner");
-  if (!cards) return;
-  try {
-    // 5180 = % lares com cachorro; 5188 = % lares com gato; 5200 = % vacinação antirrábica.
-    const [caes, gatos, vacina] = await Promise.all([
-      ibgeSerieBR(4930, 5180),
-      ibgeSerieBR(4931, 5188),
-      ibgeSerieBR(4932, 5200),
-    ]);
-    const ano = caes.ano;
-    cards.innerHTML = [
-      { icone: "🐶", valor: obsFmtPct(caes.valor), label: `dos lares brasileiros têm pelo menos um <strong>cachorro</strong>` },
-      { icone: "🐱", valor: obsFmtPct(gatos.valor), label: `têm pelo menos um <strong>gato</strong>` },
-      { icone: "💉", valor: obsFmtPct(vacina.valor), label: `vacinaram todos os seus cães e gatos contra a <strong>raiva</strong> no último ano` },
-    ].map((c) => `
-      <div class="obs-stat-card obs-stat-card--live">
-        <span class="obs-stat-icon">${c.icone}</span>
-        <div class="obs-stat-value">${c.valor}</div>
-        <p>${c.label}</p>
-        <span class="obs-fonte">📌 IBGE · PNS ${obsEsc(ano)} (ao vivo)</span>
-      </div>`).join("");
-
-    if (selo) { selo.textContent = `🛰️ conectado à API do IBGE · última edição: PNS ${ano}`; selo.classList.add("ok"); }
-
-    // Sentinela: se um dia a PNS 2026 entrar na API, avisa que há dado novo.
-    if (banner && Number(ano) < 2026) {
-      banner.classList.remove("hidden");
-      banner.innerHTML = `ℹ️ A <strong>PNS 2026</strong> está em coleta pelo IBGE (140 mil domicílios). Assim que os resultados entrarem na API, estes números se atualizam sozinhos. Hoje, a edição mais recente disponível é a de ${ano}.`;
-    }
-
-    // Mapa por UF (mesma variável de cachorro).
-    obsCarregaMapaUF();
-  } catch (err) {
-    if (selo) { selo.textContent = "⚠️ não foi possível falar com a API do IBGE agora — mostrando a última edição conhecida (PNS 2019)."; selo.classList.add("erro"); }
-    // Fallback com os últimos valores oficiais conhecidos.
-    cards.innerHTML = [
-      { icone: "🐶", valor: "46,1%", label: "dos lares brasileiros têm pelo menos um <strong>cachorro</strong>" },
-      { icone: "🐱", valor: "19,3%", label: "têm pelo menos um <strong>gato</strong>" },
-      { icone: "💉", valor: "72,0%", label: "vacinaram todos os seus cães e gatos contra a <strong>raiva</strong> no último ano" },
-    ].map((c) => `
-      <div class="obs-stat-card">
-        <span class="obs-stat-icon">${c.icone}</span>
-        <div class="obs-stat-value">${c.valor}</div>
-        <p>${c.label}</p>
-        <span class="obs-fonte">📌 IBGE · PNS 2019</span>
-      </div>`).join("");
-    obsRenderMapaFallback();
-  }
-}
-
-async function obsCarregaMapaUF() {
+async function obsCarregaMapa() {
   const mapEl = document.getElementById("obs-map");
   if (!mapEl) return;
   try {
@@ -255,35 +214,18 @@ async function obsCarregaMapaUF() {
     const porUF = {};
     let ano = "";
     data[0].resultados[0].series.forEach((s) => {
-      const sigla = s.localidade.id ? ufSiglaPorId(s.localidade.id) : null;
-      const nome = s.localidade.nome;
+      const uf = UF_POR_ID[String(s.localidade.id)];
       const anoK = Object.keys(s.serie)[0];
       ano = anoK;
-      const val = Number(s.serie[anoK]);
-      const uf = sigla || nomeParaUF(nome);
-      if (uf) porUF[uf] = val;
+      if (uf) porUF[uf] = Number(s.serie[anoK]);
     });
     obsRenderMapa(porUF, ano);
   } catch (err) {
-    obsRenderMapaFallback();
+    obsRenderMapa(OBS_PNS2019, "2019");
   }
 }
 
-// Mapeia código IBGE de UF → sigla.
-const UF_POR_ID = {
-  "11": "RO", "12": "AC", "13": "AM", "14": "RR", "15": "PA", "16": "AP", "17": "TO",
-  "21": "MA", "22": "PI", "23": "CE", "24": "RN", "25": "PB", "26": "PE", "27": "AL", "28": "SE", "29": "BA",
-  "31": "MG", "32": "ES", "33": "RJ", "35": "SP",
-  "41": "PR", "42": "SC", "43": "RS",
-  "50": "MS", "51": "MT", "52": "GO", "53": "DF",
-};
-function ufSiglaPorId(id) { return UF_POR_ID[String(id)] || null; }
-function nomeParaUF(nome) {
-  const e = Object.entries(OBS.nomesUF).find(([, n]) => n === nome);
-  return e ? e[0] : null;
-}
-
-function obsHeatClasse(pct) {
+function obsHeat(pct) {
   if (pct >= 56) return "heat-4";
   if (pct >= 48) return "heat-3";
   if (pct >= 40) return "heat-2";
@@ -292,18 +234,34 @@ function obsHeatClasse(pct) {
 
 function obsRenderMapa(porUF, ano) {
   const mapEl = document.getElementById("obs-map");
-  const detail = document.getElementById("obs-uf-detail");
+  const list = document.getElementById("obs-uf-list");
+  const fonteEl = document.getElementById("obs-uf-fonte");
   if (!mapEl) return;
+  if (fonteEl) fonteEl.textContent = `📌 IBGE · PNS ${ano || "2019"}`;
 
+  // Mapa
   mapEl.innerHTML = Object.keys(OBS.mapaUF).map((uf) => {
     const [col, row] = OBS.mapaUF[uf];
     const pct = porUF[uf];
-    const heat = pct != null ? obsHeatClasse(pct) : "heat-1";
-    return `<button type="button" class="obs-map-tile ${heat}" data-uf="${uf}"
+    return `<button type="button" class="obs-map-tile ${pct != null ? obsHeat(pct) : "heat-1"}" data-uf="${uf}"
       style="grid-column:${col};grid-row:${row};"
       aria-label="${OBS.nomesUF[uf]}: ${pct != null ? obsFmtPct(pct) + " dos lares com cachorro" : "sem dado"}">${uf}</button>`;
   }).join("");
 
+  // Lista rolável (ranking)
+  const ranked = Object.entries(porUF).sort((a, b) => b[1] - a[1]);
+  const maxPct = ranked.length ? ranked[0][1] : 100;
+  if (list) {
+    list.innerHTML = ranked.map(([uf, pct], i) => `
+      <li class="obs-uf-item" data-uf="${uf}">
+        <span class="obs-uf-rank">${i + 1}º</span>
+        <span class="obs-uf-nome">${obsEsc(OBS.nomesUF[uf])}</span>
+        <span class="obs-uf-bar"><span class="obs-uf-bar-fill" style="width:${Math.round((pct / maxPct) * 100)}%"></span></span>
+        <span class="obs-uf-pct">${obsFmtPct(pct)}</span>
+      </li>`).join("");
+  }
+
+  // Tooltip
   let tip = document.querySelector(".obs-tooltip");
   if (!tip) { tip = document.createElement("div"); tip.className = "obs-tooltip"; document.body.appendChild(tip); }
   mapEl.onmousemove = (e) => {
@@ -315,91 +273,52 @@ function obsRenderMapa(porUF, ano) {
     tip.classList.add("visible");
   };
   mapEl.onmouseleave = () => tip.classList.remove("visible");
+
+  const selecionar = (uf, rolarLista) => {
+    mapEl.querySelectorAll(".obs-map-tile").forEach((t) => t.classList.toggle("selected", t.dataset.uf === uf));
+    if (list) {
+      const items = list.querySelectorAll(".obs-uf-item");
+      items.forEach((it) => it.classList.toggle("active", it.dataset.uf === uf));
+      if (rolarLista) {
+        const item = list.querySelector(`.obs-uf-item[data-uf="${uf}"]`);
+        if (item) {
+          // rola DENTRO da lista, sem mexer na página
+          list.scrollTo({ top: item.offsetTop - list.clientHeight / 2 + item.offsetHeight / 2, behavior: OBS_REDUCED ? "auto" : "smooth" });
+        }
+      }
+    }
+  };
+
   mapEl.onclick = (e) => {
     const tile = e.target.closest(".obs-map-tile");
-    if (!tile || !detail) return;
-    mapEl.querySelectorAll(".obs-map-tile").forEach((t) => t.classList.remove("selected"));
-    tile.classList.add("selected");
-    obsRenderUfDetail(detail, tile.dataset.uf, porUF, ano);
+    if (tile) selecionar(tile.dataset.uf, true);
   };
-
-  if (detail) {
-    // Começa destacando o campeão.
-    let top = null, topPct = -1;
-    Object.entries(porUF).forEach(([uf, pct]) => { if (pct > topPct) { topPct = pct; top = uf; } });
-    top = top || "SP";
-    const tile = mapEl.querySelector(`[data-uf="${top}"]`);
-    if (tile) tile.classList.add("selected");
-    obsRenderUfDetail(detail, top, porUF, ano);
+  if (list) {
+    list.onclick = (e) => {
+      const item = e.target.closest(".obs-uf-item");
+      if (item) selecionar(item.dataset.uf, false);
+    };
   }
-}
 
-function obsRenderUfDetail(el, uf, porUF, ano) {
-  const pct = porUF[uf];
-  const ranked = Object.entries(porUF).sort((a, b) => b[1] - a[1]);
-  const pos = ranked.findIndex(([u]) => u === uf) + 1;
-  el.innerHTML = `
-    <h3>📍 ${OBS.nomesUF[uf]}</h3>
-    <div class="obs-regiao-share">${pct != null ? obsFmtPct(pct) : "—"}</div>
-    <p class="obs-regiao-desc">dos lares em ${OBS.nomesUF[uf]} têm pelo menos um cachorro${pos ? ` — <strong>${pos}º</strong> entre as 27 unidades federativas` : ""}.</p>
-    <span class="obs-fonte">📌 IBGE · PNS ${obsEsc(ano || "2019")}</span>`;
-}
-
-function obsRenderMapaFallback() {
-  // Percentuais oficiais PNS 2019 por UF (fallback quando a API não responde).
-  const pns2019 = {
-    RO: 64.8, MS: 61.5, MT: 61.2, AC: 60.0, RR: 58.9, PR: 58.7, TO: 57.9, GO: 56.4,
-    SC: 55.8, RS: 54.6, MG: 52.0, ES: 51.2, AP: 50.8, PA: 49.6, AM: 48.7, DF: 47.9,
-    SP: 45.1, RJ: 41.9, MA: 41.0, BA: 39.5, CE: 38.8, PI: 38.2, RN: 37.4, PB: 36.1,
-    SE: 34.7, PE: 34.2, AL: 34.0,
-  };
-  obsRenderMapa(pns2019, "2019");
+  // Começa destacando o campeão.
+  if (ranked.length) selecionar(ranked[0][0], false);
 }
 
 /* =====================================================================
-   Querido Diário ao vivo (atos municipais da causa animal)
-   ===================================================================== */
-
-async function obsCarregaQueridoDiario() {
-  const num = document.getElementById("obs-qd-num");
-  const selo = document.getElementById("obs-qd-selo");
-  const lista = document.getElementById("obs-qd-lista");
-  if (!num) return;
-  const termo = "castração de animais";
-  try {
-    const url = `https://api.queridodiario.ok.org.br/gazettes?querystring=${encodeURIComponent('"' + termo + '"')}&size=5&sort_by=descending_date`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error("QD " + resp.status);
-    const data = await resp.json();
-    num.textContent = obsFmtNum(data.total_gazettes || 0);
-    if (selo) { selo.textContent = "🟢 consultado ao vivo no Querido Diário"; selo.classList.add("ok"); }
-    const items = (data.gazettes || []).slice(0, 4);
-    if (lista && items.length) {
-      lista.innerHTML = items.map((g) => {
-        const url = obsSafeUrl(g.url || g.txt_url);
-        const data = g.date ? g.date.split("-").reverse().join("/") : "";
-        const local = `${obsEsc(g.territory_name || "")}${g.state_code ? " · " + obsEsc(g.state_code) : ""}`;
-        return `<a class="obs-qd-item" ${url ? `href="${obsEsc(url)}" target="_blank" rel="noopener"` : ""}>
-          <span class="obs-qd-item-local">📍 ${local}</span>
-          <span class="obs-qd-item-data">${obsEsc(data)}</span>
-        </a>`;
-      }).join("");
-    }
-  } catch (err) {
-    num.textContent = "1.000+";
-    if (selo) { selo.textContent = "⚠️ Querido Diário indisponível agora — mostrando o último total conhecido."; selo.classList.add("erro"); }
-  }
-}
-
-/* =====================================================================
-   Componentes estáticos
+   Pictograma vivo (retrato do abandono)
    ===================================================================== */
 
 function obsRenderPictograma(el) {
   const abandonados = 25; // 1 em cada 4
   el.innerHTML =
     `<div class="obs-picto" role="img" aria-label="De cada 100 cães e gatos no Brasil, cerca de 25 estão em situação de abandono.">` +
-    Array.from({ length: 100 }, (_, i) => `<span class="obs-picto-paw ${i < abandonados ? "abandonada" : ""}">🐾</span>`).join("") +
+    Array.from({ length: 100 }, (_, i) => {
+      const ab = i < abandonados;
+      // Onda diagonal na entrada + flutuação contínua só nos abandonados.
+      const delay = ((i % 10) + Math.floor(i / 10)) * 45;
+      const floatDelay = (i * 137) % 2000;
+      return `<span class="obs-picto-paw ${ab ? "abandonada" : ""}" style="--in:${delay}ms;--fl:${floatDelay}ms">${OBS_PAW}</span>`;
+    }).join("") +
     `</div>
     <p class="obs-picto-legenda">
       <span><strong>1 em cada 4</strong> cães e gatos do Brasil está em situação de abandono — cerca de <strong>30,2 milhões</strong> de animais.</span>
@@ -407,7 +326,22 @@ function obsRenderPictograma(el) {
       <span class="obs-picto-key familia">Com família</span>
     </p>
     <span class="obs-fonte">📌 Mars Petcare — State of Pet Homelessness Index (coleta 2022–23, divulgado 2024); corrobora a estimativa de 30 mi da OMS</span>`;
+
+  const picto = el.querySelector(".obs-picto");
+  if (OBS_REDUCED) { picto.classList.add("revelado"); return; }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      io.unobserve(entry.target);
+      entry.target.classList.add("revelado");
+    });
+  }, { threshold: 0.25 });
+  io.observe(picto);
 }
+
+/* =====================================================================
+   Componentes estáticos
+   ===================================================================== */
 
 function obsRenderFatos(el) {
   el.innerHTML = OBS.fatosAdocao.map((f) => `
@@ -440,7 +374,7 @@ function obsRenderSplit(el) {
       <div class="obs-split-b" style="width:${100 - pctCaes}%"><span>🐱 ${String(gatos).replace(".", ",")} mi</span></div>
     </div>
     <div class="obs-split-caption"><span>Cães</span><span>Gatos</span></div>
-    <span class="obs-fonte">📌 ${obsEsc(fonte)} · o Brasil tem a 3ª maior população pet do mundo (160,9 mi, ref. 2023)</span>`;
+    <span class="obs-fonte">📌 ${obsEsc(fonte)} · o Brasil tem 160,9 mi de pets (ref. 2023), a 3ª maior população do mundo</span>`;
 }
 
 function obsRenderLeis(el) {
@@ -479,7 +413,6 @@ function obsRenderReencontros(pets) {
   const adotados = (pets || [])
     .filter((p) => p.status === "adotado")
     .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-
   if (!adotados.length) {
     wrap.innerHTML = `<p class="obs-vazio">Os primeiros reencontros do Patinhas ainda vão acontecer — e podem começar com você. 💚</p>`;
     return;
@@ -502,25 +435,17 @@ function obsRenderReencontros(pets) {
   }).join("");
 }
 
-/**
- * Bolhas líquidas no CTA: fotos dos pets flutuando como um líquido, com leve
- * repulsão do mouse. É decorativo (aria-hidden) — o CTA de verdade são os
- * botões. Clicar numa bolha leva ao mural.
- */
 function obsRenderBolhas(pets) {
   const host = document.getElementById("obs-bolhas");
   if (!host) return;
-
-  // Fontes das bolhas: fotos reais; se faltarem, completa com emojis fofos.
   const comFoto = (pets || []).filter((p) => obsSafeUrl(p.photo_url));
-  const fontes = [];
-  comFoto.forEach((p) => fontes.push({ foto: obsSafeUrl(p.photo_url), id: p.id, sp: p.species }));
+  const fontes = comFoto.map((p) => ({ foto: obsSafeUrl(p.photo_url), id: p.id }));
   const emojis = ["🐶", "🐱", "🐾", "🦴", "🐕", "🐈"];
-  while (fontes.length < 12) fontes.push({ emoji: emojis[fontes.length % emojis.length], sp: fontes.length % 2 ? "gato" : "cachorro" });
+  while (fontes.length < 12) fontes.push({ emoji: emojis[fontes.length % emojis.length] });
   const usadas = fontes.slice(0, 14);
 
   host.innerHTML = usadas.map((s) => {
-    const r = 24 + Math.round(Math.random() * 22); // raio 24–46
+    const r = 24 + Math.round(Math.random() * 22);
     const inner = s.foto
       ? `<img src="${obsEsc(s.foto)}" alt="" loading="lazy" decoding="async" />`
       : `<span class="obs-bolha-emoji">${s.emoji}</span>`;
@@ -535,59 +460,32 @@ function obsFisicaBolhas(host) {
   const bolhas = [...host.querySelectorAll(".obs-bolha")];
   const rect0 = host.getBoundingClientRect();
   let W = rect0.width, H = rect0.height || 320;
-
   const state = bolhas.map((el) => {
     const r = Number(el.dataset.r);
-    return {
-      el, r,
-      x: Math.random() * Math.max(1, W - 2 * r),
-      y: Math.random() * Math.max(1, H - 2 * r),
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-    };
+    return { el, r, x: Math.random() * Math.max(1, W - 2 * r), y: Math.random() * Math.max(1, H - 2 * r), vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5 };
   });
-
   const place = (b) => { b.el.style.transform = `translate(${b.x}px, ${b.y}px)`; };
   state.forEach(place);
-
-  if (OBS_REDUCED) return; // estático: já posicionadas espalhadas
+  if (OBS_REDUCED) return;
 
   let mouse = null;
-  host.addEventListener("pointermove", (e) => {
-    const r = host.getBoundingClientRect();
-    mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
-  });
+  host.addEventListener("pointermove", (e) => { const r = host.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
   host.addEventListener("pointerleave", () => { mouse = null; });
-
-  const ro = new ResizeObserver(() => {
-    const r = host.getBoundingClientRect();
-    W = r.width; H = r.height || H;
-  });
+  const ro = new ResizeObserver(() => { const r = host.getBoundingClientRect(); W = r.width; H = r.height || H; });
   ro.observe(host);
 
-  let raf = 0, running = true;
+  let raf = 0, running = false;
   const step = () => {
     if (!running) return;
     state.forEach((b) => {
-      // deriva suave
-      b.vx += (Math.random() - 0.5) * 0.03;
-      b.vy += (Math.random() - 0.5) * 0.03;
-      // repulsão gentil do mouse
+      b.vx += (Math.random() - 0.5) * 0.03; b.vy += (Math.random() - 0.5) * 0.03;
       if (mouse) {
-        const cx = b.x + b.r, cy = b.y + b.r;
-        const dx = cx - mouse.x, dy = cy - mouse.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < 120 * 120 && d2 > 1) {
-          const d = Math.sqrt(d2);
-          const f = (120 - d) / 120 * 0.6;
-          b.vx += (dx / d) * f; b.vy += (dy / d) * f;
-        }
+        const cx = b.x + b.r, cy = b.y + b.r, dx = cx - mouse.x, dy = cy - mouse.y, d2 = dx * dx + dy * dy;
+        if (d2 < 120 * 120 && d2 > 1) { const d = Math.sqrt(d2), f = (120 - d) / 120 * 0.6; b.vx += (dx / d) * f; b.vy += (dy / d) * f; }
       }
-      // limita velocidade (sensação de líquido)
       const sp = Math.hypot(b.vx, b.vy), max = 0.9;
       if (sp > max) { b.vx = b.vx / sp * max; b.vy = b.vy / sp * max; }
       b.x += b.vx; b.y += b.vy;
-      // paredes
       if (b.x < 0) { b.x = 0; b.vx = Math.abs(b.vx); }
       if (b.x > W - 2 * b.r) { b.x = W - 2 * b.r; b.vx = -Math.abs(b.vx); }
       if (b.y < 0) { b.y = 0; b.vy = Math.abs(b.vy); }
@@ -596,8 +494,6 @@ function obsFisicaBolhas(host) {
     });
     raf = requestAnimationFrame(step);
   };
-
-  // Só anima quando a seção está visível (economia).
   const vis = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting && !raf) { running = true; raf = requestAnimationFrame(step); }
@@ -612,7 +508,7 @@ function obsFisicaBolhas(host) {
    ===================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  obsCountUp();
+  obsRenderCarrossel();
 
   const picto = document.getElementById("obs-pictograma");
   if (picto) obsRenderPictograma(picto);
@@ -625,8 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const fontes = document.getElementById("obs-fontes-lista");
   if (fontes) obsRenderFontes(fontes);
 
-  obsCarregaIBGE();
-  obsCarregaQueridoDiario();
+  obsCarregaMapa();
 
   obsFetchPets().then((pets) => {
     obsRenderReencontros(pets);

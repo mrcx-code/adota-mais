@@ -787,35 +787,50 @@ button { font-family: inherit; cursor: pointer; }
 .obs-split-bar > div { transition: flex-grow 0.3s ease, filter 0.2s ease; cursor: default; }
 .obs-split-bar > div:hover { filter: brightness(1.12); }
 
-/* ---------- Pictograma de 100 patinhas ---------- */
+/* ---------- Pictograma vivo (retrato do abandono) ---------- */
 
+.obs-picto-panel { position: relative; }
 .obs-picto {
   display: grid;
   grid-template-columns: repeat(20, 1fr);
-  gap: clamp(4px, 0.6vw, 8px);
+  gap: clamp(3px, 0.6vw, 7px);
   margin-bottom: 16px;
 }
-@media (max-width: 640px) {
-  .obs-picto { grid-template-columns: repeat(10, 1fr); }
-}
+@media (max-width: 640px) { .obs-picto { grid-template-columns: repeat(10, 1fr); } }
+
 .obs-picto-paw {
-  font-size: clamp(14px, 2vw, 22px);
-  line-height: 1;
-  text-align: center;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  aspect-ratio: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
   cursor: default;
+  transition: filter 0.2s ease;
 }
-/* As "com família" ficam apagadas; as 26 abandonadas já nascem em destaque
-   (âmbar), pra leitura "26 em 100" ser imediata, sem depender de hover. */
-.obs-picto-paw:not(.abandonada) {
-  opacity: 0.28;
-  filter: grayscale(1);
+.obs-picto-paw svg { width: 100%; height: 100%; display: block; }
+.obs-picto-paw.abandonada { color: #C97A2C; }
+.obs-picto-paw:not(.abandonada) { color: #B7BFA9; }
+.obs-picto-paw:hover { filter: drop-shadow(0 2px 5px rgba(201, 138, 44, 0.6)); }
+
+/* Antes de revelar, tudo escondido; ao entrar na tela, onda diagonal. */
+.obs-picto.revelado .obs-picto-paw:not(.abandonada) {
+  animation: obs-paw-in-fam 0.5s ease var(--in) both;
 }
-.obs-picto-paw.abandonada {
-  filter: sepia(1) saturate(4.5) hue-rotate(-18deg) brightness(0.95);
+.obs-picto.revelado .obs-picto-paw.abandonada {
+  animation: obs-paw-in-ab 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) var(--in) both,
+             obs-paw-float 3.2s ease-in-out calc(var(--in) + 1000ms) infinite;
 }
-/* Interação leve: a patinha apontada cresce. */
-.obs-picto-paw:hover { transform: scale(1.6); opacity: 1; filter: none; }
+@keyframes obs-paw-in-fam { from { opacity: 0; transform: scale(0.4); } to { opacity: 0.32; transform: scale(1); } }
+@keyframes obs-paw-in-ab {
+  0% { opacity: 0; transform: scale(0.2) translateY(10px); }
+  70% { transform: scale(1.18); }
+  100% { opacity: 1; transform: none; }
+}
+/* Depois de reveladas, as abandonadas respiram — parecem inquietas, vivas. */
+@keyframes obs-paw-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-5deg); }
+}
 
 .obs-picto-legenda {
   display: flex;
@@ -828,127 +843,140 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--color-text-muted);
 }
 .obs-picto-legenda strong { color: var(--color-text); }
-/* Chip-legenda com a bolinha da cor correspondente. */
-.obs-picto-key {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
-}
-.obs-picto-key::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
+.obs-picto-key { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
+.obs-picto-key::before { content: ""; width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 .obs-picto-key.abandono::before { background: #C97A2C; }
-.obs-picto-key.familia::before { background: var(--color-surface-muted); border: 1px solid var(--color-border); }
+.obs-picto-key.familia::before { background: #B7BFA9; }
 
 /* =========================================================
-   Componentes — dados públicos (ao vivo + estáticos)
+   Componentes — dados públicos
    ========================================================= */
 
-/* ---------- Selo "ao vivo" do hero ---------- */
+/* ---------- Hero: carrossel de números ---------- */
 
-.obs-live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 16px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: rgba(244, 241, 230, 0.1);
-  border: 1px solid rgba(244, 241, 230, 0.25);
-  font-size: 12px;
-  font-weight: 700;
-  color: #F4F1E6;
-  letter-spacing: 0.02em;
-}
-.obs-live-paw { font-size: 13px; line-height: 1; animation: obs-pulso 1.8s ease-in-out infinite; }
-@keyframes obs-pulso {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  15% { transform: scale(1.3); opacity: 1; }
-  30% { transform: scale(1); }
-}
-
-/* ---------- Contadores-herói (4 números) ---------- */
-
-.obs-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+.obs-carousel { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px; }
+.obs-carousel-track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   gap: 14px;
-  margin: 26px 0 30px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 2px;
+  padding: 4px 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
-.obs-hero-stat {
+.obs-carousel-track::-webkit-scrollbar { display: none; }
+
+.obs-carousel-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 241, 230, 0.35);
+  background: rgba(244, 241, 230, 0.1);
+  color: #F4F1E6;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+.obs-carousel-arrow:hover { background: rgba(244, 241, 230, 0.22); }
+.obs-carousel-arrow:disabled { opacity: 0.3; cursor: default; }
+
+.obs-num-card {
+  position: relative;
+  flex: 0 0 clamp(230px, 60vw, 268px);
+  scroll-snap-align: start;
   background: rgba(244, 241, 230, 0.08);
   border: 1px solid rgba(244, 241, 230, 0.18);
   border-radius: var(--radius-md);
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  padding: 22px 22px 20px;
+  overflow: hidden;
 }
-.obs-hero-stat-value {
+.obs-num-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; }
+.obs-num-card.cor-brand::before { background: var(--color-brand-accent); }
+.obs-num-card.cor-amber::before { background: #E7C889; }
+.obs-num-card.cor-danger::before { background: #D98A8D; }
+.obs-num-value { display: flex; align-items: baseline; gap: 3px; }
+.obs-num-n {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(30px, 3.4vw, 42px);
+  font-size: clamp(38px, 6vw, 50px);
   line-height: 1;
   color: #FCFAF4;
   font-variant-numeric: tabular-nums;
+}
+.obs-num-u { font-family: var(--font-display); font-weight: 800; font-size: 0.5em; color: rgba(244, 241, 230, 0.7); }
+.obs-num-label { margin: 10px 0 12px; font-size: 13.5px; line-height: 1.5; color: rgba(244, 241, 230, 0.82); }
+.obs-num-label strong { color: #E7C889; font-weight: 700; }
+.obs-num-fonte { font-size: 10.5px; font-weight: 600; color: rgba(244, 241, 230, 0.5); }
+
+.obs-carousel-dots { display: flex; justify-content: center; gap: 8px; margin: 4px 0 0; }
+.obs-dot { width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%; background: rgba(244, 241, 230, 0.3); cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease; }
+.obs-dot.on { background: var(--color-brand-accent); transform: scale(1.35); }
+
+/* ---------- Mapa: lista rolável por estado ---------- */
+
+.obs-uf-list-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 8px 10px 14px;
+  display: flex;
+  flex-direction: column;
+}
+.obs-uf-list-head {
   display: flex;
   align-items: baseline;
-  gap: 3px;
-}
-.obs-hero-stat-value .obs-u {
-  font-size: 0.5em;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--font-display);
   font-weight: 700;
-  color: rgba(244, 241, 230, 0.72);
+  font-size: 14px;
+  margin: 0 6px 10px 0;
 }
-.obs-hero-stat-label { font-size: 13px; font-weight: 600; color: rgba(244, 241, 230, 0.82); line-height: 1.45; }
-.obs-hero-stat-label strong { color: #E7C889; }
-.obs-hero-stat-fonte { margin-top: auto; font-size: 10.5px; font-weight: 600; color: rgba(244, 241, 230, 0.55); padding-top: 6px; }
-
-/* ---------- Selo de API ao vivo ---------- */
-
-.obs-api-selo {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+.obs-uf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 0 0;
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
 }
-.obs-api-selo.ok { background: #E7F0E2; border-color: var(--color-brand-accent); color: var(--color-brand-dark); }
-.obs-api-selo.erro { background: #FaEEDb; border-color: #E7C889; color: #8a6a1e; }
-
-.obs-pns-banner {
-  background: #FBF3E1;
-  border: 1px solid #E7C889;
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #6b5417;
-}
-.obs-pns-banner.hidden { display: none; }
-
-/* ---------- Grade de cards de estatística ---------- */
-
-.obs-stat-grid {
+.obs-uf-item {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: 30px 92px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.obs-uf-item:hover { background: var(--color-surface-muted); }
+.obs-uf-item.active { background: var(--color-brand-soft); box-shadow: inset 3px 0 0 var(--color-brand); }
+.obs-uf-rank { font-family: var(--font-display); font-weight: 800; font-size: 12px; color: var(--color-text-soft); }
+.obs-uf-nome { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.obs-uf-bar { height: 8px; border-radius: 999px; background: var(--color-surface-muted); overflow: hidden; }
+.obs-uf-bar-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--color-brand-accent), var(--color-brand)); }
+.obs-uf-item.active .obs-uf-bar-fill { background: linear-gradient(90deg, #E7C889, var(--color-brand-dark)); }
+.obs-uf-pct { font-family: var(--font-display); font-weight: 700; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Cards de estatística (abandono + governo) ---------- */
+
+.obs-stat-grid, .obs-gov-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 14px;
 }
+.obs-gov-stats { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .obs-stat-card {
-  position: relative;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -956,25 +984,11 @@ button { font-family: inherit; cursor: pointer; }
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .obs-stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); }
-.obs-stat-card--live { border-color: var(--color-brand-accent); box-shadow: 0 0 0 1px rgba(159, 186, 153, 0.4); }
-.obs-stat-card--live::after {
-  content: "AO VIVO";
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--color-brand-dark);
-  background: #E7F0E2;
-  border-radius: 999px;
-  padding: 2px 7px;
-}
 .obs-stat-icon { font-size: 26px; display: block; margin-bottom: 8px; }
 .obs-stat-value {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(28px, 3.4vw, 38px);
+  font-size: clamp(26px, 3.4vw, 36px);
   line-height: 1.05;
   color: var(--color-brand-dark);
   font-variant-numeric: tabular-nums;
@@ -982,113 +996,48 @@ button { font-family: inherit; cursor: pointer; }
 .obs-stat-card p { margin: 6px 0 10px; font-size: 13.5px; line-height: 1.5; color: var(--color-text-muted); }
 .obs-stat-card p strong { color: var(--color-text); }
 
-.obs-panel-sub { margin: -6px 0 16px; font-size: 13.5px; color: var(--color-text-muted); }
+/* ---------- Denúncia (conscientização) ---------- */
 
-/* ---------- Querido Diário ---------- */
-
-.obs-qd-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-}
-@media (max-width: 820px) { .obs-qd-grid { grid-template-columns: 1fr; } }
-
-.obs-qd-num {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(44px, 8vw, 72px);
-  line-height: 1;
-  color: var(--color-brand-dark);
-  font-variant-numeric: tabular-nums;
-}
-.obs-qd-label { margin: 4px 0 12px; font-size: 15px; color: var(--color-text-muted); }
-.obs-qd-lista { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 14px; }
-.obs-qd-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  text-decoration: none;
-  color: var(--color-text);
-  font-size: 12.5px;
-  transition: background-color 0.15s ease;
-}
-.obs-qd-item:hover { background: var(--color-surface-muted); }
-.obs-qd-item-local { font-weight: 600; }
-.obs-qd-item-data { color: var(--color-text-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-.obs-qd-side { display: flex; flex-direction: column; gap: 14px; }
-
-/* ---------- Mural de reencontros (mantido) ---------- */
-
-.obs-reencontros {
+.obs-denuncia {
   display: flex;
   gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 4px 2px 10px;
-  scrollbar-width: thin;
+  align-items: flex-start;
+  margin-top: 20px;
+  background: linear-gradient(150deg, #FBEDED, #F6E0E1);
+  border: 1px solid #EAC7C8;
+  border-radius: var(--radius-lg);
+  padding: 22px clamp(18px, 3vw, 28px);
 }
-.obs-reencontro {
-  flex: 0 0 210px;
-  scroll-snap-align: start;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
+.obs-denuncia-icon { font-size: 34px; line-height: 1; flex-shrink: 0; }
+.obs-denuncia-body strong { font-family: var(--font-display); font-size: 18px; color: #8a2f33; }
+.obs-denuncia-body p { margin: 4px 0 12px; font-size: 14px; color: #6b4c4d; line-height: 1.55; }
+.obs-denuncia-canais { display: flex; flex-wrap: wrap; gap: 8px; }
+.obs-denuncia-canal {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #EAC7C8;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  color: #6b4c4d;
 }
-.obs-reencontro-foto {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  background: var(--color-brand-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-}
+.obs-denuncia-canal strong { color: #8a2f33; font-size: inherit; }
+
+/* ---------- Mural de reencontros ---------- */
+
+.obs-reencontros { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; scrollbar-width: thin; }
+.obs-reencontro { flex: 0 0 210px; scroll-snap-align: start; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); }
+.obs-reencontro-foto { position: relative; aspect-ratio: 4 / 3; background: var(--color-brand-soft); display: flex; align-items: center; justify-content: center; font-size: 40px; }
 .obs-reencontro-foto img { width: 100%; height: 100%; object-fit: cover; }
-.obs-carimbo {
-  position: absolute;
-  top: 10px;
-  right: -6px;
-  background: #B96468;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  padding: 5px 14px;
-  border-radius: 6px;
-  transform: rotate(-8deg);
-  box-shadow: 0 3px 8px rgba(185, 100, 104, 0.4);
-}
+.obs-carimbo { position: absolute; top: 10px; right: -6px; background: #B96468; color: #fff; font-family: var(--font-display); font-weight: 800; font-size: 12px; letter-spacing: 0.14em; padding: 5px 14px; border-radius: 6px; transform: rotate(-8deg); box-shadow: 0 3px 8px rgba(185, 100, 104, 0.4); }
 .obs-reencontro-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 3px; }
 .obs-reencontro-body strong { font-size: 15px; color: var(--color-text); }
 .obs-reencontro-espera { font-size: 12.5px; font-weight: 600; color: var(--color-brand-dark); }
-
 .obs-vazio { margin: 4px 0; font-size: 14px; color: var(--color-text-muted); }
 
 /* ---------- CTA final com bolhas líquidas ---------- */
 
-.obs-cta--bolhas {
-  position: relative;
-  overflow: hidden;
-  min-height: 360px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.obs-bolhas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
+.obs-cta--bolhas { position: relative; overflow: hidden; min-height: 360px; display: flex; align-items: center; justify-content: center; }
+.obs-bolhas { position: absolute; inset: 0; z-index: 0; }
 .obs-bolha {
   position: absolute;
   top: 0;
@@ -1113,21 +1062,11 @@ button { font-family: inherit; cursor: pointer; }
 .obs-bolha-emoji { font-size: calc(var(--r) * 0.95); line-height: 1; }
 .obs-cta-conteudo { position: relative; z-index: 1; pointer-events: none; }
 .obs-cta-conteudo .btn { pointer-events: auto; }
-/* Legibilidade do texto sobre as bolhas. */
-.obs-cta--bolhas h2, .obs-cta--bolhas p {
-  text-shadow: 0 1px 12px var(--color-brand-soft), 0 1px 3px var(--color-brand-soft);
-}
+.obs-cta--bolhas h2, .obs-cta--bolhas p { text-shadow: 0 1px 12px var(--color-brand-soft), 0 1px 3px var(--color-brand-soft); }
 
 /* ---------- Lista de fontes ---------- */
 
-.obs-fontes-lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.obs-fontes-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .obs-fontes-lista li { font-size: 13.5px; line-height: 1.5; }
 .obs-fontes-lista a { color: var(--color-brand-dark); text-decoration: none; font-weight: 600; }
 .obs-fontes-lista a:hover { text-decoration: underline; }
@@ -1135,7 +1074,8 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Movimento reduzido ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .obs-live-paw { animation: none !important; }
+  .obs-picto .obs-picto-paw { animation: none !important; opacity: 1; }
+  .obs-picto .obs-picto-paw:not(.abandonada) { opacity: 0.32; }
 }
 
 /* =========================================================
@@ -1176,11 +1116,13 @@ button { font-family: inherit; cursor: pointer; }
   .obs-cta-actions .btn { width: 100%; }
 
   /* Dados públicos no mobile */
-  .obs-hero-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .obs-hero-stat { padding: 14px 15px; }
-  .obs-hero-stat-value { font-size: clamp(26px, 8vw, 38px); }
+  .obs-carousel-arrow { display: none; }
+  .obs-carousel-track { scroll-padding-left: 0; }
+  .obs-num-card { flex-basis: 82vw; }
   .obs-stat-value { font-size: 28px; }
-  .obs-qd-num { font-size: 56px; }
+  .obs-uf-list { max-height: 300px; }
+  .obs-uf-item { grid-template-columns: 26px 78px 1fr 44px; gap: 8px; }
+  .obs-denuncia { flex-direction: column; gap: 12px; }
   .obs-reencontro { flex-basis: 180px; }
   .obs-acervo summary { padding: 15px 16px; font-size: 14.5px; }
   .obs-cta--bolhas { min-height: 420px; }

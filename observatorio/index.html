@@ -65,64 +65,38 @@
   </header>
 
   <main class="site-main">
-    <nav class="obs-breadcrumbs" aria-label="Você está em">
-      <a href="../index.html">Patinhas</a> <span class="sep">/</span> <span>Observatório</span>
-    </nav>
 
-    <!-- ============ HERO: os 4 números que resumem o Brasil ============ -->
+    <!-- ============ HERO: carrossel de números ============ -->
     <section class="obs-hero">
       <span class="obs-eyebrow">📡 Observatório Patinhas</span>
-      <div class="obs-live-badge"><span class="obs-live-paw" aria-hidden="true">🐾</span> <span>dados públicos verificados · fontes e datas em cada número</span></div>
       <h1>O abandono tem números.<br /><em>A adoção também.</em></h1>
-      <p>Reunimos os levantamentos mais recentes de fontes oficiais e de referência sobre abandono, adoção e pets no Brasil — e consultamos as APIs públicas ao vivo, direto do seu navegador.</p>
+      <p>Reunimos os levantamentos mais recentes de fontes oficiais e de referência sobre abandono, adoção e pets no Brasil — cada número com a sua fonte e data.</p>
 
-      <div class="obs-hero-stats">
-        <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value"><span data-count="30.2" data-decimals="1">30,2</span><span class="obs-u">mi</span></div>
-          <div class="obs-hero-stat-label">de cães e gatos em situação de abandono — <strong>1 em cada 4</strong></div>
-          <span class="obs-hero-stat-fonte">📌 Mars · State of Pet Homelessness (2024)</span>
-        </div>
-        <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value"><span data-count="80">80</span><span class="obs-u">%</span></div>
-          <div class="obs-hero-stat-label">dos pets nos lares brasileiros chegaram por <strong>adoção</strong></div>
-          <span class="obs-hero-stat-fonte">📌 GoldeN / Opinion Box (2025)</span>
-        </div>
-        <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value"><span data-count="1.3" data-decimals="1">1,3</span><span class="obs-u">mi</span></div>
-          <div class="obs-hero-stat-label">de animais ganharam “RG” no 1º ano do SinPatinhas</div>
-          <span class="obs-hero-stat-fonte">📌 MMA / Gov. Federal (abr 2026)</span>
-        </div>
-        <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value"><span data-count="4.8" data-decimals="1">4,8</span><span class="obs-u">mi</span></div>
-          <div class="obs-hero-stat-label">de cães e gatos em condição de vulnerabilidade</div>
-          <span class="obs-hero-stat-fonte">📌 Instituto Pet Brasil (2024)</span>
-        </div>
+      <div class="obs-carousel" aria-label="Números que resumem o Brasil pet">
+        <button type="button" class="obs-carousel-arrow prev" aria-label="Anterior" data-dir="-1">‹</button>
+        <div id="obs-hero-track" class="obs-carousel-track"></div>
+        <button type="button" class="obs-carousel-arrow next" aria-label="Próximo" data-dir="1">›</button>
       </div>
+      <div id="obs-hero-dots" class="obs-carousel-dots" aria-hidden="true"></div>
 
       <div class="obs-hero-actions">
         <a href="../index.html" class="btn btn-primary btn-cta">Quero mudar esses números 🐾</a>
-        <a href="#ibge-vivo" class="btn btn-secondary btn-cta">Explorar os dados ↓</a>
+        <a href="#obs-mapa" class="btn btn-secondary btn-cta">Explorar os dados ↓</a>
       </div>
     </section>
 
-    <!-- ============ S1: IBGE consultado ao vivo ============ -->
-    <section id="ibge-vivo" class="obs-section">
+    <!-- ============ S1: mapa + lista rolável por estado ============ -->
+    <section id="obs-mapa" class="obs-section">
       <div class="obs-section-head">
         <div>
-          <h2>Direto da API do IBGE 🛰️</h2>
-          <p>Estes números são consultados <strong>agora, ao vivo</strong>, na API oficial do IBGE (PNS — Pesquisa Nacional de Saúde).</p>
+          <h2>Onde vivem os cães do Brasil 🗺️</h2>
+          <p>Percentual de lares com pelo menos um cachorro, estado por estado. Toque num estado no mapa — a lista rola até ele.</p>
         </div>
       </div>
-      <div id="obs-ibge-selo" class="obs-api-selo">⏳ consultando a API do IBGE…</div>
-      <div id="obs-pns-banner" class="obs-pns-banner hidden"></div>
-      <div id="obs-ibge-cards" class="obs-stat-grid"></div>
-
-      <div class="obs-panel" style="margin-top:20px;">
-        <h3>🗺️ Lares com cachorro, estado por estado</h3>
-        <p class="obs-panel-sub">Percentual de domicílios com pelo menos um cachorro — dado oficial por UF, também consultado ao vivo. Toque num estado.</p>
+      <div class="obs-panel">
         <div class="obs-map-wrap">
           <div>
-            <div id="obs-map" class="obs-map" role="group" aria-label="Mapa do Brasil: percentual de lares com cachorro por estado"></div>
+            <div id="obs-map" class="obs-map" role="group" aria-label="Mapa do Brasil por estado"></div>
             <div class="obs-map-legend">
               <span class="swatch" style="background:#E3EBDC"></span><span>até 40%</span>
               <span class="swatch" style="background:#C4D6B8"></span><span>40–48%</span>
@@ -130,45 +104,58 @@
               <span class="swatch" style="background:#527353"></span><span>56%+</span>
             </div>
           </div>
-          <div id="obs-uf-detail" class="obs-state-detail"></div>
+          <div class="obs-uf-list-wrap">
+            <div class="obs-uf-list-head">Ranking dos estados <span id="obs-uf-fonte" class="obs-fonte"></span></div>
+            <ol id="obs-uf-list" class="obs-uf-list"></ol>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ S2: políticas públicas quase em tempo real ============ -->
+    <!-- ============ S2: políticas públicas e a lei ============ -->
     <section class="obs-section">
       <div class="obs-section-head">
         <div>
-          <h2>Políticas públicas, quase em tempo real 📜</h2>
-          <p>O que as prefeituras do Brasil estão publicando em diário oficial sobre a causa animal — e o que o governo federal já cadastrou.</p>
+          <h2>A lei está do lado deles ⚖️</h2>
+          <p>O que já mudou nas políticas públicas — e o que você precisa saber para proteger um animal.</p>
         </div>
       </div>
-      <div class="obs-qd-grid">
-        <div class="obs-panel obs-qd-panel">
-          <div id="obs-qd-num" class="obs-qd-num">—</div>
-          <p class="obs-qd-label">diários oficiais municipais mencionam <strong>“castração de animais”</strong></p>
-          <div id="obs-qd-selo" class="obs-api-selo">⏳ consultando o Querido Diário…</div>
-          <div id="obs-qd-lista" class="obs-qd-lista"></div>
-          <span class="obs-fonte">📌 Querido Diário — Open Knowledge Brasil (API aberta)</span>
+
+      <div class="obs-gov-stats">
+        <div class="obs-stat-card">
+          <span class="obs-stat-icon">🪪</span>
+          <div class="obs-stat-value">1.305.529</div>
+          <p>animais ganharam “RG” no SinPatinhas em 1 ano — presença em <strong>98,3% dos municípios</strong></p>
+          <span class="obs-fonte">📌 MMA — balanço de 1 ano (abr 2026)</span>
         </div>
-        <div class="obs-qd-side">
-          <div class="obs-stat-card">
-            <span class="obs-stat-icon">🪪</span>
-            <div class="obs-stat-value">1.305.529</div>
-            <p>animais cadastrados no SinPatinhas em 1 ano — presença em <strong>98,3% dos municípios</strong></p>
-            <span class="obs-fonte">📌 MMA — balanço de 1 ano (abr 2026)</span>
-          </div>
-          <div class="obs-stat-card">
-            <span class="obs-stat-icon">✂️</span>
-            <div class="obs-stat-value">675.855</div>
-            <p>castrações gratuitas realizadas pelo programa ProPatinhas até o fim de 2025</p>
-            <span class="obs-fonte">📌 MMA / ProPatinhas (abr 2026)</span>
+        <div class="obs-stat-card">
+          <span class="obs-stat-icon">✂️</span>
+          <div class="obs-stat-value">675.855</div>
+          <p>castrações gratuitas pelo programa ProPatinhas até o fim de 2025 — castrar previne o abandono</p>
+          <span class="obs-fonte">📌 MMA / ProPatinhas (abr 2026)</span>
+        </div>
+      </div>
+
+      <div class="obs-panel" style="margin-top:20px;">
+        <h3>📜 As leis que protegem cães e gatos no Brasil</h3>
+        <div id="obs-leis" class="obs-timeline obs-timeline--row"></div>
+      </div>
+
+      <div class="obs-denuncia">
+        <div class="obs-denuncia-icon" aria-hidden="true">🚨</div>
+        <div class="obs-denuncia-body">
+          <strong>Maus-tratos e abandono são crime.</strong>
+          <p>Testemunhou? Não passe reto. Denuncie de forma anônima e ajude a salvar uma vida:</p>
+          <div class="obs-denuncia-canais">
+            <span class="obs-denuncia-canal">📞 <strong>190</strong> · Polícia Militar (urgência)</span>
+            <span class="obs-denuncia-canal">📱 <strong>Disque 100</strong> · Direitos Humanos / crimes ambientais</span>
+            <span class="obs-denuncia-canal">🏛️ Delegacia ou Ministério Público da sua cidade</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ S3: o retrato do abandono ============ -->
+    <!-- ============ S3: o retrato do abandono (pictograma vivo) ============ -->
     <section class="obs-section">
       <div class="obs-section-head">
         <div>
@@ -177,7 +164,7 @@
         </div>
       </div>
 
-      <div class="obs-panel">
+      <div class="obs-panel obs-picto-panel">
         <h3>🐾 De cada 4 cães e gatos do Brasil, 1 está em situação de abandono</h3>
         <div id="obs-pictograma"></div>
       </div>
@@ -219,27 +206,13 @@
         </div>
       </div>
       <div id="obs-fatos" class="obs-flip-grid"></div>
-    </section>
-
-    <!-- ============ S5: o tamanho do Brasil pet ============ -->
-    <section class="obs-section">
-      <div class="obs-section-head">
-        <div>
-          <h2>O tamanho do Brasil pet</h2>
-          <p>Contexto: a 3ª maior população de animais de estimação do planeta.</p>
-        </div>
-      </div>
-      <div class="obs-panel">
-        <h3>🐶 🐱 Cães e gatos nos lares brasileiros</h3>
+      <div class="obs-panel" style="margin-top:20px;">
+        <h3>🐶 🐱 O tamanho do Brasil pet — 3ª maior população do mundo</h3>
         <div id="obs-split" class="obs-split"></div>
       </div>
-      <div class="obs-panel">
-        <h3>⚖️ Leis que mudaram a causa animal</h3>
-        <div id="obs-leis" class="obs-timeline obs-timeline--row"></div>
-      </div>
     </section>
 
-    <!-- ============ S6: O Lar — histórias reais da plataforma ============ -->
+    <!-- ============ S5: O Lar — histórias reais da plataforma ============ -->
     <section class="obs-section">
       <div class="obs-section-head">
         <div>
@@ -252,7 +225,7 @@
       </div>
     </section>
 
-    <!-- ============ S7: CTA final com as bolhas ============ -->
+    <!-- ============ S6: CTA final com as bolhas ============ -->
     <section class="obs-cta obs-cta--bolhas" id="obs-cta-bolhas">
       <div id="obs-bolhas" class="obs-bolhas" aria-hidden="true"></div>
       <div class="obs-cta-conteudo">
@@ -273,7 +246,7 @@
       </div>
     </details>
 
-    <p class="obs-disclaimer">📌 Números conforme publicados pelas fontes citadas em cada bloco. Os dados do IBGE e do Querido Diário são consultados ao vivo nas APIs públicas; os demais trazem a edição mais recente disponível — quando sair levantamento novo, o Observatório atualiza. Não existe censo oficial de animais abandonados no Brasil; os totais nacionais são estimativas das entidades citadas.</p>
+    <p class="obs-disclaimer">📌 Números conforme publicados pelas fontes citadas em cada bloco, trazendo a edição mais recente disponível — quando sair levantamento novo, o Observatório atualiza. Não existe censo oficial de animais abandonados no Brasil; os totais nacionais são estimativas das entidades citadas.</p>
   </main>
 
   <footer class="site-footer">
