@@ -126,7 +126,6 @@ const OBS_PAW =
 
 function obsRenderCarrossel() {
   const track = document.getElementById("obs-hero-track");
-  const dotsWrap = document.getElementById("obs-hero-dots");
   if (!track) return;
 
   track.innerHTML = OBS.numeros.map((n) => `
@@ -136,52 +135,34 @@ function obsRenderCarrossel() {
       <span class="obs-num-fonte">📌 ${obsEsc(n.fonte)}</span>
     </article>`).join("");
 
-  if (dotsWrap) {
-    dotsWrap.innerHTML = OBS.numeros.map((_, i) => `<button type="button" class="obs-dot" data-i="${i}" aria-label="Ir para o número ${i + 1}"></button>`).join("");
-  }
+  // Esconde a dica de "arraste" assim que a pessoa rola/arrasta.
+  const dica = track.parentElement.querySelector(".obs-carousel-dica");
+  const escondeDica = () => { if (dica) dica.classList.add("off"); };
+  track.addEventListener("scroll", escondeDica, { passive: true, once: true });
 
-  const cards = [...track.querySelectorAll(".obs-num-card")];
-  const scrollToCard = (i) => {
-    const card = cards[Math.max(0, Math.min(i, cards.length - 1))];
-    if (card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: OBS_REDUCED ? "auto" : "smooth" });
-  };
-
-  document.querySelectorAll(".obs-carousel-arrow").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const dir = Number(btn.dataset.dir);
-      const cur = obsCardAtual(track, cards);
-      scrollToCard(cur + dir);
-    });
+  // Arrastar com o mouse (no toque, o scroll nativo já funciona).
+  let isDown = false, startX = 0, startScroll = 0;
+  track.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse") return;
+    isDown = true;
+    startX = e.clientX;
+    startScroll = track.scrollLeft;
+    track.classList.add("dragging");
+    try { track.setPointerCapture(e.pointerId); } catch (_) {}
   });
-  if (dotsWrap) {
-    dotsWrap.addEventListener("click", (e) => {
-      const dot = e.target.closest(".obs-dot");
-      if (dot) scrollToCard(Number(dot.dataset.i));
-    });
-  }
-
-  // Atualiza dots ativos + estado das setas conforme rola.
-  const sync = () => {
-    const cur = obsCardAtual(track, cards);
-    if (dotsWrap) dotsWrap.querySelectorAll(".obs-dot").forEach((d, i) => d.classList.toggle("on", i === cur));
-    const prev = document.querySelector(".obs-carousel-arrow.prev");
-    const next = document.querySelector(".obs-carousel-arrow.next");
-    if (prev) prev.disabled = track.scrollLeft <= 2;
-    if (next) next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
-  };
-  track.addEventListener("scroll", () => { window.requestAnimationFrame(sync); }, { passive: true });
-  sync();
-}
-
-function obsCardAtual(track, cards) {
-  const x = track.scrollLeft + track.clientWidth / 2;
-  let best = 0, bestD = Infinity;
-  cards.forEach((c, i) => {
-    const center = c.offsetLeft - track.offsetLeft + c.offsetWidth / 2;
-    const d = Math.abs(center - x);
-    if (d < bestD) { bestD = d; best = i; }
+  track.addEventListener("pointermove", (e) => {
+    if (!isDown) return;
+    track.scrollLeft = startScroll - (e.clientX - startX);
+    escondeDica();
   });
-  return best;
+  const solta = (e) => {
+    if (!isDown) return;
+    isDown = false;
+    track.classList.remove("dragging");
+    try { track.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+  track.addEventListener("pointerup", solta);
+  track.addEventListener("pointercancel", solta);
 }
 
 /* =====================================================================
@@ -307,35 +288,61 @@ function obsRenderMapa(porUF, ano) {
    Pictograma vivo (retrato do abandono)
    ===================================================================== */
 
-function obsRenderPictograma(el) {
-  const abandonados = 25; // 1 em cada 4
-  el.innerHTML =
-    `<div class="obs-picto" role="img" aria-label="De cada 100 cães e gatos no Brasil, cerca de 25 estão em situação de abandono.">` +
-    Array.from({ length: 100 }, (_, i) => {
-      const ab = i < abandonados;
-      // Onda diagonal na entrada + flutuação contínua só nos abandonados.
-      const delay = ((i % 10) + Math.floor(i / 10)) * 45;
-      const floatDelay = (i * 137) % 2000;
-      return `<span class="obs-picto-paw ${ab ? "abandonada" : ""}" style="--in:${delay}ms;--fl:${floatDelay}ms">${OBS_PAW}</span>`;
-    }).join("") +
-    `</div>
-    <p class="obs-picto-legenda">
-      <span><strong>1 em cada 4</strong> cães e gatos do Brasil está em situação de abandono — cerca de <strong>30,2 milhões</strong> de animais.</span>
-      <span class="obs-picto-key abandono">Em abandono</span>
-      <span class="obs-picto-key familia">Com família</span>
-    </p>
-    <span class="obs-fonte">📌 Mars Petcare — State of Pet Homelessness Index (coleta 2022–23, divulgado 2024); corrobora a estimativa de 30 mi da OMS</span>`;
+function obsRenderAbandono(el) {
+  const PCT = 25;               // 1 em cada 4
+  const R = 80, SW = 26;
+  const C = 2 * Math.PI * R;    // circunferência
+  const arco = C * (PCT / 100); // trecho visível do abandono
 
-  const picto = el.querySelector(".obs-picto");
-  if (OBS_REDUCED) { picto.classList.add("revelado"); return; }
+  el.innerHTML = `
+    <div class="obs-abandono-graf">
+      <svg class="obs-donut" viewBox="0 0 200 200" role="img" aria-label="Cerca de 25% dos cães e gatos do Brasil estão em situação de abandono.">
+        <defs>
+          <linearGradient id="obsDonutGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#E7C889" />
+            <stop offset="1" stop-color="#C97A2C" />
+          </linearGradient>
+        </defs>
+        <circle class="obs-donut-track" cx="100" cy="100" r="${R}" fill="none" stroke-width="${SW}" />
+        <circle class="obs-donut-arc" cx="100" cy="100" r="${R}" fill="none" stroke-width="${SW}"
+          stroke-linecap="round" transform="rotate(-90 100 100)"
+          stroke-dasharray="${arco.toFixed(1)} ${(C - arco).toFixed(1)}" stroke-dashoffset="${arco.toFixed(1)}" />
+      </svg>
+      <div class="obs-donut-center">
+        <div class="obs-donut-num"><span data-abandono-num>0</span><span class="obs-donut-u">mi</span></div>
+        <span class="obs-donut-cap">em abandono</span>
+      </div>
+    </div>
+    <div class="obs-abandono-texto">
+      <div class="obs-abandono-big" aria-hidden="true"><span>1</span> em cada <span>4</span></div>
+      <div class="obs-abandono-paws" aria-hidden="true">
+        ${Array.from({ length: 4 }, (_, i) => `<span class="obs-abandono-paw ${i === 0 ? "ab" : ""}" style="--d:${i * 110}ms">${OBS_PAW}</span>`).join("")}
+      </div>
+      <p>cães e gatos do Brasil está em situação de <strong>abandono</strong> — cerca de <strong>30,2 milhões</strong> de animais sem um lar.</p>
+      <span class="obs-fonte">📌 Mars Petcare — State of Pet Homelessness Index (2024); corrobora a estimativa de 30 mi da OMS</span>
+    </div>`;
+
+  const numEl = el.querySelector("[data-abandono-num]");
+  const setNum = (v) => { numEl.textContent = v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); };
+
+  if (OBS_REDUCED) { el.classList.add("revelado"); setNum(30.2); return; }
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       io.unobserve(entry.target);
-      entry.target.classList.add("revelado");
+      el.classList.add("revelado"); // dispara o desenho do arco + as patinhas (CSS)
+      // count-up do número central
+      const alvo = 30.2, dur = 1400, t0 = performance.now();
+      const tick = (t) => {
+        const p = Math.min((t - t0) / dur, 1);
+        setNum(alvo * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
     });
-  }, { threshold: 0.25 });
-  io.observe(picto);
+  }, { threshold: 0.35 });
+  io.observe(el);
 }
 
 /* =====================================================================
@@ -597,8 +604,8 @@ function obsFisicaBolhas(host) {
 document.addEventListener("DOMContentLoaded", () => {
   obsRenderCarrossel();
 
-  const picto = document.getElementById("obs-pictograma");
-  if (picto) obsRenderPictograma(picto);
+  const abandono = document.getElementById("obs-abandono");
+  if (abandono) obsRenderAbandono(abandono);
   const fatos = document.getElementById("obs-fatos");
   if (fatos) obsRenderFatos(fatos);
   const split = document.getElementById("obs-split");

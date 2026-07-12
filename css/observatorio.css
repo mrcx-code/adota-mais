@@ -787,66 +787,80 @@ button { font-family: inherit; cursor: pointer; }
 .obs-split-bar > div { transition: flex-grow 0.3s ease, filter 0.2s ease; cursor: default; }
 .obs-split-bar > div:hover { filter: brightness(1.12); }
 
-/* ---------- Pictograma vivo (retrato do abandono) ---------- */
+/* ---------- Retrato do abandono (donut animado) ---------- */
 
-.obs-picto-panel { position: relative; }
-.obs-picto {
+.obs-abandono {
   display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  gap: clamp(3px, 0.6vw, 7px);
-  margin-bottom: 16px;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: center;
 }
-@media (max-width: 640px) { .obs-picto { grid-template-columns: repeat(10, 1fr); } }
+@media (max-width: 640px) { .obs-abandono { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 
-.obs-picto-paw {
-  aspect-ratio: 1 / 1;
-  display: inline-flex;
+.obs-abandono-graf { position: relative; width: 100%; max-width: 240px; margin: 0 auto; }
+.obs-donut { width: 100%; height: auto; display: block; overflow: visible; }
+.obs-donut-track { stroke: var(--color-surface-muted); }
+.obs-donut-arc {
+  stroke: url(#obsDonutGrad);
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 0.9, 0.3, 1);
+  filter: drop-shadow(0 4px 10px rgba(201, 122, 44, 0.28));
+}
+.obs-abandono.revelado .obs-donut-arc { stroke-dashoffset: 0 !important; }
+
+.obs-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  cursor: default;
-  transition: filter 0.2s ease;
+  gap: 2px;
 }
-.obs-picto-paw svg { width: 100%; height: 100%; display: block; }
-.obs-picto-paw.abandonada { color: #C97A2C; }
-.obs-picto-paw:not(.abandonada) { color: #B7BFA9; }
-.obs-picto-paw:hover { filter: drop-shadow(0 2px 5px rgba(201, 138, 44, 0.6)); }
-
-/* Antes de revelar, tudo escondido; ao entrar na tela, onda diagonal. */
-.obs-picto.revelado .obs-picto-paw:not(.abandonada) {
-  animation: obs-paw-in-fam 0.5s ease var(--in) both;
-}
-.obs-picto.revelado .obs-picto-paw.abandonada {
-  animation: obs-paw-in-ab 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) var(--in) both,
-             obs-paw-float 3.2s ease-in-out calc(var(--in) + 1000ms) infinite;
-}
-@keyframes obs-paw-in-fam { from { opacity: 0; transform: scale(0.4); } to { opacity: 0.32; transform: scale(1); } }
-@keyframes obs-paw-in-ab {
-  0% { opacity: 0; transform: scale(0.2) translateY(10px); }
-  70% { transform: scale(1.18); }
-  100% { opacity: 1; transform: none; }
-}
-/* Depois de reveladas, as abandonadas respiram — parecem inquietas, vivas. */
-@keyframes obs-paw-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-4px) rotate(-5deg); }
-}
-
-.obs-picto-legenda {
+.obs-donut-num {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin: 0 0 8px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--color-text-muted);
+  align-items: baseline;
+  gap: 3px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(32px, 6vw, 44px);
+  line-height: 1;
+  color: var(--color-brand-dark);
+  font-variant-numeric: tabular-nums;
 }
-.obs-picto-legenda strong { color: var(--color-text); }
-.obs-picto-key { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
-.obs-picto-key::before { content: ""; width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.obs-picto-key.abandono::before { background: #C97A2C; }
-.obs-picto-key.familia::before { background: #B7BFA9; }
+.obs-donut-u { font-size: 0.5em; color: #C97A2C; }
+.obs-donut-cap { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #C97A2C; }
+
+.obs-abandono-big {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(30px, 5vw, 44px);
+  line-height: 1.05;
+  color: var(--color-text);
+}
+.obs-abandono-big span { color: #C97A2C; }
+
+.obs-abandono-paws { display: inline-flex; gap: 8px; margin: 12px 0; }
+.obs-abandono-paw {
+  width: 34px;
+  height: 34px;
+  color: #B7BFA9;
+  opacity: 0;
+  transform: scale(0.4) translateY(8px);
+}
+.obs-abandono-paw.ab { color: #C97A2C; }
+.obs-abandono-paw svg { width: 100%; height: 100%; display: block; }
+.obs-abandono.revelado .obs-abandono-paw { animation: obs-paw-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d) forwards; }
+@keyframes obs-paw-pop { to { opacity: 1; transform: none; } }
+.obs-abandono.revelado .obs-abandono-paw.ab { animation: obs-paw-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) var(--d) forwards, obs-paw-float 3.2s ease-in-out calc(var(--d) + 900ms) infinite; }
+@keyframes obs-paw-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-6deg); } }
+
+.obs-abandono-texto p { margin: 4px 0 12px; font-size: 15px; line-height: 1.6; color: var(--color-text-muted); }
+.obs-abandono-texto p strong { color: var(--color-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-donut-arc { transition: none; }
+  .obs-abandono-paw { animation: none !important; opacity: 1; transform: none; }
+}
 
 /* =========================================================
    Componentes — dados públicos
@@ -854,38 +868,31 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Hero: carrossel de números ---------- */
 
-.obs-carousel { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px; }
+.obs-carousel { position: relative; margin: 26px 0 4px; }
 .obs-carousel-track {
-  flex: 1;
-  min-width: 0;
   display: flex;
   gap: 14px;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-left: 2px;
+  scroll-snap-type: x proximity;
   padding: 4px 2px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  cursor: grab;
 }
 .obs-carousel-track::-webkit-scrollbar { display: none; }
+.obs-carousel-track.dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.obs-carousel-track.dragging .obs-num-card { pointer-events: none; }
 
-.obs-carousel-arrow {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(244, 241, 230, 0.35);
-  background: rgba(244, 241, 230, 0.1);
-  color: #F4F1E6;
-  font-size: 22px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+.obs-carousel-dica {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(244, 241, 230, 0.55);
+  transition: opacity 0.3s ease;
 }
-.obs-carousel-arrow:hover { background: rgba(244, 241, 230, 0.22); }
-.obs-carousel-arrow:disabled { opacity: 0.3; cursor: default; }
+.obs-carousel-dica.off { opacity: 0; }
 
 .obs-num-card {
   position: relative;
@@ -1121,12 +1128,6 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--color-text-soft);
 }
 
-/* ---------- Movimento reduzido ---------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .obs-picto .obs-picto-paw { animation: none !important; opacity: 1; }
-  .obs-picto .obs-picto-paw:not(.abandonada) { opacity: 0.32; }
-}
 
 /* =========================================================
    Mobile (mobile-first: aqui ficam só os ajustes de telas
