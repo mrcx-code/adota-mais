@@ -776,7 +776,6 @@ function obsFisicaBolhas(host) {
  */
 function obsHeroScanner() {
   const hero = document.getElementById("obs-hero");
-  const lens = document.getElementById("obs-lens");
   const comet = document.getElementById("obs-comet");
   if (!hero) return;
 
@@ -786,10 +785,11 @@ function obsHeroScanner() {
     if (OBS_LEITURA.next) OBS_LEITURA.next();
   });
 
-  if (OBS_REDUCED || !lens || !comet) return;
+  if (OBS_REDUCED || !comet) return;
 
-  const LHALF = 75; // metade da lente (150px)
-  let raf = 0, x = 0, y = 0, px = 0, py = 0, ang = 0, tail = 20, lx = 0, ly = 0;
+  let x = 0, y = 0, px = 0, py = 0, ang = 0, lx = 0, ly = 0;
+  let momentum = 0;   // acumula com o movimento e decai → cauda cresce ao mexer
+  let loop = 0;
 
   hero.addEventListener("pointermove", (e) => {
     if (e.pointerType === "touch") return; // sem hover no toque
@@ -799,36 +799,93 @@ function obsHeroScanner() {
     // deslocamento do centro, normalizado -1..1 → alimenta o parallax (CSS vars)
     px = (x / r.width) * 2 - 1;
     py = (y / r.height) * 2 - 1;
+    hero.style.setProperty("--px", px.toFixed(3));
+    hero.style.setProperty("--py", py.toFixed(3));
     hero.classList.add("scanning", "par");
-    if (!raf) raf = requestAnimationFrame(apply);
+    if (!loop) loop = requestAnimationFrame(tick);
   });
   hero.addEventListener("pointerleave", () => {
     hero.classList.remove("scanning", "par");
     hero.style.removeProperty("--px");
     hero.style.removeProperty("--py");
+    cancelAnimationFrame(loop); loop = 0; momentum = 0;
   });
 
-  function apply() {
-    raf = 0;
-    lens.style.transform = `translate(${x - LHALF}px, ${y - LHALF}px)`;
-    hero.style.setProperty("--px", px.toFixed(3));
-    hero.style.setProperty("--py", py.toFixed(3));
-    // Cometa: cauda aponta para trás do movimento; comprimento ~ velocidade.
+  function tick() {
     const dx = x - lx, dy = y - ly;
     const sp = Math.hypot(dx, dy);
     if (sp > 0.5) ang = (Math.atan2(dy, dx) * 180) / Math.PI;
-    tail = Math.min(64, 20 + sp * 1.6);
+    // quanto mais você mexe, maior a cauda; ela encolhe suave quando você para.
+    momentum = Math.min(150, momentum * 0.9 + sp * 2.4);
+    const tail = 34 + momentum;
     lx = x; ly = y;
-    comet.style.transform = `translate(${x - 7}px, ${y - 7}px)`;
+    comet.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
     comet.style.setProperty("--ang", ang.toFixed(1) + "deg");
     comet.style.setProperty("--tail", tail.toFixed(0) + "px");
+    loop = requestAnimationFrame(tick);
   }
+}
+
+/**
+ * "Mapa do Maroto": patinhas surgem em trilhas que caminham pelo fundo da
+ * página (atrás do conteúdo), aparecem e somem sozinhas. Decorativo, respeita
+ * prefers-reduced-motion.
+ */
+function obsMarauder() {
+  if (OBS_REDUCED) return;
+  const layer = document.createElement("div");
+  layer.className = "obs-paw-map";
+  layer.setAttribute("aria-hidden", "true");
+  document.body.appendChild(layer);
+
+  const W = () => window.innerWidth;
+  const H = () => document.documentElement.clientHeight;
+
+  function spawnPaw(cx, cy, angRad, delay) {
+    const el = document.createElement("span");
+    el.className = "obs-paw-print";
+    el.innerHTML = OBS_PAW;
+    const size = 18 + Math.round(Math.random() * 12);
+    el.style.width = el.style.height = size + "px";
+    el.style.left = cx + "px";
+    el.style.top = cy + "px";
+    // a patinha "aponta" para a direção da caminhada (SVG aponta p/ cima).
+    el.style.transform = `translate(-50%,-50%) rotate(${angRad + Math.PI / 2}rad)`;
+    layer.appendChild(el);
+    setTimeout(() => {
+      el.classList.add("show");
+      setTimeout(() => {
+        el.classList.remove("show");
+        setTimeout(() => el.remove(), 900);
+      }, 1500 + Math.random() * 900);
+    }, delay);
+  }
+
+  function trail() {
+    let x = Math.random() * W();
+    let y = Math.random() * H();
+    let ang = Math.random() * Math.PI * 2;
+    const steps = 6 + Math.floor(Math.random() * 7);
+    const stride = 34 + Math.random() * 16;
+    for (let i = 0; i < steps; i++) {
+      const side = i % 2 === 0 ? 1 : -1;
+      const perp = ang + Math.PI / 2;
+      spawnPaw(x + Math.cos(perp) * 8 * side, y + Math.sin(perp) * 8 * side, ang, i * 200);
+      x += Math.cos(ang) * stride;
+      y += Math.sin(ang) * stride;
+      ang += (Math.random() - 0.5) * 0.6; // vagueia
+      if (x < -50 || x > W() + 50 || y < -50 || y > H() + 50) break;
+    }
+    setTimeout(trail, 1500 + Math.random() * 2000);
+  }
+  trail();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   obsCeu();
   obsLeituraRotativa();
   obsHeroScanner();
+  obsMarauder();
 
   const abandono = document.getElementById("obs-abandono");
   if (abandono) obsRenderAbandono(abandono);

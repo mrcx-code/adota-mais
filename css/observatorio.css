@@ -335,40 +335,7 @@ button { font-family: inherit; cursor: pointer; }
   background: radial-gradient(120% 100% at 30% 20%, transparent 55%, rgba(6, 14, 22, 0.5) 100%);
   pointer-events: none;
 }
-.obs-hero > *:not(.obs-sky):not(.obs-lens) { position: relative; z-index: 2; }
-
-/* Lente/olho que acompanha o cursor (o "observatório" olhando onde você aponta). */
-.obs-lens {
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(231, 200, 137, 0.5);
-  background: radial-gradient(circle, rgba(231, 200, 137, 0.16) 0%, rgba(231, 200, 137, 0.04) 45%, transparent 70%);
-  box-shadow: 0 0 44px rgba(231, 200, 137, 0.22);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  transform: translate(-9999px, -9999px);
-  will-change: transform;
-}
-.obs-lens::before {  /* íris/pupila — dá o ar de "olho" */
-  content: "";
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: rgba(231, 200, 137, 0.6);
-  box-shadow: 0 0 12px rgba(231, 200, 137, 0.7);
-}
-.obs-hero.scanning .obs-lens { opacity: 1; }
-/* Enquanto a lente segue o cursor, o radar pausa e some. Sem cursor, ele gira. */
-.obs-hero.scanning .obs-sweep { opacity: 0.14; animation-play-state: paused; }
+.obs-hero > *:not(.obs-sky) { position: relative; z-index: 2; }
 
 /* Ao explorar com o mouse, o cursor vira uma estrela cadente. */
 .obs-hero.scanning { cursor: none; }
@@ -380,31 +347,59 @@ button { font-family: inherit; cursor: pointer; }
   z-index: 3;
   left: 0;
   top: 0;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: radial-gradient(circle, #FFF8E6 0%, #E7C889 55%, rgba(231, 200, 137, 0) 72%);
-  box-shadow: 0 0 18px 4px rgba(231, 200, 137, 0.85);
+  box-shadow: 0 0 22px 5px rgba(231, 200, 137, 0.9);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.25s ease;
   transform: translate(-9999px, -9999px);
   will-change: transform;
 }
-/* A cauda: um rastro que aponta para trás do movimento (girado via --ang). */
+/* A cauda: um rastro que aponta para trás do movimento (girado via --ang).
+   O comprimento (--tail) cresce conforme o mouse se move mais rápido. */
 .obs-comet::before {
   content: "";
   position: absolute;
   right: 50%;
   top: 50%;
-  width: var(--tail, 42px);
-  height: 3px;
+  width: var(--tail, 60px);
+  height: 4px;
   transform: translateY(-50%) rotate(var(--ang, 0deg));
   transform-origin: right center;
-  background: linear-gradient(to left, rgba(231, 200, 137, 0.9), rgba(231, 200, 137, 0));
-  border-radius: 3px;
+  background: linear-gradient(to left, rgba(255, 248, 230, 0.95), rgba(231, 200, 137, 0.6) 35%, rgba(231, 200, 137, 0));
+  border-radius: 4px;
+  filter: blur(0.3px);
 }
 .obs-hero.scanning .obs-comet { opacity: 1; }
+
+/* ---- "Mapa do Maroto": patinhas surgem e somem pelo fundo da página ---- */
+.obs-paw-map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Conteúdo real fica acima da trilha de patinhas. */
+body > .site-header,
+body > .site-main,
+body > .site-footer { position: relative; z-index: 1; }
+
+.obs-paw-print {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  color: rgba(82, 115, 83, 0.22);
+  opacity: 0;
+  transform-origin: center;
+  transition: opacity 0.7s ease;
+}
+.obs-paw-print svg { width: 100%; height: 100%; display: block; }
+.obs-paw-print.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .obs-paw-map { display: none; } }
 
 /* ---- Parallax de profundidade (sensação de espaço) ---- */
 /* Cada camada anda uma fração do deslocamento do mouse → paralaxe. */
