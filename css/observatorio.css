@@ -260,7 +260,8 @@ button { font-family: inherit; cursor: pointer; }
 .obs-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--color-brand-dark) 0%, #2C4029 70%, #223121 100%);
+  /* Verde mais leve, com um toque quente — base para o brilho colorido "Brasil". */
+  background: linear-gradient(140deg, #4C6A4B 0%, #3F5B41 55%, #33502F 100%);
   color: #F4F1E6;
   border-radius: var(--radius-lg);
   padding: clamp(36px, 6vw, 64px) clamp(24px, 5vw, 56px);
@@ -271,11 +272,31 @@ button { font-family: inherit; cursor: pointer; }
   content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(244, 241, 230, 0.14) 1px, transparent 1.6px);
+  z-index: 1;
+  background-image: radial-gradient(circle, rgba(244, 241, 230, 0.12) 1px, transparent 1.6px);
   background-size: 22px 22px;
   pointer-events: none;
 }
-.obs-hero > * { position: relative; }
+.obs-hero > *:not(.obs-hero-orbs) { position: relative; z-index: 2; }
+
+/* Orbs coloridos que quebram o "verdão" e dão vibe tropical brasileira. */
+.obs-hero-orbs { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.obs-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(52px);
+  will-change: transform;
+  animation: obs-orb-float 14s ease-in-out infinite;
+}
+.orb-a { width: 300px; height: 300px; background: #E7C889; opacity: 0.55; top: -70px; left: -50px; }               /* amarelo sol */
+.orb-b { width: 340px; height: 340px; background: #3F9E93; opacity: 0.42; bottom: -110px; right: -40px; animation-delay: -4s; } /* verde-água */
+.orb-c { width: 240px; height: 240px; background: #D98A8D; opacity: 0.38; top: 34%; right: 26%; animation-delay: -8s; }          /* coral */
+.orb-d { width: 200px; height: 200px; background: #6FA6D6; opacity: 0.30; bottom: 8%; left: 22%; animation-delay: -11s; }        /* azul */
+@keyframes obs-orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(18px, -14px) scale(1.06); }
+  66% { transform: translate(-14px, 12px) scale(0.96); }
+}
 
 .obs-eyebrow {
   display: inline-flex;
@@ -342,12 +363,12 @@ button { font-family: inherit; cursor: pointer; }
 
 .obs-map-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
 }
 @media (max-width: 820px) {
-  .obs-map-wrap { grid-template-columns: 1fr; }
+  .obs-map-wrap { grid-template-columns: 1fr; align-items: start; }
 }
 
 .obs-map {
@@ -868,10 +889,11 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Hero: grade de números (revela no scroll) ---------- */
 
+/* 9 números em 3×3 no desktop — nenhum card sobra sozinho. */
 .obs-num-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   margin: 26px 0 4px;
 }
 
@@ -912,12 +934,14 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Mapa: lista rolável por estado ---------- */
 
 .obs-uf-list-wrap {
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface), var(--color-offwhite));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 14px 8px 10px 14px;
+  box-shadow: var(--shadow-card);
+  padding: 14px 8px 10px 16px;
   display: flex;
   flex-direction: column;
+  min-height: 320px;
 }
 .obs-uf-list-head {
   display: flex;
@@ -928,35 +952,52 @@ button { font-family: inherit; cursor: pointer; }
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 14px;
-  margin: 0 6px 10px 0;
+  padding-bottom: 10px;
+  margin: 0 8px 4px 0;
+  border-bottom: 1px solid var(--color-border);
 }
 .obs-uf-list {
   list-style: none;
   margin: 0;
-  padding: 0 8px 0 0;
-  max-height: 360px;
+  padding: 4px 8px 0 0;
+  flex: 1 1 0;
+  min-height: 0;         /* deixa a lista preencher a altura do mapa e rolar */
   overflow-y: auto;
   scrollbar-width: thin;
   scroll-behavior: smooth;
 }
 .obs-uf-item {
   display: grid;
-  grid-template-columns: 30px 92px 1fr 48px;
+  grid-template-columns: 34px 96px 1fr 52px;
   align-items: center;
   gap: 10px;
-  padding: 8px 8px;
+  padding: 9px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
+.obs-uf-item + .obs-uf-item { border-top: 1px solid rgba(216, 217, 202, 0.5); }
 .obs-uf-item:hover { background: var(--color-surface-muted); }
-.obs-uf-item.active { background: var(--color-brand-soft); box-shadow: inset 3px 0 0 var(--color-brand); }
-.obs-uf-rank { font-family: var(--font-display); font-weight: 800; font-size: 12px; color: var(--color-text-soft); }
-.obs-uf-nome { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.obs-uf-bar { height: 8px; border-radius: 999px; background: var(--color-surface-muted); overflow: hidden; }
-.obs-uf-bar-fill { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--color-brand-accent), var(--color-brand)); }
-.obs-uf-item.active .obs-uf-bar-fill { background: linear-gradient(90deg, #E7C889, var(--color-brand-dark)); }
-.obs-uf-pct { font-family: var(--font-display); font-weight: 700; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.obs-uf-item.active {
+  background: var(--color-brand-soft);
+  box-shadow: inset 3px 0 0 var(--color-brand);
+  border-top-color: transparent;
+}
+.obs-uf-rank { font-family: var(--font-display); font-weight: 800; font-size: 13px; color: var(--color-text-soft); text-align: center; }
+.obs-uf-item.top .obs-uf-rank { font-size: 17px; }
+.obs-uf-nome { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.obs-uf-bar { height: 9px; border-radius: 999px; background: var(--color-surface-muted); overflow: hidden; }
+.obs-uf-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-brand-accent), var(--color-brand));
+  transform-origin: left;
+  animation: obs-bar-grow 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+@keyframes obs-bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.obs-uf-item.active .obs-uf-bar-fill { background: linear-gradient(90deg, #E7C889, #C98A2C); }
+.obs-uf-pct { font-family: var(--font-display); font-weight: 800; font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; color: var(--color-brand-dark); }
 
 /* ---------- Cards de estatística (abandono + governo) ---------- */
 
@@ -997,6 +1038,17 @@ button { font-family: inherit; cursor: pointer; }
   border: 1px solid #EAC7C8;
   border-radius: var(--radius-lg);
   padding: 22px clamp(18px, 3vw, 28px);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.obs-denuncia:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-2px); }
+.obs-denuncia-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a2f33;
 }
 .obs-denuncia-icon { font-size: 34px; line-height: 1; flex-shrink: 0; }
 .obs-denuncia-body strong { font-family: var(--font-display); font-size: 18px; color: #8a2f33; }
@@ -1116,11 +1168,16 @@ body[data-obs-page] .site-main { padding-bottom: 24px; }
 
 /* ---------- Mapa real do Brasil (malha IBGE) ---------- */
 
-.obs-map-real-col { display: flex; flex-direction: column; }
+.obs-map-real-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* mapa centralizado na altura do painel */
+}
 .obs-map-real {
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   margin: 0 auto;
+  filter: drop-shadow(0 8px 20px rgba(28, 33, 23, 0.12));
 }
 .obs-map-real svg { width: 100%; height: auto; display: block; overflow: visible; }
 .obs-uf-path {

@@ -45,7 +45,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://servicodados.ibge.gov.br" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/observatorio.css" />
+  <link rel="stylesheet" href="../css/observatorio.css?v=20260712" />
 </head>
 <body data-obs-page="home">
 
@@ -70,8 +70,14 @@
 
   <main class="site-main">
 
-    <!-- ============ HERO: carrossel de números ============ -->
-    <section class="obs-hero">
+    <!-- ============ HERO: números do Brasil ============ -->
+    <section class="obs-hero" id="obs-hero">
+      <div class="obs-hero-orbs" aria-hidden="true">
+        <span class="obs-orb orb-a"></span>
+        <span class="obs-orb orb-b"></span>
+        <span class="obs-orb orb-c"></span>
+        <span class="obs-orb orb-d"></span>
+      </div>
       <span class="obs-eyebrow">📡 Observatório Patinhas</span>
       <h1>O abandono tem números.<br /><em>A adoção também.</em></h1>
       <p>Reunimos os levantamentos mais recentes de fontes oficiais e de referência sobre abandono, adoção e pets no Brasil — cada número com a sua fonte e data.</p>
@@ -149,18 +155,19 @@
       <div class="obs-engaje">
         <h3>✍️ Faça a sua parte hoje</h3>
         <div id="obs-engaje-grid" class="obs-engaje-grid"></div>
-        <div class="obs-denuncia">
+        <a class="obs-denuncia" href="https://www.gov.br/mma/pt-br/assuntos/biodiversidade-e-biomas/direitos-animais/maus-tratos-a-animais" target="_blank" rel="noopener">
           <div class="obs-denuncia-icon" aria-hidden="true">🚨</div>
           <div class="obs-denuncia-body">
             <strong>Maus-tratos e abandono são crime.</strong>
             <p>Testemunhou? Não passe reto. Denuncie de forma anônima:</p>
             <div class="obs-denuncia-canais">
               <span class="obs-denuncia-canal">📞 <strong>190</strong> · Polícia Militar (urgência)</span>
-              <span class="obs-denuncia-canal">📱 <strong>Disque 100</strong> · crimes ambientais</span>
+              <span class="obs-denuncia-canal">📱 <strong>Disque 100</strong> · IBAMA 0800 61 8080</span>
               <span class="obs-denuncia-canal">🏛️ Delegacia ou Ministério Público</span>
             </div>
+            <span class="obs-denuncia-link">Saiba como denunciar no gov.br ↗</span>
           </div>
-        </div>
+        </a>
       </div>
     </section>
 
@@ -260,6 +267,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabaseClient.js"></script>
   <script src="../js/analytics.js"></script>
-  <script src="../js/observatorio.js"></script>
+  <script src="../js/observatorio.js?v=20260712"></script>
 </body>
 </html>

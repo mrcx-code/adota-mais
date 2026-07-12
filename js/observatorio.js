@@ -239,9 +239,10 @@ function obsRenderListaUF(porUF) {
   if (!list) return;
   const ranked = Object.entries(porUF).sort((a, b) => b[1] - a[1]);
   const maxPct = ranked.length ? ranked[0][1] : 100;
+  const medalha = ["🥇", "🥈", "🥉"];
   list.innerHTML = ranked.map(([uf, pct], i) => `
-    <li class="obs-uf-item" data-uf="${uf}">
-      <span class="obs-uf-rank">${i + 1}º</span>
+    <li class="obs-uf-item ${i < 3 ? "top" : ""}" data-uf="${uf}">
+      <span class="obs-uf-rank">${i < 3 ? medalha[i] : (i + 1) + "º"}</span>
       <span class="obs-uf-nome">${obsEsc(OBS.nomesUF[uf])}</span>
       <span class="obs-uf-bar"><span class="obs-uf-bar-fill" style="width:${Math.round((pct / maxPct) * 100)}%"></span></span>
       <span class="obs-uf-pct">${obsFmtPct(pct)}</span>
@@ -433,10 +434,19 @@ function obsRenderTramitacao(el) {
   }).join("");
 }
 
+/** Aceita http(s) OU links internos relativos (../, ./, /, #). As URLs aqui
+ * são fixas no código (não vêm do usuário), então links internos são seguros. */
+function obsHref(url) {
+  const s = String(url == null ? "" : url).trim();
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^(\.{1,2}\/|\/|#)/.test(s)) return s;
+  return "";
+}
+
 function obsRenderEngaje(el) {
   el.innerHTML = OBS.engaje.map((e) => {
-    const url = obsSafeUrl(e.url);
-    const ext = /^https?:/i.test(e.url) ? ' target="_blank" rel="noopener"' : "";
+    const url = obsHref(e.url);
+    const ext = /^https?:/i.test(url) ? ' target="_blank" rel="noopener"' : "";
     return `
       <a class="obs-engaje-card" ${url ? `href="${obsEsc(url)}"${ext}` : ""}>
         <span class="obs-engaje-ic" aria-hidden="true">${e.icone}</span>
@@ -655,8 +665,27 @@ function obsFisicaBolhas(host) {
    Boot
    ===================================================================== */
 
+/** O brilho colorido do hero acompanha o mouse (parallax suave) — cada orb
+ * continua flutuando sozinho; aqui movemos o grupo inteiro de leve. */
+function obsHeroParallax() {
+  const hero = document.getElementById("obs-hero");
+  const orbs = hero && hero.querySelector(".obs-hero-orbs");
+  if (!orbs || OBS_REDUCED) return;
+  let raf = 0, cx = 0, cy = 0;
+  orbs.style.transition = "transform 0.4s ease-out";
+  hero.addEventListener("pointermove", (e) => {
+    const r = hero.getBoundingClientRect();
+    cx = ((e.clientX - r.left) / r.width - 0.5) * 40;   // desloca até ~20px
+    cy = ((e.clientY - r.top) / r.height - 0.5) * 40;
+    if (!raf) raf = requestAnimationFrame(apply);
+  });
+  hero.addEventListener("pointerleave", () => { cx = 0; cy = 0; if (!raf) raf = requestAnimationFrame(apply); });
+  function apply() { raf = 0; orbs.style.transform = `translate(${cx}px, ${cy}px)`; }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   obsRenderNumeros();
+  obsHeroParallax();
 
   const abandono = document.getElementById("obs-abandono");
   if (abandono) obsRenderAbandono(abandono);
