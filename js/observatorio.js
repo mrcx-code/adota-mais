@@ -396,13 +396,13 @@ function obsRenderReferencias(el) {
       : "";
     const fallback = `<span class="obs-ref-logo obs-ref-logo--emoji" ${f.dominio ? 'style="display:none;"' : ""}>${f.emoji || "🔗"}</span>`;
     return `
-      <a class="obs-ref-chip" ${url ? `href="${obsEsc(url)}" target="_blank" rel="noopener"` : ""} title="${obsEsc(f.nome)} — ${obsEsc(f.tipo || "")}">
+      <div class="obs-ref-chip" title="${obsEsc(f.nome)} — ${obsEsc(f.tipo || "")}">
         <span class="obs-ref-logo-wrap">${logo}${fallback}</span>
         <span class="obs-ref-txt">
           <strong>${obsEsc(f.nome)}</strong>
           <span>${obsEsc(f.tipo || "")}</span>
         </span>
-      </a>`;
+      </div>`;
   }).join("");
 }
 
@@ -480,10 +480,10 @@ function obsFisicaBolhas(host) {
   const rect0 = host.getBoundingClientRect();
   let W = rect0.width, H = rect0.height || 360;
 
-  const G = 0.42;          // gravidade
-  const AIR = 0.992;       // arrasto do ar
-  const FLOOR_BOUNCE = 0.28; // quicada ao tocar o chão (balão murcho)
-  const WALL_BOUNCE = 0.5;
+  const G = 0.11;          // gravidade leve (balão caindo devagar)
+  const AIR = 0.975;       // bastante arrasto → movimento macio, flutuante
+  const FLOOR_BOUNCE = 0.12; // quase não quica ao tocar o chão
+  const WALL_BOUNCE = 0.4;
 
   const state = bolhas.map((el, idx) => {
     const r = Number(el.dataset.r);
@@ -523,15 +523,15 @@ function obsFisicaBolhas(host) {
       if (mouse) {
         const cx = b.x + b.r, cy = b.y + b.r;
         const dx = cx - mouse.x, dy = cy - mouse.y;
-        const reach = b.r + 70;
+        const reach = b.r + 55;
         const d = Math.hypot(dx, dy);
         if (d < reach) {
           const f = (reach - Math.max(d, 0.001)) / reach;
           if (d > 0.5) {
-            b.vx += (dx / d) * f * 2.2;
-            b.vy += (dy / d) * f * 1.6;
+            b.vx += (dx / d) * f * 0.35;
+            b.vy += (dy / d) * f * 0.2;
           }
-          b.vy -= f * 6.5; // levanta como se enchesse de ar (mesmo bem no centro)
+          b.vy -= f * 0.85; // sobe de leve, como uma bexiga cutucada
         }
       }
     });
@@ -560,9 +560,9 @@ function obsFisicaBolhas(host) {
       }
     }
 
-    // Velocidade máxima + integra + paredes/chão.
+    // Velocidade máxima (baixa = suave) + integra + paredes/chão.
     state.forEach((b) => {
-      const sp = Math.hypot(b.vx, b.vy), max = 12;
+      const sp = Math.hypot(b.vx, b.vy), max = 2.4;
       if (sp > max) { b.vx = b.vx / sp * max; b.vy = b.vy / sp * max; }
       b.x += b.vx; b.y += b.vy;
 
@@ -572,8 +572,8 @@ function obsFisicaBolhas(host) {
       if (b.y > H - 2 * b.r) {           // chão
         b.y = H - 2 * b.r;
         b.vy = -b.vy * FLOOR_BOUNCE;
-        b.vx *= 0.88;                    // atrito no chão
-        if (Math.abs(b.vy) < 0.6) b.vy = 0; // assenta
+        b.vx *= 0.9;                     // atrito no chão
+        if (Math.abs(b.vy) < 0.4) b.vy = 0; // assenta
       }
       place(b);
     });
