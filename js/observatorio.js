@@ -167,15 +167,16 @@ function obsRenderNumeros() {
 
   const cards = [...grid.querySelectorAll(".obs-num-card")];
   if (OBS_REDUCED) { cards.forEach((c) => c.classList.add("in")); return; }
-  // Revela cada card conforme entra na tela (sem esconder nada no scroll horizontal).
+  // Cascata "piano": quando a grade entra na tela, os cards aparecem em
+  // sequência (o atraso por card vem do --i no CSS).
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       io.unobserve(entry.target);
-      entry.target.classList.add("in");
+      cards.forEach((c) => c.classList.add("in"));
     });
-  }, { threshold: 0.2, rootMargin: "0px 0px -40px 0px" });
-  cards.forEach((c) => io.observe(c));
+  }, { threshold: 0.15, rootMargin: "0px 0px -60px 0px" });
+  io.observe(grid);
 }
 
 /* =====================================================================
@@ -190,54 +191,94 @@ const UF_POR_ID = {
   "50": "MS", "51": "MT", "52": "GO", "53": "DF",
 };
 
-const OBS_PNS2019 = {
+const OBS_PNS2019 = { // % de lares com CACHORRO, por UF (fallback)
   RO: 64.8, MS: 61.5, MT: 61.2, AC: 60.0, RR: 58.9, PR: 58.7, TO: 57.9, GO: 56.4,
   SC: 55.8, RS: 54.6, MG: 52.0, ES: 51.2, AP: 50.8, PA: 49.6, AM: 48.7, DF: 47.9,
   SP: 45.1, RJ: 41.9, MA: 41.0, BA: 39.5, CE: 38.8, PI: 38.2, RN: 37.4, PB: 36.1,
   SE: 34.7, PE: 34.2, AL: 34.0,
 };
+const OBS_PNS2019_GATOS = { // % de lares com GATO, por UF (fallback)
+  PI: 32.6, MA: 31.5, CE: 29.3, TO: 27.2, RO: 26.9, AC: 26.4, PA: 26.4, RS: 25.2,
+  AL: 24.8, SE: 24.4, RR: 23.5, AP: 22.8, MT: 22.6, AM: 21.8, PB: 21.7, MS: 21.1,
+  RN: 20.6, BA: 20.2, PE: 20.1, SC: 19.5, PR: 18.2, SP: 16.0, GO: 14.7, RJ: 14.6,
+  MG: 14.5, ES: 13.2, DF: 10.3,
+};
 
 const MALHA_URL = "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=image/svg+xml&qualidade=minima&intrarregiao=UF";
 const HEAT_COR = { "heat-1": "#E3EBDC", "heat-2": "#C4D6B8", "heat-3": "#9FBA99", "heat-4": "#527353" };
 
-async function obsCarregaMapa() {
-  // 1) dados de posse por UF (IBGE agregados)
-  let porUF, ano;
-  try {
-    const resp = await fetch(`${IBGE_BASE}/4930/periodos/-1/variaveis/5180?localidades=N3[all]`);
-    const data = await resp.json();
-    porUF = {};
-    data[0].resultados[0].series.forEach((s) => {
-      const uf = UF_POR_ID[String(s.localidade.id)];
-      const anoK = Object.keys(s.serie)[0];
-      ano = anoK;
-      if (uf) porUF[uf] = Number(s.serie[anoK]);
-    });
-    if (!Object.keys(porUF).length) throw new Error("vazio");
-  } catch (err) {
-    porUF = OBS_PNS2019; ano = "2019";
-  }
+// Estado do mapa por espécie (cães/gatos).
+const OBS_MAPA = { caes: null, gatos: null, atual: "caes" };
+const OBS_ESPECIE_INFO = {
+  caes: { emoji: "🐶", nome: "cachorro" },
+  gatos: { emoji: "🐱", nome: "gato" },
+};
 
-  const fonteEl = document.getElementById("obs-uf-fonte");
-  if (fonteEl) fonteEl.textContent = `📌 IBGE · PNS ${ano || "2019"}`;
-
-  obsRenderListaUF(porUF);
-  await obsRenderMapaReal(porUF);
-  obsSelecionarUF(Object.entries(porUF).sort((a, b) => b[1] - a[1])[0]?.[0], false);
+async function obsFetchPosseUF(tabela, variavel) {
+  const resp = await fetch(`${IBGE_BASE}/${tabela}/periodos/-1/variaveis/${variavel}?localidades=N3[all]`);
+  const data = await resp.json();
+  const porUF = {}; let ano = "";
+  data[0].resultados[0].series.forEach((s) => {
+    const uf = UF_POR_ID[String(s.localidade.id)];
+    const k = Object.keys(s.serie)[0];
+    ano = k;
+    if (uf) porUF[uf] = Number(s.serie[k]);
+  });
+  if (!Object.keys(porUF).length) throw new Error("vazio");
+  return { porUF, ano };
 }
 
-function obsHeat(pct) {
-  if (pct >= 56) return "heat-4";
-  if (pct >= 48) return "heat-3";
-  if (pct >= 40) return "heat-2";
+async function obsCarregaMapa() {
+  try { OBS_MAPA.caes = await obsFetchPosseUF(4930, 5180); }
+  catch (e) { OBS_MAPA.caes = { porUF: OBS_PNS2019, ano: "2019" }; }
+  try { OBS_MAPA.gatos = await obsFetchPosseUF(4931, 5188); }
+  catch (e) { OBS_MAPA.gatos = { porUF: OBS_PNS2019_GATOS, ano: "2019" }; }
+
+  await obsMontaMapaReal();       // injeta o SVG uma vez
+  obsAplicarEspecie("caes");
+
+  document.querySelectorAll(".obs-especie-btn").forEach((b) =>
+    b.addEventListener("click", () => obsAplicarEspecie(b.dataset.especie))
+  );
+}
+
+/** Cor por posição no ranking (quartis) — funciona para cães e gatos. */
+function obsHeatRank(pos, total) {
+  const q = pos / total;
+  if (q < 0.26) return "heat-4";
+  if (q < 0.52) return "heat-3";
+  if (q < 0.78) return "heat-2";
   return "heat-1";
 }
 
-/** Lista/ranking rolável de estados. */
-function obsRenderListaUF(porUF) {
+/** Troca a espécie exibida no mapa e no ranking. */
+function obsAplicarEspecie(especie) {
+  if (!OBS_MAPA[especie]) return;
+  OBS_MAPA.atual = especie;
+  const { porUF, ano } = OBS_MAPA[especie];
+  const ranked = Object.entries(porUF).sort((a, b) => b[1] - a[1]);
+  const pos = {}; ranked.forEach(([uf], i) => (pos[uf] = i));
+
+  document.querySelectorAll(".obs-uf-path").forEach((path) => {
+    const uf = path.getAttribute("data-uf");
+    path.style.fill = uf in porUF ? HEAT_COR[obsHeatRank(pos[uf], ranked.length)] : "#EFEBE0";
+  });
+
+  obsRenderListaUF(ranked);
+
+  document.querySelectorAll(".obs-especie-btn").forEach((b) => b.classList.toggle("active", b.dataset.especie === especie));
+  const fonteEl = document.getElementById("obs-uf-fonte");
+  if (fonteEl) fonteEl.textContent = `📌 IBGE · PNS ${ano || "2019"}`;
+  const tituloEl = document.getElementById("obs-mapa-titulo");
+  if (tituloEl) tituloEl.textContent = `Onde vivem os ${especie === "gatos" ? "gatos" : "cães"} do Brasil`;
+
+  obsSelecionarUF(ranked[0]?.[0], false);
+}
+
+/** Lista/ranking rolável de estados (recebe já ordenado). */
+function obsRenderListaUF(ranked) {
   const list = document.getElementById("obs-uf-list");
   if (!list) return;
-  const ranked = Object.entries(porUF).sort((a, b) => b[1] - a[1]);
   const maxPct = ranked.length ? ranked[0][1] : 100;
   const medalha = ["🥇", "🥈", "🥉"];
   list.innerHTML = ranked.map(([uf, pct], i) => `
@@ -253,8 +294,8 @@ function obsRenderListaUF(porUF) {
   };
 }
 
-/** Mapa REAL do Brasil (malha oficial do IBGE), colorido por UF. */
-async function obsRenderMapaReal(porUF) {
+/** Injeta o mapa real do Brasil (malha oficial do IBGE) uma única vez. */
+async function obsMontaMapaReal() {
   const host = document.getElementById("obs-map-real");
   if (!host) return;
   let tip = document.querySelector(".obs-tooltip");
@@ -272,17 +313,17 @@ async function obsRenderMapaReal(porUF) {
     svg.querySelectorAll("path[id]").forEach((path) => {
       const uf = UF_POR_ID[String(path.id)];
       if (!uf) return;
-      const pct = porUF[uf];
       path.setAttribute("data-uf", uf);
-      path.style.fill = pct != null ? HEAT_COR[obsHeat(pct)] : "#EFEBE0";
       path.classList.add("obs-uf-path");
     });
 
     host.onmousemove = (e) => {
       const path = e.target.closest(".obs-uf-path");
       if (!path) { tip.classList.remove("visible"); return; }
-      const uf = path.getAttribute("data-uf"); const pct = porUF[uf];
-      tip.innerHTML = `<strong>${OBS.nomesUF[uf]}</strong><br />${pct != null ? obsFmtPct(pct) + " dos lares têm cachorro" : "sem dado"}`;
+      const uf = path.getAttribute("data-uf");
+      const info = OBS_ESPECIE_INFO[OBS_MAPA.atual];
+      const pct = OBS_MAPA[OBS_MAPA.atual].porUF[uf];
+      tip.innerHTML = `<strong>${OBS.nomesUF[uf]}</strong><br />${pct != null ? obsFmtPct(pct) + ` dos lares têm ${info.nome}` : "sem dado"}`;
       tip.style.left = e.clientX + 14 + "px"; tip.style.top = e.clientY + 14 + "px";
       tip.classList.add("visible");
     };
@@ -292,7 +333,6 @@ async function obsRenderMapaReal(porUF) {
       if (path) obsSelecionarUF(path.getAttribute("data-uf"), true);
     };
   } catch (err) {
-    // Sem mapa: o ranking à direita continua valendo sozinho.
     host.classList.add("obs-map-fail");
     host.innerHTML = '<p class="obs-vazio">Não foi possível carregar o mapa agora — veja o ranking ao lado.</p>';
   }

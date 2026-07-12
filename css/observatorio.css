@@ -263,9 +263,25 @@ button { font-family: inherit; cursor: pointer; }
   /* Verde mais leve, com um toque quente — base para o brilho colorido "Brasil". */
   background: linear-gradient(140deg, #4C6A4B 0%, #3F5B41 55%, #33502F 100%);
   color: #F4F1E6;
-  border-radius: var(--radius-lg);
+  /* Cantos orgânicos e assimétricos — menos "bloco", mais forma. */
+  border-radius: 28px 28px 28px 96px;
   padding: clamp(36px, 6vw, 64px) clamp(24px, 5vw, 56px);
   margin-top: 20px;
+}
+/* Pata gigante desbotada — toque artístico que quebra o retângulo. */
+.obs-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: -60px;
+  bottom: -70px;
+  width: 340px;
+  height: 340px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4F1E6'><path d='M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z'/></svg>")
+    center / contain no-repeat;
+  opacity: 0.06;
+  transform: rotate(-18deg);
+  pointer-events: none;
 }
 /* Padrão de pontos — sensação de "dados" sem virar dashboard corporativo. */
 .obs-hero::before {
@@ -288,10 +304,10 @@ button { font-family: inherit; cursor: pointer; }
   will-change: transform;
   animation: obs-orb-float 14s ease-in-out infinite;
 }
-.orb-a { width: 300px; height: 300px; background: #E7C889; opacity: 0.55; top: -70px; left: -50px; }               /* amarelo sol */
-.orb-b { width: 340px; height: 340px; background: #3F9E93; opacity: 0.42; bottom: -110px; right: -40px; animation-delay: -4s; } /* verde-água */
-.orb-c { width: 240px; height: 240px; background: #D98A8D; opacity: 0.38; top: 34%; right: 26%; animation-delay: -8s; }          /* coral */
-.orb-d { width: 200px; height: 200px; background: #6FA6D6; opacity: 0.30; bottom: 8%; left: 22%; animation-delay: -11s; }        /* azul */
+.orb-a { width: 250px; height: 250px; background: #E7C889; opacity: 0.20; top: -60px; left: -40px; }               /* amarelo (bem discreto) */
+.orb-b { width: 380px; height: 380px; background: #2FA899; opacity: 0.46; bottom: -130px; right: -60px; animation-delay: -4s; } /* verde-água */
+.orb-c { width: 260px; height: 260px; background: #E28C8F; opacity: 0.40; top: 30%; right: 22%; animation-delay: -8s; }          /* coral */
+.orb-d { width: 250px; height: 250px; background: #6FA6D6; opacity: 0.38; bottom: 4%; left: 18%; animation-delay: -11s; }        /* azul */
 @keyframes obs-orb-float {
   0%, 100% { transform: translate(0, 0) scale(1); }
   33% { transform: translate(18px, -14px) scale(1.06); }
@@ -357,6 +373,49 @@ button { font-family: inherit; cursor: pointer; }
   margin: 0;
   color: var(--color-text-muted);
   font-size: 14px;
+}
+
+/* Toggle Cães / Gatos */
+.obs-especie-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.obs-especie-btn {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+.obs-especie-btn.active {
+  background: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(82, 115, 83, 0.3);
+}
+@media (max-width: 640px) {
+  .obs-mapa-head { flex-direction: column; align-items: flex-start; }
+  .obs-especie-btn { padding: 7px 14px; }
+}
+
+/* Legenda em gradiente (cor por ranking) */
+.obs-map-legend--grad {
+  align-items: center;
+}
+.obs-legend-bar {
+  flex: 1;
+  max-width: 160px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #E3EBDC, #C4D6B8, #9FBA99, #527353);
 }
 
 /* ---------- Mapa do Brasil (tile grid) ---------- */
@@ -905,8 +964,10 @@ button { font-family: inherit; cursor: pointer; }
   padding: 22px 22px 20px;
   overflow: hidden;
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 0.9, 0.3, 1);
+  transform: translateY(26px) scale(0.96);
+  transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.34, 1.4, 0.5, 1);
+  /* Cascata "piano": cada card entra um pouquinho depois do anterior. */
+  transition-delay: calc(var(--i) * 70ms);
 }
 .obs-num-card.in { opacity: 1; transform: none; }
 .obs-num-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; }
@@ -1038,29 +1099,28 @@ button { font-family: inherit; cursor: pointer; }
   border: 1px solid #EAC7C8;
   border-radius: var(--radius-lg);
   padding: 22px clamp(18px, 3vw, 28px);
-  text-decoration: none;
-  color: inherit;
-  transition: box-shadow 0.18s ease, transform 0.18s ease;
-}
-.obs-denuncia:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-2px); }
-.obs-denuncia-link {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #8a2f33;
 }
 .obs-denuncia-icon { font-size: 34px; line-height: 1; flex-shrink: 0; }
 .obs-denuncia-body strong { font-family: var(--font-display); font-size: 18px; color: #8a2f33; }
 .obs-denuncia-body p { margin: 4px 0 12px; font-size: 14px; color: #6b4c4d; line-height: 1.55; }
 .obs-denuncia-canais { display: flex; flex-wrap: wrap; gap: 8px; }
 .obs-denuncia-canal {
-  background: rgba(255, 255, 255, 0.7);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.75);
   border: 1px solid #EAC7C8;
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 8px 15px;
   font-size: 12.5px;
   color: #6b4c4d;
+  text-decoration: none;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.obs-denuncia-canal:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(138, 47, 51, 0.18);
 }
 .obs-denuncia-canal strong { color: #8a2f33; font-size: inherit; }
 

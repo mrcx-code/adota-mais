@@ -45,7 +45,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://servicodados.ibge.gov.br" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/observatorio.css?v=20260712" />
+  <link rel="stylesheet" href="../css/observatorio.css?v=20260712c" />
 </head>
 <body data-obs-page="home">
 
@@ -92,21 +92,24 @@
 
     <!-- ============ S1: mapa + lista rolável por estado ============ -->
     <section id="obs-mapa" class="obs-section">
-      <div class="obs-section-head">
+      <div class="obs-section-head obs-mapa-head">
         <div>
-          <h2>Onde vivem os cães do Brasil 🗺️</h2>
-          <p>Percentual de lares com pelo menos um cachorro, estado por estado. Toque num estado no mapa — a lista rola até ele.</p>
+          <h2 id="obs-mapa-titulo">Onde vivem os cães do Brasil 🗺️</h2>
+          <p>Percentual de lares com pelo menos um cachorro/gato, estado por estado. Toque num estado no mapa — a lista rola até ele.</p>
+        </div>
+        <div class="obs-especie-toggle" role="group" aria-label="Escolher espécie">
+          <button type="button" class="obs-especie-btn active" data-especie="caes">🐶 Cães</button>
+          <button type="button" class="obs-especie-btn" data-especie="gatos">🐱 Gatos</button>
         </div>
       </div>
       <div class="obs-panel">
         <div class="obs-map-wrap">
           <div class="obs-map-real-col">
-            <div id="obs-map-real" class="obs-map-real" role="img" aria-label="Mapa do Brasil colorido pelo percentual de lares com cachorro por estado"></div>
-            <div class="obs-map-legend">
-              <span class="swatch" style="background:#E3EBDC"></span><span>até 40%</span>
-              <span class="swatch" style="background:#C4D6B8"></span><span>40–48%</span>
-              <span class="swatch" style="background:#9FBA99"></span><span>48–56%</span>
-              <span class="swatch" style="background:#527353"></span><span>56%+</span>
+            <div id="obs-map-real" class="obs-map-real" role="img" aria-label="Mapa do Brasil colorido por estado"></div>
+            <div class="obs-map-legend obs-map-legend--grad">
+              <span>menos lares</span>
+              <span class="obs-legend-bar"></span>
+              <span>mais lares</span>
             </div>
           </div>
           <div class="obs-uf-list-wrap">
@@ -155,19 +158,19 @@
       <div class="obs-engaje">
         <h3>✍️ Faça a sua parte hoje</h3>
         <div id="obs-engaje-grid" class="obs-engaje-grid"></div>
-        <a class="obs-denuncia" href="https://www.gov.br/mma/pt-br/assuntos/biodiversidade-e-biomas/direitos-animais/maus-tratos-a-animais" target="_blank" rel="noopener">
+        <div class="obs-denuncia">
           <div class="obs-denuncia-icon" aria-hidden="true">🚨</div>
           <div class="obs-denuncia-body">
             <strong>Maus-tratos e abandono são crime.</strong>
             <p>Testemunhou? Não passe reto. Denuncie de forma anônima:</p>
             <div class="obs-denuncia-canais">
-              <span class="obs-denuncia-canal">📞 <strong>190</strong> · Polícia Militar (urgência)</span>
-              <span class="obs-denuncia-canal">📱 <strong>Disque 100</strong> · IBAMA 0800 61 8080</span>
-              <span class="obs-denuncia-canal">🏛️ Delegacia ou Ministério Público</span>
+              <a class="obs-denuncia-canal" href="tel:190">📞 <strong>190</strong> · Polícia Militar</a>
+              <a class="obs-denuncia-canal" href="tel:100">📱 <strong>Disque 100</strong></a>
+              <a class="obs-denuncia-canal" href="tel:08006180080">🌳 <strong>IBAMA</strong> · 0800 61 8080</a>
+              <a class="obs-denuncia-canal" href="https://www.gov.br/ibama/pt-br/assuntos/fiscalizacao-e-protecao-ambiental/fiscalizacao-ambiental/denuncias" target="_blank" rel="noopener">🏛️ Delegacia / Ministério Público ↗</a>
             </div>
-            <span class="obs-denuncia-link">Saiba como denunciar no gov.br ↗</span>
           </div>
-        </a>
+        </div>
       </div>
     </section>
 
@@ -239,7 +242,7 @@
       <div id="obs-bolhas" class="obs-bolhas" aria-hidden="true"></div>
       <div class="obs-cta-conteudo">
         <h2>Atrás de cada número,<br />tem um focinho esperando.</h2>
-        <p>Estão bem aqui embaixo — cada bolinha é um bichinho de verdade à procura de um lar. Brinca com elas e vem conhecer todo mundo no mural. 🎈</p>
+        <p>Estão bem aqui embaixo — cada bolinha é um bichinho de verdade à procura de um lar. Brinca com elas e vem conhecer todo mundo no mural.</p>
         <div class="obs-cta-actions">
           <a href="../index.html" class="btn btn-primary btn-cta">Conhecer os pets disponíveis 🐾</a>
           <a href="../admin.html" class="btn btn-secondary btn-cta">Sou um abrigo / ONG</a>
@@ -267,6 +270,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabaseClient.js"></script>
   <script src="../js/analytics.js"></script>
-  <script src="../js/observatorio.js?v=20260712"></script>
+  <script src="../js/observatorio.js?v=20260712b"></script>
 </body>
 </html>
