@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Observatório Patinhas — a adoção acontecendo ao vivo no Brasil</title>
-  <meta name="description" content="O Observatório Patinhas mostra a adoção acontecendo ao vivo: animais reais chegando, esperando e encontrando um lar — além do contexto nacional com fontes como OMS, Instituto Pet Brasil e IBGE." />
+  <title>Observatório Patinhas — dados públicos sobre adoção e abandono no Brasil</title>
+  <meta name="description" content="Os dados mais recentes de fontes oficiais e de referência sobre abandono, adoção e pets no Brasil: IBGE consultado ao vivo, SinPatinhas, Abempet, pesquisas de 2024 a 2026 — com fonte e data em cada número." />
   <link rel="canonical" href="https://patinhasbrasil.com.br/observatorio/" />
   <meta name="theme-color" content="#527353" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Patinhas" />
-  <meta property="og:title" content="Observatório Patinhas — a adoção acontecendo ao vivo" />
-  <meta property="og:description" content="Números de verdade, de animais de verdade: a jornada da rua ao lar, atualizando ao vivo — e o contexto nacional com as fontes citadas." />
+  <meta property="og:title" content="Observatório Patinhas — dados públicos sobre adoção e abandono" />
+  <meta property="og:description" content="1 em cada 4 cães e gatos do Brasil está em situação de abandono — e 80% dos pets nos lares chegaram por adoção. Dados públicos, com fonte e data em cada número." />
   <meta property="og:url" content="https://patinhasbrasil.com.br/observatorio/" />
   <meta property="og:image" content="https://patinhasbrasil.com.br/img/patinhas-logo-full.png" />
   <meta property="og:locale" content="pt_BR" />
@@ -22,7 +22,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Observatório Patinhas",
-    "description": "A adoção acontecendo ao vivo: dados reais da plataforma Patinhas e contexto nacional sobre adoção e abandono, com fontes citadas.",
+    "description": "Dados públicos sobre adoção, abandono e pets no Brasil, das fontes oficiais e de referência, com APIs do IBGE consultadas ao vivo.",
     "url": "https://patinhasbrasil.com.br/observatorio/",
     "publisher": { "@type": "Organization", "name": "Patinhas", "url": "https://patinhasbrasil.com.br/" }
   }
@@ -43,7 +43,7 @@
   <link rel="manifest" href="../site.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://hdhqziqvrthxtgyraemk.supabase.co" crossorigin />
+  <link rel="preconnect" href="https://servicodados.ibge.gov.br" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/observatorio.css" />
 </head>
@@ -69,153 +69,65 @@
       <a href="../index.html">Patinhas</a> <span class="sep">/</span> <span>Observatório</span>
     </nav>
 
-    <!-- ============ §0 PRÓLOGO — ao vivo ============ -->
+    <!-- ============ HERO: os 4 números que resumem o Brasil ============ -->
     <section class="obs-hero">
       <span class="obs-eyebrow">📡 Observatório Patinhas</span>
-      <div id="obs-live-badge" class="obs-live-badge" role="status">
-        <span class="obs-live-paw" aria-hidden="true">🐾</span>
-        <span id="obs-live-text">conectando ao mural…</span>
-      </div>
-      <h1>Toda adoção é uma caminhada.<br /><em>Esta é a trilha de quem já está andando.</em></h1>
-      <p>Números de verdade, de animais de verdade — direto do nosso mural, atualizando sozinhos enquanto você lê. E, lá no fundo, o retrato do Brasil que queremos mudar.</p>
+      <div class="obs-live-badge"><span class="obs-live-paw" aria-hidden="true">🐾</span> <span>dados públicos verificados · fontes e datas em cada número</span></div>
+      <h1>O abandono tem números.<br /><em>A adoção também.</em></h1>
+      <p>Reunimos os levantamentos mais recentes de fontes oficiais e de referência sobre abandono, adoção e pets no Brasil — e consultamos as APIs públicas ao vivo, direto do seu navegador.</p>
 
-      <div class="obs-hero-stats" id="obs-hero-stats">
+      <div class="obs-hero-stats">
         <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value" id="live-pets">—</div>
-          <div class="obs-hero-stat-label">patinhas na plataforma</div>
+          <div class="obs-hero-stat-value"><span data-count="30.2" data-decimals="1">30,2</span><span class="obs-u">mi</span></div>
+          <div class="obs-hero-stat-label">de cães e gatos em situação de abandono — <strong>1 em cada 4</strong></div>
+          <span class="obs-hero-stat-fonte">📌 Mars · State of Pet Homelessness (2024)</span>
         </div>
         <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value" id="live-adopted">—</div>
-          <div class="obs-hero-stat-label">já encontraram um lar</div>
+          <div class="obs-hero-stat-value"><span data-count="80">80</span><span class="obs-u">%</span></div>
+          <div class="obs-hero-stat-label">dos pets nos lares brasileiros chegaram por <strong>adoção</strong></div>
+          <span class="obs-hero-stat-fonte">📌 GoldeN / Opinion Box (2025)</span>
         </div>
         <div class="obs-hero-stat">
-          <div class="obs-hero-stat-value" id="live-orgs">—</div>
-          <div class="obs-hero-stat-label">ONGs na rede</div>
+          <div class="obs-hero-stat-value"><span data-count="1.3" data-decimals="1">1,3</span><span class="obs-u">mi</span></div>
+          <div class="obs-hero-stat-label">de animais ganharam “RG” no 1º ano do SinPatinhas</div>
+          <span class="obs-hero-stat-fonte">📌 MMA / Gov. Federal (abr 2026)</span>
+        </div>
+        <div class="obs-hero-stat">
+          <div class="obs-hero-stat-value"><span data-count="4.8" data-decimals="1">4,8</span><span class="obs-u">mi</span></div>
+          <div class="obs-hero-stat-label">de cães e gatos em condição de vulnerabilidade</div>
+          <span class="obs-hero-stat-fonte">📌 Instituto Pet Brasil (2024)</span>
         </div>
       </div>
 
       <div class="obs-hero-actions">
-        <a href="../index.html" class="btn btn-primary btn-cta">Conhecer quem está esperando 🐾</a>
-        <a href="#cap-1" class="btn btn-secondary btn-cta">Começar a caminhada ↓</a>
+        <a href="../index.html" class="btn btn-primary btn-cta">Quero mudar esses números 🐾</a>
+        <a href="#ibge-vivo" class="btn btn-secondary btn-cta">Explorar os dados ↓</a>
       </div>
     </section>
 
-    <div class="obs-trilha" aria-hidden="true"></div>
-
-    <!-- ============ §1 CAPÍTULO 1 — A RUA ============ -->
-    <section id="cap-1" class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal" aria-hidden="true">1</span>
+    <!-- ============ S1: IBGE consultado ao vivo ============ -->
+    <section id="ibge-vivo" class="obs-section">
+      <div class="obs-section-head">
         <div>
-          <h2>A rua</h2>
-          <p class="obs-cap-sub">Toda trilha começa em algum lugar. No Brasil, o ponto de partida é este:</p>
+          <h2>Direto da API do IBGE 🛰️</h2>
+          <p>Estes números são consultados <strong>agora, ao vivo</strong>, na API oficial do IBGE (PNS — Pesquisa Nacional de Saúde).</p>
         </div>
       </div>
-      <div class="obs-rua">
-        <div class="obs-rua-chips" id="obs-rua-chips"></div>
-        <p class="obs-rua-ponte">Mas algumas dessas histórias mudam de rumo.<br /><strong>Continue andando. 🐾</strong></p>
-      </div>
-    </section>
+      <div id="obs-ibge-selo" class="obs-api-selo">⏳ consultando a API do IBGE…</div>
+      <div id="obs-pns-banner" class="obs-pns-banner hidden"></div>
+      <div id="obs-ibge-cards" class="obs-stat-grid"></div>
 
-    <div class="obs-trilha" aria-hidden="true"></div>
-
-    <!-- ============ §2 CAPÍTULO 2 — A CHEGADA ============ -->
-    <section class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal" aria-hidden="true">2</span>
-        <div>
-          <h2>A chegada</h2>
-          <p class="obs-cap-sub" id="obs-chegada-sub">Os que acabaram de entrar na trilha.</p>
-        </div>
-      </div>
-      <div class="obs-panel">
-        <div id="obs-chegadas" class="obs-chegadas"></div>
-      </div>
-    </section>
-
-    <div class="obs-trilha" aria-hidden="true"></div>
-
-    <!-- ============ §3 CAPÍTULO 3 — A ESPERA ============ -->
-    <section class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal" aria-hidden="true">3</span>
-        <div>
-          <h2>A espera</h2>
-          <p class="obs-cap-sub" id="obs-espera-sub">Cada patinha abaixo é um animal de verdade. Sem estimativas.</p>
-        </div>
-      </div>
-      <div class="obs-panel">
-        <div id="obs-censo" class="obs-censo"></div>
-        <div class="obs-censo-legenda" aria-hidden="true">
-          <span class="obs-censo-key esperando">esperando um lar</span>
-          <span class="obs-censo-key processo">em processo</span>
-          <span class="obs-censo-key lar">já em casa</span>
-        </div>
-        <p id="obs-censo-egg" class="obs-censo-egg" role="status"></p>
-        <p class="obs-censo-dica">💡 Toque numa patinha para conhecer quem ela é. Passe o dedo por todas para fazer carinho.</p>
-      </div>
-    </section>
-
-    <div class="obs-trilha" aria-hidden="true"></div>
-
-    <!-- ============ §4 CAPÍTULO 4 — O ENCONTRO ============ -->
-    <section class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal" aria-hidden="true">4</span>
-        <div>
-          <h2>O encontro</h2>
-          <p class="obs-cap-sub">Quando alguém aperta “Quero adotar!”, uma trilha cruza com a outra.</p>
-        </div>
-      </div>
-      <div class="obs-encontro">
-        <div class="obs-encontro-card">
-          <span class="obs-coracao" aria-hidden="true">💚</span>
-          <div class="obs-encontro-num" id="obs-interesses">—</div>
-          <p>corações já se demonstraram por aqui</p>
-        </div>
-        <div class="obs-encontro-card">
-          <span class="obs-coracao obs-coracao--paw" aria-hidden="true">🐾</span>
-          <div class="obs-encontro-num" id="obs-processo">—</div>
-          <p id="obs-processo-desc">patinhas a um passo do lar</p>
-        </div>
-      </div>
-    </section>
-
-    <div class="obs-trilha" aria-hidden="true"></div>
-
-    <!-- ============ §5 CAPÍTULO 5 — O LAR ============ -->
-    <section class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal obs-cap-medal--lar" aria-hidden="true">🏡</span>
-        <div>
-          <h2>O lar</h2>
-          <p class="obs-cap-sub" id="obs-lar-sub">Onde toda trilha quer chegar.</p>
-        </div>
-      </div>
-      <div class="obs-panel">
-        <div id="obs-reencontros" class="obs-reencontros"></div>
-        <p id="obs-lar-metrica" class="obs-lar-metrica"></p>
-      </div>
-    </section>
-
-    <!-- ============ §6 CAPÍTULO 6 — A REDE ============ -->
-    <section class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal" aria-hidden="true">🗺️</span>
-        <div>
-          <h2>Nenhuma patinha caminha sozinha</h2>
-          <p class="obs-cap-sub">A rede de ONGs e abrigos, estado por estado — acendendo aos poucos.</p>
-        </div>
-      </div>
-      <div class="obs-panel">
+      <div class="obs-panel" style="margin-top:20px;">
+        <h3>🗺️ Lares com cachorro, estado por estado</h3>
+        <p class="obs-panel-sub">Percentual de domicílios com pelo menos um cachorro — dado oficial por UF, também consultado ao vivo. Toque num estado.</p>
         <div class="obs-map-wrap">
           <div>
-            <div id="obs-map" class="obs-map" role="group" aria-label="Mapa do Brasil: estados com ONGs na rede"></div>
-            <div class="obs-osso-wrap">
-              <div class="obs-osso" role="img" id="obs-osso" aria-label="Progresso da rede pelos estados">
-                <div class="obs-osso-fill" id="obs-osso-fill"></div>
-              </div>
-              <span class="obs-osso-label" id="obs-osso-label"></span>
+            <div id="obs-map" class="obs-map" role="group" aria-label="Mapa do Brasil: percentual de lares com cachorro por estado"></div>
+            <div class="obs-map-legend">
+              <span class="swatch" style="background:#E3EBDC"></span><span>até 40%</span>
+              <span class="swatch" style="background:#C4D6B8"></span><span>40–48%</span>
+              <span class="swatch" style="background:#9FBA99"></span><span>48–56%</span>
+              <span class="swatch" style="background:#527353"></span><span>56%+</span>
             </div>
           </div>
           <div id="obs-uf-detail" class="obs-state-detail"></div>
@@ -223,63 +135,150 @@
       </div>
     </section>
 
-    <!-- ============ §7 CONQUISTAS ============ -->
-    <section class="obs-cap">
-      <div class="obs-cap-head">
-        <span class="obs-cap-medal" aria-hidden="true">🏅</span>
+    <!-- ============ S2: políticas públicas quase em tempo real ============ -->
+    <section class="obs-section">
+      <div class="obs-section-head">
         <div>
-          <h2>Conquistas da nossa comunidade</h2>
-          <p class="obs-cap-sub">Cada marco desbloqueado é obra de quem adota, resgata e compartilha.</p>
+          <h2>Políticas públicas, quase em tempo real 📜</h2>
+          <p>O que as prefeituras do Brasil estão publicando em diário oficial sobre a causa animal — e o que o governo federal já cadastrou.</p>
         </div>
       </div>
-      <div id="obs-conquistas" class="obs-conquistas"></div>
-    </section>
-
-    <!-- ============ §8 EPÍLOGO ============ -->
-    <section class="obs-cta">
-      <h2>A próxima trilha pode<br />começar com você.</h2>
-      <p>Tem um sofá sobrando, um quintal, um cantinho? Tem alguém esperando exatamente por ele.</p>
-      <div class="obs-cta-actions">
-        <a href="../index.html" class="btn btn-primary btn-cta">Conhecer quem está esperando 🐾</a>
-        <a href="../admin.html" class="btn btn-secondary btn-cta">Sou um abrigo / ONG</a>
+      <div class="obs-qd-grid">
+        <div class="obs-panel obs-qd-panel">
+          <div id="obs-qd-num" class="obs-qd-num">—</div>
+          <p class="obs-qd-label">diários oficiais municipais mencionam <strong>“castração de animais”</strong></p>
+          <div id="obs-qd-selo" class="obs-api-selo">⏳ consultando o Querido Diário…</div>
+          <div id="obs-qd-lista" class="obs-qd-lista"></div>
+          <span class="obs-fonte">📌 Querido Diário — Open Knowledge Brasil (API aberta)</span>
+        </div>
+        <div class="obs-qd-side">
+          <div class="obs-stat-card">
+            <span class="obs-stat-icon">🪪</span>
+            <div class="obs-stat-value">1.305.529</div>
+            <p>animais cadastrados no SinPatinhas em 1 ano — presença em <strong>98,3% dos municípios</strong></p>
+            <span class="obs-fonte">📌 MMA — balanço de 1 ano (abr 2026)</span>
+          </div>
+          <div class="obs-stat-card">
+            <span class="obs-stat-icon">✂️</span>
+            <div class="obs-stat-value">675.855</div>
+            <p>castrações gratuitas realizadas pelo programa ProPatinhas até o fim de 2025</p>
+            <span class="obs-fonte">📌 MMA / ProPatinhas (abr 2026)</span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Acervo nacional completo (recolhido) -->
+    <!-- ============ S3: o retrato do abandono ============ -->
+    <section class="obs-section">
+      <div class="obs-section-head">
+        <div>
+          <h2>O retrato do abandono</h2>
+          <p>Os levantamentos mais recentes sobre quem ainda está do lado de fora.</p>
+        </div>
+      </div>
+
+      <div class="obs-panel">
+        <h3>🐾 De cada 4 cães e gatos do Brasil, 1 está em situação de abandono</h3>
+        <div id="obs-pictograma"></div>
+      </div>
+
+      <div class="obs-stat-grid" style="margin-top:20px;">
+        <div class="obs-stat-card">
+          <span class="obs-stat-icon">🏠</span>
+          <div class="obs-stat-value">~201 mil</div>
+          <p>animais acolhidos por cerca de 400 ONGs e protetores (92% são cães)</p>
+          <span class="obs-fonte">📌 Instituto Pet Brasil (2024)</span>
+        </div>
+        <div class="obs-stat-card">
+          <span class="obs-stat-icon">⚖️</span>
+          <div class="obs-stat-value">1,35 → 1</div>
+          <p>para cada animal que sai de um abrigo, entra 1,35 — a conta ainda não fecha</p>
+          <span class="obs-fonte">📌 Infodados / Medicina de Abrigos (dados 2025)</span>
+        </div>
+        <div class="obs-stat-card">
+          <span class="obs-stat-icon">🏙️</span>
+          <div class="obs-stat-value">82,9%</div>
+          <p>do abandono acontece nos centros urbanos — 76,6% em vias públicas</p>
+          <span class="obs-fonte">📌 Pesquisa Cobasi Cuida (2025)</span>
+        </div>
+        <div class="obs-stat-card">
+          <span class="obs-stat-icon">📉</span>
+          <div class="obs-stat-value">93,8%</div>
+          <p>das ONGs percebem aumento do abandono em períodos de crise econômica</p>
+          <span class="obs-fonte">📌 Pesquisa Cobasi Cuida (2025)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ S4: a adoção está vencendo ============ -->
+    <section class="obs-section">
+      <div class="obs-section-head">
+        <div>
+          <h2>A adoção está vencendo 💚</h2>
+          <p>O que as pesquisas de 2025 e 2026 dizem sobre como os pets chegam às famílias — toque nos cards para ver o contexto.</p>
+        </div>
+      </div>
+      <div id="obs-fatos" class="obs-flip-grid"></div>
+    </section>
+
+    <!-- ============ S5: o tamanho do Brasil pet ============ -->
+    <section class="obs-section">
+      <div class="obs-section-head">
+        <div>
+          <h2>O tamanho do Brasil pet</h2>
+          <p>Contexto: a 3ª maior população de animais de estimação do planeta.</p>
+        </div>
+      </div>
+      <div class="obs-panel">
+        <h3>🐶 🐱 Cães e gatos nos lares brasileiros</h3>
+        <div id="obs-split" class="obs-split"></div>
+      </div>
+      <div class="obs-panel">
+        <h3>⚖️ Leis que mudaram a causa animal</h3>
+        <div id="obs-leis" class="obs-timeline obs-timeline--row"></div>
+      </div>
+    </section>
+
+    <!-- ============ S6: O Lar — histórias reais da plataforma ============ -->
+    <section class="obs-section">
+      <div class="obs-section-head">
+        <div>
+          <h2>Do outro lado das estatísticas 🏡</h2>
+          <p>Cada número deste Observatório termina (ou deveria terminar) assim: reencontros reais que aconteceram aqui no Patinhas.</p>
+        </div>
+      </div>
+      <div class="obs-panel">
+        <div id="obs-reencontros" class="obs-reencontros"></div>
+      </div>
+    </section>
+
+    <!-- ============ S7: CTA final com as bolhas ============ -->
+    <section class="obs-cta obs-cta--bolhas" id="obs-cta-bolhas">
+      <div id="obs-bolhas" class="obs-bolhas" aria-hidden="true"></div>
+      <div class="obs-cta-conteudo">
+        <h2>Atrás de cada número,<br />tem um focinho esperando.</h2>
+        <p>Eles estão aqui, boiando na tela — e no mural, prontos pra te conhecer.</p>
+        <div class="obs-cta-actions">
+          <a href="../index.html" class="btn btn-primary btn-cta">Conhecer os pets disponíveis 🐾</a>
+          <a href="../admin.html" class="btn btn-secondary btn-cta">Sou um abrigo / ONG</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fontes completas -->
     <details class="obs-acervo">
-      <summary>📚 Fontes e dados nacionais completos <span class="obs-acervo-caret" aria-hidden="true">▾</span></summary>
+      <summary>📚 Todas as fontes e referências <span class="obs-acervo-caret" aria-hidden="true">▾</span></summary>
       <div class="obs-acervo-body">
-        <div class="obs-panel">
-          <h3>Números que o Brasil precisa ver</h3>
-          <div id="obs-fatos" class="obs-flip-grid"></div>
-        </div>
-        <div class="obs-panel">
-          <h3>🐾 De cada 100 cães e gatos do Brasil</h3>
-          <div id="obs-pictograma"></div>
-        </div>
-        <div class="obs-panel">
-          <h3>🐶 🐱 Cães e gatos nos lares brasileiros</h3>
-          <div id="obs-split" class="obs-split"></div>
-        </div>
-        <div class="obs-panel">
-          <h3>🗺️ Distribuição da população de pets por região</h3>
-          <div id="obs-regioes" class="obs-dist"></div>
-        </div>
-        <div class="obs-panel">
-          <h3>⚖️ Leis que mudaram a causa animal</h3>
-          <div id="obs-leis" class="obs-timeline obs-timeline--row"></div>
-        </div>
+        <ul id="obs-fontes-lista" class="obs-fontes-lista"></ul>
       </div>
     </details>
 
-    <p class="obs-disclaimer">📌 Os dados “ao vivo” vêm do mural do Patinhas (animais e ONGs reais da plataforma). Os números nacionais são aproximados, conforme publicados pelas fontes citadas (OMS, Instituto Pet Brasil, Abinpet, IBGE e legislação federal).</p>
+    <p class="obs-disclaimer">📌 Números conforme publicados pelas fontes citadas em cada bloco. Os dados do IBGE e do Querido Diário são consultados ao vivo nas APIs públicas; os demais trazem a edição mais recente disponível — quando sair levantamento novo, o Observatório atualiza. Não existe censo oficial de animais abandonados no Brasil; os totais nacionais são estimativas das entidades citadas.</p>
   </main>
 
   <footer class="site-footer">
     Feito com 💚 para ajudar pets a encontrarem um lar. · <a href="../admin.html">Área do abrigo</a>
   </footer>
-
-  <div id="obs-toast" class="obs-toast" role="status"></div>
 
   <script src="../js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
