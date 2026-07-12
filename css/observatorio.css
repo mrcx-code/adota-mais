@@ -370,6 +370,73 @@ button { font-family: inherit; cursor: pointer; }
 /* Enquanto a lente segue o cursor, o radar pausa e some. Sem cursor, ele gira. */
 .obs-hero.scanning .obs-sweep { opacity: 0.14; animation-play-state: paused; }
 
+/* Ao explorar com o mouse, o cursor vira uma estrela cadente. */
+.obs-hero.scanning { cursor: none; }
+.obs-hero.scanning .btn { cursor: none; }
+
+/* ---- Cursor "estrela cadente" (cometa) ---- */
+.obs-comet {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FFF8E6 0%, #E7C889 55%, rgba(231, 200, 137, 0) 72%);
+  box-shadow: 0 0 18px 4px rgba(231, 200, 137, 0.85);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  transform: translate(-9999px, -9999px);
+  will-change: transform;
+}
+/* A cauda: um rastro que aponta para trás do movimento (girado via --ang). */
+.obs-comet::before {
+  content: "";
+  position: absolute;
+  right: 50%;
+  top: 50%;
+  width: var(--tail, 42px);
+  height: 3px;
+  transform: translateY(-50%) rotate(var(--ang, 0deg));
+  transform-origin: right center;
+  background: linear-gradient(to left, rgba(231, 200, 137, 0.9), rgba(231, 200, 137, 0));
+  border-radius: 3px;
+}
+.obs-hero.scanning .obs-comet { opacity: 1; }
+
+/* ---- Parallax de profundidade (sensação de espaço) ---- */
+/* Cada camada anda uma fração do deslocamento do mouse → paralaxe. */
+.obs-sky   { transition: transform 0.18s ease-out; }
+.obs-leitura, .obs-hero h1, .obs-eyebrow, .obs-hero p, .obs-hero-actions {
+  transition: transform 0.22s ease-out;
+}
+.obs-hero.par .obs-sky      { transform: translate(calc(var(--px) * 20px), calc(var(--py) * 16px)); }
+.obs-hero.par .obs-eyebrow  { transform: translate(calc(var(--px) * -6px), calc(var(--py) * -5px)); }
+.obs-hero.par h1            { transform: translate(calc(var(--px) * -9px), calc(var(--py) * -7px)); }
+.obs-hero.par p             { transform: translate(calc(var(--px) * -6px), calc(var(--py) * -5px)); }
+.obs-hero.par .obs-hero-actions { transform: translate(calc(var(--px) * -4px), calc(var(--py) * -3px)); }
+.obs-hero.par .obs-leitura  { transform: translate(calc(var(--px) * -12px), calc(var(--py) * -9px)); }
+
+/* Dica de que o hero é interativo. */
+.obs-hero-hint {
+  position: absolute;
+  z-index: 2;
+  right: clamp(18px, 4vw, 40px);
+  bottom: clamp(16px, 3vw, 28px);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 230, 0.42);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  pointer-events: none;
+}
+.obs-hero-hint::before { content: "✦"; color: #E7C889; animation: obs-twinkle 2.4s ease-in-out infinite; }
+@media (max-width: 700px) { .obs-hero-hint { display: none; } }
+
 /* ---- Céu: estrelas + varredura de radar + órbita de satélite ---- */
 .obs-sky { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 

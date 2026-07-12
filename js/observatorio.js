@@ -11,6 +11,9 @@
 
 const OBS_REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Controle da "leitura ao vivo" exposto p/ o hero (preenchido em obsLeituraRotativa).
+const OBS_LEITURA = { next: null };
+
 /* =====================================================================
    Dados
    ===================================================================== */
@@ -229,6 +232,9 @@ function obsLeituraRotativa() {
     const d = e.target.closest(".obs-leitura-dot");
     if (d) { show(Number(d.dataset.k)); agenda(); }
   });
+
+  // Controle exposto p/ o hero avançar os dados no clique (e reiniciar o timer).
+  OBS_LEITURA.next = () => { show((i + 1) % items.length); agenda(); };
 
   show(0);
   agenda();
@@ -760,24 +766,63 @@ function obsFisicaBolhas(host) {
    Boot
    ===================================================================== */
 
-/** Lente/olho do observatório: segue o cursor no hero; ao sair, o radar volta
- * a girar sozinho. Sem cursor (toque), a cena segue no automático. */
+/**
+ * Cena interativa do hero (observatório 3D):
+ *  - a lente/olho segue o cursor (e o radar pausa);
+ *  - o cursor vira uma estrela cadente (cometa) com cauda apontando o movimento;
+ *  - o fundo ganha parallax de profundidade conforme o mouse anda (sensação de espaço);
+ *  - clicar troca o dado da "leitura ao vivo" (que também roda sozinha se ninguém mexer).
+ * Sem cursor (toque), a cena segue no automático.
+ */
 function obsHeroScanner() {
   const hero = document.getElementById("obs-hero");
   const lens = document.getElementById("obs-lens");
-  if (!hero || !lens || OBS_REDUCED) return;
-  const HALF = 75; // metade do tamanho da lente (150px)
-  let raf = 0, x = 0, y = 0;
+  const comet = document.getElementById("obs-comet");
+  if (!hero) return;
+
+  // Clique sempre avança o dado — funciona inclusive no toque/reduced-motion.
+  hero.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) return; // não rouba cliques dos botões/dots
+    if (OBS_LEITURA.next) OBS_LEITURA.next();
+  });
+
+  if (OBS_REDUCED || !lens || !comet) return;
+
+  const LHALF = 75; // metade da lente (150px)
+  let raf = 0, x = 0, y = 0, px = 0, py = 0, ang = 0, tail = 20, lx = 0, ly = 0;
+
   hero.addEventListener("pointermove", (e) => {
     if (e.pointerType === "touch") return; // sem hover no toque
     const r = hero.getBoundingClientRect();
     x = e.clientX - r.left;
     y = e.clientY - r.top;
-    hero.classList.add("scanning");
+    // deslocamento do centro, normalizado -1..1 → alimenta o parallax (CSS vars)
+    px = (x / r.width) * 2 - 1;
+    py = (y / r.height) * 2 - 1;
+    hero.classList.add("scanning", "par");
     if (!raf) raf = requestAnimationFrame(apply);
   });
-  hero.addEventListener("pointerleave", () => hero.classList.remove("scanning"));
-  function apply() { raf = 0; lens.style.transform = `translate(${x - HALF}px, ${y - HALF}px)`; }
+  hero.addEventListener("pointerleave", () => {
+    hero.classList.remove("scanning", "par");
+    hero.style.removeProperty("--px");
+    hero.style.removeProperty("--py");
+  });
+
+  function apply() {
+    raf = 0;
+    lens.style.transform = `translate(${x - LHALF}px, ${y - LHALF}px)`;
+    hero.style.setProperty("--px", px.toFixed(3));
+    hero.style.setProperty("--py", py.toFixed(3));
+    // Cometa: cauda aponta para trás do movimento; comprimento ~ velocidade.
+    const dx = x - lx, dy = y - ly;
+    const sp = Math.hypot(dx, dy);
+    if (sp > 0.5) ang = (Math.atan2(dy, dx) * 180) / Math.PI;
+    tail = Math.min(64, 20 + sp * 1.6);
+    lx = x; ly = y;
+    comet.style.transform = `translate(${x - 7}px, ${y - 7}px)`;
+    comet.style.setProperty("--ang", ang.toFixed(1) + "deg");
+    comet.style.setProperty("--tail", tail.toFixed(0) + "px");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
