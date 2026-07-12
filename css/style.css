@@ -259,6 +259,56 @@ button {
   color: var(--color-text-soft);
   font-size: 13px;
 }
+.site-footer a { color: var(--color-text-muted); }
+.footer-links { margin-top: 6px; font-size: 12px; }
+.footer-links a { margin: 0 6px; }
+
+/* ---------- Páginas legais (Termos / Privacidade) ---------- */
+
+.legal {
+  max-width: 760px;
+}
+.legal h1 {
+  font-size: clamp(28px, 4vw, 36px);
+  margin: 0 0 6px;
+}
+.legal .legal-updated {
+  color: var(--color-text-soft);
+  font-size: 13px;
+  margin: 0 0 28px;
+}
+.legal h2 {
+  font-size: 18px;
+  margin: 30px 0 8px;
+}
+.legal p,
+.legal li {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+.legal p { margin: 0 0 12px; }
+.legal ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+.legal li { margin-bottom: 6px; }
+.legal a { color: var(--color-brand-dark); font-weight: 600; }
+.legal strong { color: var(--color-text); }
+.legal .legal-intro {
+  font-size: 16px;
+  color: var(--color-text);
+}
+
+.auth-consent,
+.interest-consent {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.auth-consent a,
+.interest-consent a { color: var(--color-brand-dark); font-weight: 600; }
 
 /* ---------- Cards de resumo (dashboard da ONG) ---------- */
 
