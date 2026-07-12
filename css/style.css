@@ -112,6 +112,16 @@ button {
     16 16, auto;
 }
 
+.about-hero-logo {
+  display: inline-block;
+  line-height: 0;
+}
+.about-hero-logo img {
+  width: clamp(200px, 34vw, 340px);
+  height: auto;
+  margin: 0 auto 4px;
+}
+
 .brand {
   display: flex;
   align-items: center;

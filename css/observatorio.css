@@ -156,6 +156,15 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   gap: 10px;
 }
+/* Cursor de patinha no header (mesmo do resto do site, aqui no CSS isolado). */
+.cursor-paw,
+.cursor-paw a,
+.cursor-paw button,
+.cursor-paw label {
+  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48dGV4dCB4PSIxNiIgeT0iMjQiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfkL48L3RleHQ+PC9zdmc+")
+    16 16, auto;
+}
+
 /* Desktop: links à esquerda, botão "Sou um abrigo" sempre à direita. */
 .header-nav { display: flex; align-items: center; gap: 10px; order: -1; }
 .nav-hamburger { display: none; }
