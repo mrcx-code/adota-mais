@@ -64,6 +64,36 @@ const OBS = {
     { ano: "2021", titulo: "Fim da eliminação em canis públicos", texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis — o controle passa por castração e adoção.", fonte: "Lei nº 14.228/2021 — Planalto" },
   ],
 
+  // Projetos em tramitação no Congresso em 2026 (o que está acontecendo agora).
+  tramitacao: [
+    {
+      pl: "PL 6.191/2025", status: "em análise na CCJ do Senado",
+      titulo: "Estatuto dos Cães e Gatos",
+      texto: "Cria um estatuto próprio e prevê reclusão de 6 meses a 10 anos para quem matar ou torturar cães e gatos. Já aprovado por unanimidade na CDH.",
+      url: "https://agenciabrasil.ebc.com.br/politica/noticia/2026-02/estatuto-dos-caes-e-gatos-pode-ampliar-pena-para-quem-maltrata-animais",
+    },
+    {
+      pl: "PL 172/2026", status: "apresentado em 2026",
+      titulo: "Cadastro nacional de agressores",
+      texto: "Cria um “nada consta” de maus-tratos: consulta obrigatória antes de transferir a guarda, posse ou propriedade de um animal.",
+      url: "https://www12.senado.leg.br/noticias/materias/2026/02/06/senadores-querem-endurecer-punicao-para-maus-tratos-a-animais",
+    },
+    {
+      pl: "PL 6.205/2019", status: "aguarda votação na Câmara",
+      titulo: "Dia Nacional da Castração",
+      texto: "Institui uma data nacional para incentivar a castração e reduzir a superpopulação de cães e gatos. Já aprovado no Senado.",
+      url: "https://www12.senado.leg.br/noticias/materias/2026/02/03/presidente-do-senado-anuncia-prioridade-para-projetos-sobre-maus-tratos-a-animais",
+    },
+  ],
+
+  // Formas de engajar hoje.
+  engaje: [
+    { icone: "✍️", titulo: "Assine petições", texto: "Some sua voz às campanhas por leis mais duras contra maus-tratos e abandono.", cta: "Ver petições ↗", url: "https://www.change.org/t/direito-dos-animais-pt-br" },
+    { icone: "🪪", titulo: "Dê um RG ao seu pet", texto: "Cadastre seu animal no SinPatinhas, o registro nacional gratuito do governo.", cta: "Cadastrar ↗", url: "https://sinpatinhas.mma.gov.br/" },
+    { icone: "🐾", titulo: "Adote, não compre", texto: "Cada adoção tira um número dessa estatística. Conheça quem está esperando.", cta: "Ver pets", url: "../index.html" },
+    { icone: "🏛️", titulo: "Cobre quem legisla", texto: "Acompanhe os projetos e pressione deputados e senadores a votarem.", cta: "Acompanhar ↗", url: "https://www.congressonacional.leg.br/" },
+  ],
+
   nomesUF: {
     AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia",
     CE: "Ceará", DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás",
@@ -124,45 +154,28 @@ const OBS_PAW =
    Hero — carrossel de números
    ===================================================================== */
 
-function obsRenderCarrossel() {
-  const track = document.getElementById("obs-hero-track");
-  if (!track) return;
+function obsRenderNumeros() {
+  const grid = document.getElementById("obs-hero-grid");
+  if (!grid) return;
 
-  track.innerHTML = OBS.numeros.map((n) => `
-    <article class="obs-num-card cor-${n.cor}">
+  grid.innerHTML = OBS.numeros.map((n, i) => `
+    <article class="obs-num-card cor-${n.cor}" style="--i:${i}">
       <div class="obs-num-value"><span class="obs-num-n">${obsEsc(n.valor)}</span><span class="obs-num-u">${obsEsc(n.unidade)}</span></div>
       <p class="obs-num-label">${n.label}</p>
       <span class="obs-num-fonte">📌 ${obsEsc(n.fonte)}</span>
     </article>`).join("");
 
-  // Esconde a dica de "arraste" assim que a pessoa rola/arrasta.
-  const dica = track.parentElement.querySelector(".obs-carousel-dica");
-  const escondeDica = () => { if (dica) dica.classList.add("off"); };
-  track.addEventListener("scroll", escondeDica, { passive: true, once: true });
-
-  // Arrastar com o mouse (no toque, o scroll nativo já funciona).
-  let isDown = false, startX = 0, startScroll = 0;
-  track.addEventListener("pointerdown", (e) => {
-    if (e.pointerType !== "mouse") return;
-    isDown = true;
-    startX = e.clientX;
-    startScroll = track.scrollLeft;
-    track.classList.add("dragging");
-    try { track.setPointerCapture(e.pointerId); } catch (_) {}
-  });
-  track.addEventListener("pointermove", (e) => {
-    if (!isDown) return;
-    track.scrollLeft = startScroll - (e.clientX - startX);
-    escondeDica();
-  });
-  const solta = (e) => {
-    if (!isDown) return;
-    isDown = false;
-    track.classList.remove("dragging");
-    try { track.releasePointerCapture(e.pointerId); } catch (_) {}
-  };
-  track.addEventListener("pointerup", solta);
-  track.addEventListener("pointercancel", solta);
+  const cards = [...grid.querySelectorAll(".obs-num-card")];
+  if (OBS_REDUCED) { cards.forEach((c) => c.classList.add("in")); return; }
+  // Revela cada card conforme entra na tela (sem esconder nada no scroll horizontal).
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      io.unobserve(entry.target);
+      entry.target.classList.add("in");
+    });
+  }, { threshold: 0.2, rootMargin: "0px 0px -40px 0px" });
+  cards.forEach((c) => io.observe(c));
 }
 
 /* =====================================================================
@@ -184,25 +197,33 @@ const OBS_PNS2019 = {
   SE: 34.7, PE: 34.2, AL: 34.0,
 };
 
+const MALHA_URL = "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=image/svg+xml&qualidade=minima&intrarregiao=UF";
+const HEAT_COR = { "heat-1": "#E3EBDC", "heat-2": "#C4D6B8", "heat-3": "#9FBA99", "heat-4": "#527353" };
+
 async function obsCarregaMapa() {
-  const mapEl = document.getElementById("obs-map");
-  if (!mapEl) return;
+  // 1) dados de posse por UF (IBGE agregados)
+  let porUF, ano;
   try {
-    const url = `${IBGE_BASE}/4930/periodos/-1/variaveis/5180?localidades=N3[all]`;
-    const resp = await fetch(url);
+    const resp = await fetch(`${IBGE_BASE}/4930/periodos/-1/variaveis/5180?localidades=N3[all]`);
     const data = await resp.json();
-    const porUF = {};
-    let ano = "";
+    porUF = {};
     data[0].resultados[0].series.forEach((s) => {
       const uf = UF_POR_ID[String(s.localidade.id)];
       const anoK = Object.keys(s.serie)[0];
       ano = anoK;
       if (uf) porUF[uf] = Number(s.serie[anoK]);
     });
-    obsRenderMapa(porUF, ano);
+    if (!Object.keys(porUF).length) throw new Error("vazio");
   } catch (err) {
-    obsRenderMapa(OBS_PNS2019, "2019");
+    porUF = OBS_PNS2019; ano = "2019";
   }
+
+  const fonteEl = document.getElementById("obs-uf-fonte");
+  if (fonteEl) fonteEl.textContent = `📌 IBGE · PNS ${ano || "2019"}`;
+
+  obsRenderListaUF(porUF);
+  await obsRenderMapaReal(porUF);
+  obsSelecionarUF(Object.entries(porUF).sort((a, b) => b[1] - a[1])[0]?.[0], false);
 }
 
 function obsHeat(pct) {
@@ -212,76 +233,81 @@ function obsHeat(pct) {
   return "heat-1";
 }
 
-function obsRenderMapa(porUF, ano) {
-  const mapEl = document.getElementById("obs-map");
+/** Lista/ranking rolável de estados. */
+function obsRenderListaUF(porUF) {
   const list = document.getElementById("obs-uf-list");
-  const fonteEl = document.getElementById("obs-uf-fonte");
-  if (!mapEl) return;
-  if (fonteEl) fonteEl.textContent = `📌 IBGE · PNS ${ano || "2019"}`;
-
-  // Mapa
-  mapEl.innerHTML = Object.keys(OBS.mapaUF).map((uf) => {
-    const [col, row] = OBS.mapaUF[uf];
-    const pct = porUF[uf];
-    return `<button type="button" class="obs-map-tile ${pct != null ? obsHeat(pct) : "heat-1"}" data-uf="${uf}"
-      style="grid-column:${col};grid-row:${row};"
-      aria-label="${OBS.nomesUF[uf]}: ${pct != null ? obsFmtPct(pct) + " dos lares com cachorro" : "sem dado"}">${uf}</button>`;
-  }).join("");
-
-  // Lista rolável (ranking)
+  if (!list) return;
   const ranked = Object.entries(porUF).sort((a, b) => b[1] - a[1]);
   const maxPct = ranked.length ? ranked[0][1] : 100;
-  if (list) {
-    list.innerHTML = ranked.map(([uf, pct], i) => `
-      <li class="obs-uf-item" data-uf="${uf}">
-        <span class="obs-uf-rank">${i + 1}º</span>
-        <span class="obs-uf-nome">${obsEsc(OBS.nomesUF[uf])}</span>
-        <span class="obs-uf-bar"><span class="obs-uf-bar-fill" style="width:${Math.round((pct / maxPct) * 100)}%"></span></span>
-        <span class="obs-uf-pct">${obsFmtPct(pct)}</span>
-      </li>`).join("");
-  }
+  list.innerHTML = ranked.map(([uf, pct], i) => `
+    <li class="obs-uf-item" data-uf="${uf}">
+      <span class="obs-uf-rank">${i + 1}º</span>
+      <span class="obs-uf-nome">${obsEsc(OBS.nomesUF[uf])}</span>
+      <span class="obs-uf-bar"><span class="obs-uf-bar-fill" style="width:${Math.round((pct / maxPct) * 100)}%"></span></span>
+      <span class="obs-uf-pct">${obsFmtPct(pct)}</span>
+    </li>`).join("");
+  list.onclick = (e) => {
+    const item = e.target.closest(".obs-uf-item");
+    if (item) obsSelecionarUF(item.dataset.uf, false);
+  };
+}
 
-  // Tooltip
+/** Mapa REAL do Brasil (malha oficial do IBGE), colorido por UF. */
+async function obsRenderMapaReal(porUF) {
+  const host = document.getElementById("obs-map-real");
+  if (!host) return;
   let tip = document.querySelector(".obs-tooltip");
   if (!tip) { tip = document.createElement("div"); tip.className = "obs-tooltip"; document.body.appendChild(tip); }
-  mapEl.onmousemove = (e) => {
-    const tile = e.target.closest(".obs-map-tile");
-    if (!tile) { tip.classList.remove("visible"); return; }
-    const uf = tile.dataset.uf; const pct = porUF[uf];
-    tip.innerHTML = `<strong>${OBS.nomesUF[uf]}</strong><br />${pct != null ? obsFmtPct(pct) + " dos lares têm cachorro" : "sem dado"}`;
-    tip.style.left = e.clientX + 14 + "px"; tip.style.top = e.clientY + 14 + "px";
-    tip.classList.add("visible");
-  };
-  mapEl.onmouseleave = () => tip.classList.remove("visible");
 
-  const selecionar = (uf, rolarLista) => {
-    mapEl.querySelectorAll(".obs-map-tile").forEach((t) => t.classList.toggle("selected", t.dataset.uf === uf));
-    if (list) {
-      const items = list.querySelectorAll(".obs-uf-item");
-      items.forEach((it) => it.classList.toggle("active", it.dataset.uf === uf));
-      if (rolarLista) {
-        const item = list.querySelector(`.obs-uf-item[data-uf="${uf}"]`);
-        if (item) {
-          // rola DENTRO da lista, sem mexer na página
-          list.scrollTo({ top: item.offsetTop - list.clientHeight / 2 + item.offsetHeight / 2, behavior: OBS_REDUCED ? "auto" : "smooth" });
-        }
-      }
-    }
-  };
+  try {
+    const svgText = await (await fetch(MALHA_URL)).text();
+    host.innerHTML = svgText;
+    const svg = host.querySelector("svg");
+    if (!svg) throw new Error("sem svg");
+    svg.removeAttribute("width");
+    svg.removeAttribute("height");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-  mapEl.onclick = (e) => {
-    const tile = e.target.closest(".obs-map-tile");
-    if (tile) selecionar(tile.dataset.uf, true);
-  };
-  if (list) {
-    list.onclick = (e) => {
-      const item = e.target.closest(".obs-uf-item");
-      if (item) selecionar(item.dataset.uf, false);
+    svg.querySelectorAll("path[id]").forEach((path) => {
+      const uf = UF_POR_ID[String(path.id)];
+      if (!uf) return;
+      const pct = porUF[uf];
+      path.setAttribute("data-uf", uf);
+      path.style.fill = pct != null ? HEAT_COR[obsHeat(pct)] : "#EFEBE0";
+      path.classList.add("obs-uf-path");
+    });
+
+    host.onmousemove = (e) => {
+      const path = e.target.closest(".obs-uf-path");
+      if (!path) { tip.classList.remove("visible"); return; }
+      const uf = path.getAttribute("data-uf"); const pct = porUF[uf];
+      tip.innerHTML = `<strong>${OBS.nomesUF[uf]}</strong><br />${pct != null ? obsFmtPct(pct) + " dos lares têm cachorro" : "sem dado"}`;
+      tip.style.left = e.clientX + 14 + "px"; tip.style.top = e.clientY + 14 + "px";
+      tip.classList.add("visible");
     };
+    host.onmouseleave = () => tip.classList.remove("visible");
+    host.onclick = (e) => {
+      const path = e.target.closest(".obs-uf-path");
+      if (path) obsSelecionarUF(path.getAttribute("data-uf"), true);
+    };
+  } catch (err) {
+    // Sem mapa: o ranking à direita continua valendo sozinho.
+    host.classList.add("obs-map-fail");
+    host.innerHTML = '<p class="obs-vazio">Não foi possível carregar o mapa agora — veja o ranking ao lado.</p>';
   }
+}
 
-  // Começa destacando o campeão.
-  if (ranked.length) selecionar(ranked[0][0], false);
+/** Destaca uma UF no mapa e na lista (e rola a lista até ela). */
+function obsSelecionarUF(uf, rolarLista) {
+  if (!uf) return;
+  document.querySelectorAll(".obs-uf-path").forEach((p) => p.classList.toggle("sel", p.getAttribute("data-uf") === uf));
+  const list = document.getElementById("obs-uf-list");
+  if (!list) return;
+  list.querySelectorAll(".obs-uf-item").forEach((it) => it.classList.toggle("active", it.dataset.uf === uf));
+  if (rolarLista) {
+    const item = list.querySelector(`.obs-uf-item[data-uf="${uf}"]`);
+    if (item) list.scrollTo({ top: item.offsetTop - list.clientHeight / 2 + item.offsetHeight / 2, behavior: OBS_REDUCED ? "auto" : "smooth" });
+  }
 }
 
 /* =====================================================================
@@ -290,7 +316,7 @@ function obsRenderMapa(porUF, ano) {
 
 function obsRenderAbandono(el) {
   const PCT = 25;               // 1 em cada 4
-  const R = 80, SW = 26;
+  const R = 84, SW = 18;        // anel maior e mais fino → sobra espaço p/ o número
   const C = 2 * Math.PI * R;    // circunferência
   const arco = C * (PCT / 100); // trecho visível do abandono
 
@@ -391,6 +417,34 @@ function obsRenderLeis(el) {
         <p>${obsEsc(l.texto)}</p>
         <span class="obs-fonte">📌 ${obsEsc(l.fonte)}</span>
       </div>`).join("");
+}
+
+function obsRenderTramitacao(el) {
+  el.innerHTML = OBS.tramitacao.map((t) => {
+    const url = obsSafeUrl(t.url);
+    return `
+      <a class="obs-tramita-card" ${url ? `href="${obsEsc(url)}" target="_blank" rel="noopener"` : ""}>
+        <span class="obs-tramita-status">🟢 ${obsEsc(t.status)}</span>
+        <span class="obs-tramita-pl">${obsEsc(t.pl)}</span>
+        <strong>${obsEsc(t.titulo)}</strong>
+        <p>${obsEsc(t.texto)}</p>
+        <span class="obs-tramita-link">acompanhar ↗</span>
+      </a>`;
+  }).join("");
+}
+
+function obsRenderEngaje(el) {
+  el.innerHTML = OBS.engaje.map((e) => {
+    const url = obsSafeUrl(e.url);
+    const ext = /^https?:/i.test(e.url) ? ' target="_blank" rel="noopener"' : "";
+    return `
+      <a class="obs-engaje-card" ${url ? `href="${obsEsc(url)}"${ext}` : ""}>
+        <span class="obs-engaje-ic" aria-hidden="true">${e.icone}</span>
+        <strong>${obsEsc(e.titulo)}</strong>
+        <p>${obsEsc(e.texto)}</p>
+        <span class="obs-engaje-cta">${obsEsc(e.cta)}</span>
+      </a>`;
+  }).join("");
 }
 
 function obsRenderReferencias(el) {
@@ -602,7 +656,7 @@ function obsFisicaBolhas(host) {
    ===================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  obsRenderCarrossel();
+  obsRenderNumeros();
 
   const abandono = document.getElementById("obs-abandono");
   if (abandono) obsRenderAbandono(abandono);
@@ -612,6 +666,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (split) obsRenderSplit(split);
   const leis = document.getElementById("obs-leis");
   if (leis) obsRenderLeis(leis);
+  const tramita = document.getElementById("obs-tramitacao");
+  if (tramita) obsRenderTramitacao(tramita);
+  const engaje = document.getElementById("obs-engaje-grid");
+  if (engaje) obsRenderEngaje(engaje);
   const refs = document.getElementById("obs-ref-grid");
   if (refs) obsRenderReferencias(refs);
 

@@ -77,10 +77,7 @@
         <a href="#obs-mapa" class="btn btn-secondary btn-cta">Explorar os dados ↓</a>
       </div>
 
-      <div class="obs-carousel" aria-label="Números que resumem o Brasil pet — arraste para o lado">
-        <div id="obs-hero-track" class="obs-carousel-track"></div>
-        <span class="obs-carousel-dica" aria-hidden="true">arraste para o lado →</span>
-      </div>
+      <div id="obs-hero-grid" class="obs-num-grid" aria-label="Números que resumem o Brasil pet"></div>
     </section>
 
     <!-- ============ S1: mapa + lista rolável por estado ============ -->
@@ -93,8 +90,8 @@
       </div>
       <div class="obs-panel">
         <div class="obs-map-wrap">
-          <div>
-            <div id="obs-map" class="obs-map" role="group" aria-label="Mapa do Brasil por estado"></div>
+          <div class="obs-map-real-col">
+            <div id="obs-map-real" class="obs-map-real" role="img" aria-label="Mapa do Brasil colorido pelo percentual de lares com cachorro por estado"></div>
             <div class="obs-map-legend">
               <span class="swatch" style="background:#E3EBDC"></span><span>até 40%</span>
               <span class="swatch" style="background:#C4D6B8"></span><span>40–48%</span>
@@ -135,19 +132,29 @@
       </div>
 
       <div class="obs-panel" style="margin-top:20px;">
-        <h3>📜 As leis que protegem cães e gatos no Brasil</h3>
+        <h3>📜 A história: leis que já protegem cães e gatos</h3>
         <div id="obs-leis" class="obs-timeline obs-timeline--row"></div>
       </div>
 
-      <div class="obs-denuncia">
-        <div class="obs-denuncia-icon" aria-hidden="true">🚨</div>
-        <div class="obs-denuncia-body">
-          <strong>Maus-tratos e abandono são crime.</strong>
-          <p>Testemunhou? Não passe reto. Denuncie de forma anônima e ajude a salvar uma vida:</p>
-          <div class="obs-denuncia-canais">
-            <span class="obs-denuncia-canal">📞 <strong>190</strong> · Polícia Militar (urgência)</span>
-            <span class="obs-denuncia-canal">📱 <strong>Disque 100</strong> · Direitos Humanos / crimes ambientais</span>
-            <span class="obs-denuncia-canal">🏛️ Delegacia ou Ministério Público da sua cidade</span>
+      <div class="obs-panel" style="margin-top:20px;">
+        <h3>🏛️ Acontecendo agora: em tramitação no Congresso</h3>
+        <p class="obs-panel-sub">Projetos de lei em análise em 2026. Acompanhe e cobre dos seus representantes.</p>
+        <div id="obs-tramitacao" class="obs-tramita-grid"></div>
+      </div>
+
+      <div class="obs-engaje">
+        <h3>✍️ Faça a sua parte hoje</h3>
+        <div id="obs-engaje-grid" class="obs-engaje-grid"></div>
+        <div class="obs-denuncia">
+          <div class="obs-denuncia-icon" aria-hidden="true">🚨</div>
+          <div class="obs-denuncia-body">
+            <strong>Maus-tratos e abandono são crime.</strong>
+            <p>Testemunhou? Não passe reto. Denuncie de forma anônima:</p>
+            <div class="obs-denuncia-canais">
+              <span class="obs-denuncia-canal">📞 <strong>190</strong> · Polícia Militar (urgência)</span>
+              <span class="obs-denuncia-canal">📱 <strong>Disque 100</strong> · crimes ambientais</span>
+              <span class="obs-denuncia-canal">🏛️ Delegacia ou Ministério Público</span>
+            </div>
           </div>
         </div>
       </div>
@@ -164,32 +171,28 @@
 
       <div id="obs-abandono" class="obs-panel obs-abandono"></div>
 
-      <div class="obs-stat-grid" style="margin-top:20px;">
-        <div class="obs-stat-card">
-          <span class="obs-stat-icon">🏠</span>
-          <div class="obs-stat-value">201 mil</div>
-          <p>animais acolhidos por cerca de 400 ONGs e protetores — 92% são cães (número estimado)</p>
-          <span class="obs-fonte">📌 Instituto Pet Brasil (2024)</span>
-        </div>
-        <div class="obs-stat-card">
-          <span class="obs-stat-icon">⚖️</span>
-          <div class="obs-stat-value">1,35 → 1</div>
-          <p>para cada animal que sai de um abrigo, entra 1,35 — a conta ainda não fecha</p>
-          <span class="obs-fonte">📌 Infodados / Medicina de Abrigos (dados 2025)</span>
-        </div>
-        <div class="obs-stat-card">
-          <span class="obs-stat-icon">🏙️</span>
-          <div class="obs-stat-value">82,9%</div>
-          <p>do abandono acontece nos centros urbanos — 76,6% em vias públicas</p>
-          <span class="obs-fonte">📌 Pesquisa Cobasi Cuida (2025)</span>
-        </div>
-        <div class="obs-stat-card">
-          <span class="obs-stat-icon">📉</span>
-          <div class="obs-stat-value">93,8%</div>
-          <p>das ONGs percebem aumento do abandono em períodos de crise econômica</p>
-          <span class="obs-fonte">📌 Pesquisa Cobasi Cuida (2025)</span>
-        </div>
-      </div>
+      <ul class="obs-fatos-lista">
+        <li class="obs-fato-linha">
+          <span class="obs-fato-ic">🏠</span>
+          <span class="obs-fato-num">201 mil</span>
+          <span class="obs-fato-txt">animais acolhidos por cerca de 400 ONGs e protetores — 92% são cães <span class="obs-fato-fonte">Instituto Pet Brasil, 2024</span></span>
+        </li>
+        <li class="obs-fato-linha">
+          <span class="obs-fato-ic">⚖️</span>
+          <span class="obs-fato-num">1,35<small>→1</small></span>
+          <span class="obs-fato-txt">para cada animal que sai de um abrigo, entra 1,35 — a conta ainda não fecha <span class="obs-fato-fonte">Infodados / Medicina de Abrigos, 2025</span></span>
+        </li>
+        <li class="obs-fato-linha">
+          <span class="obs-fato-ic">🏙️</span>
+          <span class="obs-fato-num">82,9%</span>
+          <span class="obs-fato-txt">do abandono acontece nos centros urbanos — 76,6% em vias públicas <span class="obs-fato-fonte">Cobasi Cuida, 2025</span></span>
+        </li>
+        <li class="obs-fato-linha">
+          <span class="obs-fato-ic">📉</span>
+          <span class="obs-fato-num">93,8%</span>
+          <span class="obs-fato-txt">das ONGs percebem aumento do abandono em períodos de crise econômica <span class="obs-fato-fonte">Cobasi Cuida, 2025</span></span>
+        </li>
+      </ul>
     </section>
 
     <!-- ============ S4: a adoção está vencendo ============ -->
