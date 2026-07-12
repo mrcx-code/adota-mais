@@ -787,8 +787,8 @@ function obsHeroScanner() {
 
   if (OBS_REDUCED || !comet) return;
 
-  let x = 0, y = 0, px = 0, py = 0, ang = 0, lx = 0, ly = 0;
-  let momentum = 0;   // acumula com o movimento e decai → cauda cresce ao mexer
+  let x = 0, y = 0, px = 0, py = 0, lx = 0, ly = 0;
+  let emit = 0;       // distância acumulada desde a última partícula
   let loop = 0;
 
   hero.addEventListener("pointermove", (e) => {
@@ -802,26 +802,54 @@ function obsHeroScanner() {
     hero.style.setProperty("--px", px.toFixed(3));
     hero.style.setProperty("--py", py.toFixed(3));
     hero.classList.add("scanning", "par");
-    if (!loop) loop = requestAnimationFrame(tick);
+    if (!loop) { lx = x; ly = y; loop = requestAnimationFrame(tick); }
   });
   hero.addEventListener("pointerleave", () => {
     hero.classList.remove("scanning", "par");
     hero.style.removeProperty("--px");
     hero.style.removeProperty("--py");
-    cancelAnimationFrame(loop); loop = 0; momentum = 0;
+    cancelAnimationFrame(loop); loop = 0; emit = 0;
   });
+
+  /** Solta uma partícula de poeira cósmica em (px,py), que deriva e se apaga. */
+  function spawnDust(cx, cy, sp) {
+    const d = document.createElement("span");
+    d.className = "obs-dust";
+    const size = 3 + Math.random() * (3 + Math.min(sp, 12) * 0.4);
+    d.style.setProperty("--s", size.toFixed(1) + "px");
+    // nasce um pouco atrás do cometa, com dispersão aleatória (poeira).
+    const jx = (Math.random() - 0.5) * 10;
+    const jy = (Math.random() - 0.5) * 10;
+    const sx = cx - 8 + jx, sy = cy - 8 + jy;
+    // deriva leve numa direção aleatória → nuvem que se espalha devagar.
+    const dxp = (Math.random() - 0.5) * 22;
+    const dyp = (Math.random() - 0.5) * 22 + 4;
+    d.style.transform = `translate(${sx}px, ${sy}px)`;
+    hero.appendChild(d);
+    const life = 460 + Math.random() * 520;
+    d.animate(
+      [
+        { opacity: Math.min(0.55, 0.22 + sp * 0.03), transform: `translate(${sx}px, ${sy}px) scale(1)` },
+        { opacity: 0, transform: `translate(${sx + dxp}px, ${sy + dyp}px) scale(0.4)` },
+      ],
+      { duration: life, easing: "ease-out", fill: "forwards" }
+    ).onfinish = () => d.remove();
+  }
 
   function tick() {
     const dx = x - lx, dy = y - ly;
     const sp = Math.hypot(dx, dy);
-    if (sp > 0.5) ang = (Math.atan2(dy, dx) * 180) / Math.PI;
-    // quanto mais você mexe, maior a cauda; ela encolhe suave quando você para.
-    momentum = Math.min(150, momentum * 0.9 + sp * 2.4);
-    const tail = 34 + momentum;
-    lx = x; ly = y;
     comet.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
-    comet.style.setProperty("--ang", ang.toFixed(1) + "deg");
-    comet.style.setProperty("--tail", tail.toFixed(0) + "px");
+    // emite poeira proporcional à distância percorrida (velocidade) — sutil.
+    emit += sp;
+    const gap = 9; // px entre partículas
+    let guard = 0;
+    while (emit >= gap && guard++ < 6) {
+      emit -= gap;
+      const t = guard / 6;
+      spawnDust(lx + dx * t, ly + dy * t, sp);
+    }
+    lx = x; ly = y;
     loop = requestAnimationFrame(tick);
   }
 }

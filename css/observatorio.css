@@ -83,7 +83,9 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 28px;
+  /* Igual ao resto do site: o conteúdo acompanha a coluna central (1240px);
+     o fundo/borda seguem ocupando a largura toda. */
+  padding: 18px max(28px, calc((100% - 1240px) / 2 + 20px));
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
@@ -358,22 +360,23 @@ button { font-family: inherit; cursor: pointer; }
   transform: translate(-9999px, -9999px);
   will-change: transform;
 }
-/* A cauda: um rastro que aponta para trás do movimento (girado via --ang).
-   O comprimento (--tail) cresce conforme o mouse se move mais rápido. */
-.obs-comet::before {
-  content: "";
-  position: absolute;
-  right: 50%;
-  top: 50%;
-  width: var(--tail, 60px);
-  height: 4px;
-  transform: translateY(-50%) rotate(var(--ang, 0deg));
-  transform-origin: right center;
-  background: linear-gradient(to left, rgba(255, 248, 230, 0.95), rgba(231, 200, 137, 0.6) 35%, rgba(231, 200, 137, 0));
-  border-radius: 4px;
-  filter: blur(0.3px);
-}
 .obs-hero.scanning .obs-comet { opacity: 1; }
+
+/* Poeira cósmica: partículas soltas que o cometa deixa para trás e se apagam.
+   Cada partícula recebe deriva/tamanho/vida via variáveis inline no JS. */
+.obs-dust {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: var(--s, 6px);
+  height: var(--s, 6px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 248, 230, 0.9) 0%, rgba(231, 200, 137, 0.5) 45%, rgba(231, 200, 137, 0) 75%);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
 
 /* ---- "Mapa do Maroto": patinhas surgem e somem pelo fundo da página ---- */
 .obs-paw-map {
