@@ -86,17 +86,16 @@ const OBS = {
   },
 
   fontes: [
-    { nome: "Mars Petcare — State of Pet Homelessness Index (2024)", url: "https://www.pedigree.com.br/adocao/acoes-pedigree/relatorio-global-aponta-que-1-em-cada-3-animais-de-estimacao-nao-tem-onde-morar" },
-    { nome: "GoldeN / Opinion Box — 80% dos pets são adotados (2025)", url: "https://www.cnnbrasil.com.br/nacional/sudeste/sp/80-dos-pets-nos-lares-brasileiros-foram-adotados-indica-pesquisa/" },
-    { nome: "Panorama da Adoção no Brasil – ONGs · GoldeN/IMVC/Opinion Box (jun 2026)", url: "https://www.otempo.com.br/pets/2026/6/30/a-realidade-da-adocao-pesquisa-inedita-revela-como-idade-cor-e-porte-definem-o-destino-de-animais-em-abrigos-no-brasil" },
-    { nome: "Opinion Box — Mercado Pet no Brasil (fev 2026)", url: "https://blog.opinionbox.com/pesquisa-mercado-pet-no-brasil/" },
-    { nome: "Petlove — PetCenso 2025", url: "https://www.petlove.com.br/dicas/petcenso-2025" },
-    { nome: "Instituto Pet Brasil — vulnerabilidade e ONGs (2024)", url: "https://www.cnnbrasil.com.br/nacional/quase-5-milhoes-de-pets-estao-em-situacao-de-vulnerabilidade-no-brasil/" },
-    { nome: "Cobasi Cuida — abandono de animais (2025)", url: "https://blog.cobasi.com.br/pesquisa-cobasi-cuida-sobre-abandono-de-animais/" },
-    { nome: "Infodados / Medicina de Abrigos Brasil — dinâmica de abrigos (2025)", url: "https://caesegatos.com.br/abandono-animal-abrigos-politicas-publicas/" },
-    { nome: "MMA — SinPatinhas / ProPatinhas, balanço de 1 ano (abr 2026)", url: "https://www.folhabv.com.br/cotidiano/programa-sinpatinhas-completa-um-ano-com-mais-de-13-milhao-de-animais-cadastrados-no-brasil" },
-    { nome: "Abempet (ex-Abinpet / Instituto Pet Brasil) — população e mercado (2024)", url: "https://abempet.org.br/informacoes-gerais-do-setor/" },
-    { nome: "IBGE — Pesquisa Nacional de Saúde (posse de cães por estado), via API de agregados", url: "https://servicodados.ibge.gov.br/api/v3/agregados/4930/metadados" },
+    { nome: "IBGE", tipo: "Instituto oficial · PNS", url: "https://www.ibge.gov.br/", dominio: "ibge.gov.br", emoji: "📊" },
+    { nome: "Gov. Federal · MMA", tipo: "SinPatinhas / ProPatinhas", url: "https://www.gov.br/mma/pt-br", dominio: "gov.br", emoji: "🏛️" },
+    { nome: "Mars Petcare", tipo: "State of Pet Homelessness", url: "https://www.pedigree.com.br/adocao/acoes-pedigree/relatorio-global-aponta-que-1-em-cada-3-animais-de-estimacao-nao-tem-onde-morar", dominio: "pedigree.com.br", emoji: "🌎" },
+    { nome: "Instituto Pet Brasil / Abempet", tipo: "Entidade do setor", url: "https://abempet.org.br/informacoes-gerais-do-setor/", dominio: "abempet.org.br", emoji: "🏢" },
+    { nome: "Opinion Box", tipo: "Instituto de pesquisa", url: "https://blog.opinionbox.com/pesquisa-mercado-pet-no-brasil/", dominio: "opinionbox.com", emoji: "📈" },
+    { nome: "Petlove", tipo: "PetCenso 2025", url: "https://www.petlove.com.br/dicas/petcenso-2025", dominio: "petlove.com.br", emoji: "🛒" },
+    { nome: "Cobasi", tipo: "Pesquisa Cobasi Cuida", url: "https://blog.cobasi.com.br/pesquisa-cobasi-cuida-sobre-abandono-de-animais/", dominio: "cobasi.com.br", emoji: "🐾" },
+    { nome: "Medicina de Abrigos", tipo: "Infodados de Abrigos", url: "https://caesegatos.com.br/abandono-animal-abrigos-politicas-publicas/", dominio: "caesegatos.com.br", emoji: "🏥" },
+    { nome: "GoldeN / IMVC", tipo: "Panorama da Adoção", url: "https://www.otempo.com.br/pets/2026/6/30/a-realidade-da-adocao-pesquisa-inedita-revela-como-idade-cor-e-porte-definem-o-destino-de-animais-em-abrigos-no-brasil", dominio: "otempo.com.br", emoji: "📰" },
+    { nome: "CNN Brasil", tipo: "Cobertura jornalística", url: "https://www.cnnbrasil.com.br/nacional/sudeste/sp/80-dos-pets-nos-lares-brasileiros-foram-adotados-indica-pesquisa/", dominio: "cnnbrasil.com.br", emoji: "📺" },
   ],
 };
 
@@ -387,10 +386,23 @@ function obsRenderLeis(el) {
       </div>`).join("");
 }
 
-function obsRenderFontes(el) {
+function obsRenderReferencias(el) {
   el.innerHTML = OBS.fontes.map((f) => {
     const url = obsSafeUrl(f.url);
-    return `<li>${url ? `<a href="${obsEsc(url)}" target="_blank" rel="noopener">${obsEsc(f.nome)} ↗</a>` : obsEsc(f.nome)}</li>`;
+    // Logo = favicon do domínio (serviço público do Google). Se falhar, cai no emoji.
+    const logo = f.dominio
+      ? `<img class="obs-ref-logo" src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(f.dominio)}&sz=64" alt="" loading="lazy" decoding="async"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />`
+      : "";
+    const fallback = `<span class="obs-ref-logo obs-ref-logo--emoji" ${f.dominio ? 'style="display:none;"' : ""}>${f.emoji || "🔗"}</span>`;
+    return `
+      <a class="obs-ref-chip" ${url ? `href="${obsEsc(url)}" target="_blank" rel="noopener"` : ""} title="${obsEsc(f.nome)} — ${obsEsc(f.tipo || "")}">
+        <span class="obs-ref-logo-wrap">${logo}${fallback}</span>
+        <span class="obs-ref-txt">
+          <strong>${obsEsc(f.nome)}</strong>
+          <span>${obsEsc(f.tipo || "")}</span>
+        </span>
+      </a>`;
   }).join("");
 }
 
@@ -440,12 +452,14 @@ function obsRenderBolhas(pets) {
   if (!host) return;
   const comFoto = (pets || []).filter((p) => obsSafeUrl(p.photo_url));
   const fontes = comFoto.map((p) => ({ foto: obsSafeUrl(p.photo_url), id: p.id }));
-  const emojis = ["🐶", "🐱", "🐾", "🦴", "🐕", "🐈"];
-  while (fontes.length < 12) fontes.push({ emoji: emojis[fontes.length % emojis.length] });
-  const usadas = fontes.slice(0, 14);
+  // Poucos pets no começo → completa com emojis de cachorro (mínimo 12 bolhas).
+  const emojis = ["🐶", "🐕", "🦴", "🐾", "🐩", "🐕", "🦮", "🐶"];
+  let i = 0;
+  while (fontes.length < 12) fontes.push({ emoji: emojis[i++ % emojis.length] });
+  const usadas = fontes.slice(0, 15);
 
   host.innerHTML = usadas.map((s) => {
-    const r = 24 + Math.round(Math.random() * 22);
+    const r = 26 + Math.round(Math.random() * 20);
     const inner = s.foto
       ? `<img src="${obsEsc(s.foto)}" alt="" loading="lazy" decoding="async" />`
       : `<span class="obs-bolha-emoji">${s.emoji}</span>`;
@@ -456,17 +470,40 @@ function obsRenderBolhas(pets) {
   obsFisicaBolhas(host);
 }
 
+/**
+ * Física de "balões com gravidade": as bolhas caem e descansam no fundo,
+ * empilhando (com colisão simples entre elas). Ao passar o ponteiro perto, elas
+ * são empurradas para cima — como se enchessem de ar — e depois caem de novo.
+ */
 function obsFisicaBolhas(host) {
   const bolhas = [...host.querySelectorAll(".obs-bolha")];
   const rect0 = host.getBoundingClientRect();
-  let W = rect0.width, H = rect0.height || 320;
-  const state = bolhas.map((el) => {
+  let W = rect0.width, H = rect0.height || 360;
+
+  const G = 0.42;          // gravidade
+  const AIR = 0.992;       // arrasto do ar
+  const FLOOR_BOUNCE = 0.28; // quicada ao tocar o chão (balão murcho)
+  const WALL_BOUNCE = 0.5;
+
+  const state = bolhas.map((el, idx) => {
     const r = Number(el.dataset.r);
-    return { el, r, x: Math.random() * Math.max(1, W - 2 * r), y: Math.random() * Math.max(1, H - 2 * r), vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5 };
+    return {
+      el, r,
+      x: Math.random() * Math.max(1, W - 2 * r),
+      y: -r - Math.random() * 200 - idx * 20, // caem do topo, escalonado
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: 0,
+    };
   });
   const place = (b) => { b.el.style.transform = `translate(${b.x}px, ${b.y}px)`; };
   state.forEach(place);
-  if (OBS_REDUCED) return;
+
+  if (OBS_REDUCED) {
+    // Estático: assenta todas no fundo, lado a lado.
+    let cx = 8;
+    state.forEach((b) => { b.x = Math.min(cx, W - 2 * b.r); b.y = H - 2 * b.r; cx += 2 * b.r + 6; place(b); });
+    return;
+  }
 
   let mouse = null;
   host.addEventListener("pointermove", (e) => { const r = host.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
@@ -477,23 +514,73 @@ function obsFisicaBolhas(host) {
   let raf = 0, running = false;
   const step = () => {
     if (!running) return;
+
     state.forEach((b) => {
-      b.vx += (Math.random() - 0.5) * 0.03; b.vy += (Math.random() - 0.5) * 0.03;
+      b.vy += G;               // gravidade
+      b.vx *= AIR;
+
+      // Ponteiro perto → "sopro de ar": empurra pra longe, com forte viés pra cima.
       if (mouse) {
-        const cx = b.x + b.r, cy = b.y + b.r, dx = cx - mouse.x, dy = cy - mouse.y, d2 = dx * dx + dy * dy;
-        if (d2 < 120 * 120 && d2 > 1) { const d = Math.sqrt(d2), f = (120 - d) / 120 * 0.6; b.vx += (dx / d) * f; b.vy += (dy / d) * f; }
+        const cx = b.x + b.r, cy = b.y + b.r;
+        const dx = cx - mouse.x, dy = cy - mouse.y;
+        const reach = b.r + 70;
+        const d = Math.hypot(dx, dy);
+        if (d < reach) {
+          const f = (reach - Math.max(d, 0.001)) / reach;
+          if (d > 0.5) {
+            b.vx += (dx / d) * f * 2.2;
+            b.vy += (dy / d) * f * 1.6;
+          }
+          b.vy -= f * 6.5; // levanta como se enchesse de ar (mesmo bem no centro)
+        }
       }
-      const sp = Math.hypot(b.vx, b.vy), max = 0.9;
+    });
+
+    // Colisão simples entre bolhas (separa + troca um pouco de velocidade).
+    for (let i = 0; i < state.length; i++) {
+      for (let j = i + 1; j < state.length; j++) {
+        const a = state[i], b = state[j];
+        const ax = a.x + a.r, ay = a.y + a.r, bx = b.x + b.r, by = b.y + b.r;
+        let dx = bx - ax, dy = by - ay;
+        let d = Math.hypot(dx, dy);
+        const min = a.r + b.r;
+        if (d < min && d > 0.01) {
+          const nx = dx / d, ny = dy / d;
+          const overlap = (min - d) / 2;
+          a.x -= nx * overlap; a.y -= ny * overlap;
+          b.x += nx * overlap; b.y += ny * overlap;
+          // amortece a componente normal (empilha em vez de saltar)
+          const rel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+          if (rel < 0) {
+            const imp = rel * 0.5;
+            a.vx += nx * imp; a.vy += ny * imp;
+            b.vx -= nx * imp; b.vy -= ny * imp;
+          }
+        }
+      }
+    }
+
+    // Velocidade máxima + integra + paredes/chão.
+    state.forEach((b) => {
+      const sp = Math.hypot(b.vx, b.vy), max = 12;
       if (sp > max) { b.vx = b.vx / sp * max; b.vy = b.vy / sp * max; }
       b.x += b.vx; b.y += b.vy;
-      if (b.x < 0) { b.x = 0; b.vx = Math.abs(b.vx); }
-      if (b.x > W - 2 * b.r) { b.x = W - 2 * b.r; b.vx = -Math.abs(b.vx); }
-      if (b.y < 0) { b.y = 0; b.vy = Math.abs(b.vy); }
-      if (b.y > H - 2 * b.r) { b.y = H - 2 * b.r; b.vy = -Math.abs(b.vy); }
+
+      if (b.x < 0) { b.x = 0; b.vx = -b.vx * WALL_BOUNCE; }
+      if (b.x > W - 2 * b.r) { b.x = W - 2 * b.r; b.vx = -b.vx * WALL_BOUNCE; }
+      if (b.y < 0) { b.y = 0; b.vy = -b.vy * WALL_BOUNCE; }
+      if (b.y > H - 2 * b.r) {           // chão
+        b.y = H - 2 * b.r;
+        b.vy = -b.vy * FLOOR_BOUNCE;
+        b.vx *= 0.88;                    // atrito no chão
+        if (Math.abs(b.vy) < 0.6) b.vy = 0; // assenta
+      }
       place(b);
     });
+
     raf = requestAnimationFrame(step);
   };
+
   const vis = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting && !raf) { running = true; raf = requestAnimationFrame(step); }
@@ -518,8 +605,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (split) obsRenderSplit(split);
   const leis = document.getElementById("obs-leis");
   if (leis) obsRenderLeis(leis);
-  const fontes = document.getElementById("obs-fontes-lista");
-  if (fontes) obsRenderFontes(fontes);
+  const refs = document.getElementById("obs-ref-grid");
+  if (refs) obsRenderReferencias(refs);
 
   obsCarregaMapa();
 
