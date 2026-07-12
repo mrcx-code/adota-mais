@@ -45,7 +45,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://servicodados.ibge.gov.br" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/observatorio.css?v=20260712e" />
+  <link rel="stylesheet" href="../css/observatorio.css?v=20260712f" />
 </head>
 <body data-obs-page="home">
 
@@ -70,13 +70,11 @@
 
   <main class="site-main">
 
-    <!-- ============ HERO: números do Brasil ============ -->
+    <!-- ============ HERO: céu de dados (observatório) ============ -->
     <section class="obs-hero" id="obs-hero">
-      <div class="obs-hero-orbs" aria-hidden="true">
-        <span class="obs-orb orb-a"></span>
-        <span class="obs-orb orb-b"></span>
-        <span class="obs-orb orb-c"></span>
-        <span class="obs-orb orb-d"></span>
+      <div class="obs-sky" id="obs-sky" aria-hidden="true">
+        <div class="obs-sweep"></div>
+        <div class="obs-orbit"><span class="obs-orbit-sat"></span></div>
       </div>
       <span class="obs-eyebrow">📡 Observatório Patinhas</span>
       <h1>O abandono tem números.<br /><em>A adoção também.</em></h1>
@@ -87,7 +85,13 @@
         <a href="#obs-mapa" class="btn btn-secondary btn-cta">Explorar os dados ↓</a>
       </div>
 
-      <div id="obs-hero-grid" class="obs-num-grid" aria-label="Números que resumem o Brasil pet"></div>
+      <div class="obs-leitura" id="obs-leitura" aria-live="polite">
+        <span class="obs-leitura-tag"><span class="obs-leitura-dot-live" aria-hidden="true"></span> observando agora</span>
+        <div class="obs-leitura-num"><span id="obs-leitura-n">—</span><span class="obs-leitura-u" id="obs-leitura-u"></span></div>
+        <p class="obs-leitura-label" id="obs-leitura-label"></p>
+        <span class="obs-fonte obs-leitura-fonte" id="obs-leitura-fonte"></span>
+        <div class="obs-leitura-dots" id="obs-leitura-dots"></div>
+      </div>
     </section>
 
     <!-- ============ S1: mapa + lista rolável por estado ============ -->
@@ -270,6 +274,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabaseClient.js"></script>
   <script src="../js/analytics.js"></script>
-  <script src="../js/observatorio.js?v=20260712b"></script>
+  <script src="../js/observatorio.js?v=20260712f"></script>
 </body>
 </html>

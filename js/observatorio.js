@@ -29,6 +29,15 @@ const OBS = {
     { valor: "1,35", unidade: "→1", label: "entram no abrigo para cada <strong>1 que sai</strong> — a conta não fecha", fonte: "Infodados / Medicina de Abrigos (2025)", cor: "danger" },
   ],
 
+  // Números-chave que giram na "leitura ao vivo" do hero (um por vez).
+  destaques: [
+    { valor: "30,2", unidade: "mi", label: "de cães e gatos em situação de <strong>abandono</strong> — 1 em cada 4", fonte: "Mars · State of Pet Homelessness (2024)" },
+    { valor: "80", unidade: "%", label: "dos pets nos lares brasileiros chegaram por <strong>adoção</strong>", fonte: "GoldeN / Opinion Box (2025)" },
+    { valor: "1,3", unidade: "mi", label: "de animais ganharam “RG” no <strong>SinPatinhas</strong> em 1 ano", fonte: "MMA · Gov. Federal (abr 2026)" },
+    { valor: "4,8", unidade: "mi", label: "de cães e gatos em condição de <strong>vulnerabilidade</strong>", fonte: "Instituto Pet Brasil (2024)" },
+    { valor: "675", unidade: "mil", label: "<strong>castrações gratuitas</strong> pelo programa ProPatinhas", fonte: "MMA / ProPatinhas (2026)" },
+  ],
+
   fatosAdocao: [
     {
       icone: "💚", valor: "80%",
@@ -154,29 +163,75 @@ const OBS_PAW =
    Hero — carrossel de números
    ===================================================================== */
 
-function obsRenderNumeros() {
-  const grid = document.getElementById("obs-hero-grid");
-  if (!grid) return;
+/** Céu estrelado do hero (estrelas espalhadas que piscam). */
+function obsCeu() {
+  const sky = document.getElementById("obs-sky");
+  if (!sky) return;
+  const N = OBS_REDUCED ? 24 : 46;
+  const frag = [];
+  for (let k = 0; k < N; k++) {
+    const x = (Math.random() * 100).toFixed(1);
+    const y = (Math.random() * 82).toFixed(1);
+    const big = Math.random() < 0.12;
+    const size = big ? 4 : 1 + Math.round(Math.random() * 2);
+    const delay = Math.round(Math.random() * 3200);
+    const dur = 2000 + Math.round(Math.random() * 2800);
+    frag.push(`<span class="obs-star${big ? " big" : ""}" style="left:${x}%;top:${y}%;width:${size}px;height:${size}px;--d:${delay}ms;--t:${dur}ms"></span>`);
+  }
+  sky.insertAdjacentHTML("afterbegin", frag.join(""));
+}
 
-  grid.innerHTML = OBS.numeros.map((n, i) => `
-    <article class="obs-num-card cor-${n.cor}" style="--i:${i}">
-      <div class="obs-num-value"><span class="obs-num-n">${obsEsc(n.valor)}</span><span class="obs-num-u">${obsEsc(n.unidade)}</span></div>
-      <p class="obs-num-label">${n.label}</p>
-      <span class="obs-num-fonte">📌 ${obsEsc(n.fonte)}</span>
-    </article>`).join("");
+/** Leitura ao vivo: gira entre os números-chave, um por vez, com count-up. */
+function obsLeituraRotativa() {
+  const box = document.getElementById("obs-leitura");
+  if (!box) return;
+  const items = OBS.destaques;
+  const nEl = document.getElementById("obs-leitura-n");
+  const uEl = document.getElementById("obs-leitura-u");
+  const labelEl = document.getElementById("obs-leitura-label");
+  const fonteEl = document.getElementById("obs-leitura-fonte");
+  const dotsEl = document.getElementById("obs-leitura-dots");
+  dotsEl.innerHTML = items.map((_, k) => `<button type="button" class="obs-leitura-dot" data-k="${k}" aria-label="Número ${k + 1}"></button>`).join("");
 
-  const cards = [...grid.querySelectorAll(".obs-num-card")];
-  if (OBS_REDUCED) { cards.forEach((c) => c.classList.add("in")); return; }
-  // Cascata "piano": quando a grade entra na tela, os cards aparecem em
-  // sequência (o atraso por card vem do --i no CSS).
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      io.unobserve(entry.target);
-      cards.forEach((c) => c.classList.add("in"));
-    });
-  }, { threshold: 0.15, rootMargin: "0px 0px -60px 0px" });
-  io.observe(grid);
+  let i = 0, timer = 0;
+
+  function countTo(str) {
+    if (OBS_REDUCED) { nEl.textContent = str; return; }
+    const dec = (str.split(",")[1] || "").length;
+    const target = parseFloat(str.replace(".", "").replace(",", "."));
+    const dur = 850, t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min((t - t0) / dur, 1);
+      const v = target * (1 - Math.pow(1 - p, 3));
+      nEl.textContent = v.toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function show(k) {
+    i = k;
+    const it = items[k];
+    uEl.textContent = it.unidade;
+    labelEl.innerHTML = it.label;
+    fonteEl.textContent = "📌 " + it.fonte;
+    dotsEl.querySelectorAll(".obs-leitura-dot").forEach((d, di) => d.classList.toggle("on", di === k));
+    box.classList.remove("swap"); void box.offsetWidth; box.classList.add("swap");
+    countTo(it.valor);
+  }
+
+  function agenda() {
+    clearInterval(timer);
+    if (!OBS_REDUCED) timer = setInterval(() => show((i + 1) % items.length), 4800);
+  }
+
+  dotsEl.addEventListener("click", (e) => {
+    const d = e.target.closest(".obs-leitura-dot");
+    if (d) { show(Number(d.dataset.k)); agenda(); }
+  });
+
+  show(0);
+  agenda();
 }
 
 /* =====================================================================
@@ -705,26 +760,26 @@ function obsFisicaBolhas(host) {
    Boot
    ===================================================================== */
 
-/** O brilho colorido do hero acompanha o mouse (parallax suave) — cada orb
- * continua flutuando sozinho; aqui movemos o grupo inteiro de leve. */
+/** O céu do hero acompanha o mouse de leve (parallax) — dá vida à cena. */
 function obsHeroParallax() {
   const hero = document.getElementById("obs-hero");
-  const orbs = hero && hero.querySelector(".obs-hero-orbs");
-  if (!orbs || OBS_REDUCED) return;
+  const sky = hero && hero.querySelector(".obs-sky");
+  if (!sky || OBS_REDUCED) return;
   let raf = 0, cx = 0, cy = 0;
-  orbs.style.transition = "transform 0.4s ease-out";
+  sky.style.transition = "transform 0.5s ease-out";
   hero.addEventListener("pointermove", (e) => {
     const r = hero.getBoundingClientRect();
-    cx = ((e.clientX - r.left) / r.width - 0.5) * 40;   // desloca até ~20px
-    cy = ((e.clientY - r.top) / r.height - 0.5) * 40;
+    cx = ((e.clientX - r.left) / r.width - 0.5) * 26;
+    cy = ((e.clientY - r.top) / r.height - 0.5) * 26;
     if (!raf) raf = requestAnimationFrame(apply);
   });
   hero.addEventListener("pointerleave", () => { cx = 0; cy = 0; if (!raf) raf = requestAnimationFrame(apply); });
-  function apply() { raf = 0; orbs.style.transform = `translate(${cx}px, ${cy}px)`; }
+  function apply() { raf = 0; sky.style.transform = `translate(${cx}px, ${cy}px)`; }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  obsRenderNumeros();
+  obsCeu();
+  obsLeituraRotativa();
   obsHeroParallax();
 
   const abandono = document.getElementById("obs-abandono");
