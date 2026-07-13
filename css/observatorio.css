@@ -288,12 +288,22 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Rodapé com assinatura da marca ---------- */
 
-/* Mesmo rodapé simples do site (style.css), pra combinar. */
+/* Mesmo rodapé do site (style.css), pra combinar: nota à esquerda, links à direita. */
 .site-footer {
-  text-align: center;
-  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 22px max(28px, calc((100% - 1240px) / 2 + 20px));
   color: var(--color-text-soft);
   font-size: 13px;
+}
+.site-footer a { color: var(--color-text-muted); }
+.footer-links { font-size: 13px; }
+.footer-links a { margin: 0 2px; }
+@media (max-width: 640px) {
+  .site-footer { justify-content: center; text-align: center; }
 }
 
 /* ---------- Breadcrumbs ---------- */
@@ -1408,6 +1418,12 @@ body > .site-footer { position: relative; z-index: 1; }
   transition: box-shadow 0.2s ease;
 }
 .obs-bolha:hover { box-shadow: 0 8px 22px rgba(28, 33, 23, 0.24), 0 0 0 3px var(--color-brand-accent); }
+/* Bolha capturada pelo cursor: destaca-se e fica firme → alvo de clique claro. */
+.obs-bolha.held {
+  z-index: 5;
+  box-shadow: 0 10px 26px rgba(28, 33, 23, 0.32), 0 0 0 4px var(--color-brand-accent);
+}
+.obs-bolha.held img { transform: scale(1.06); transition: transform 0.18s ease; }
 .obs-bolha img { width: 100%; height: 100%; object-fit: cover; }
 .obs-bolha-emoji { font-size: calc(var(--r) * 0.95); line-height: 1; }
 .obs-cta-conteudo { position: relative; z-index: 1; pointer-events: none; }

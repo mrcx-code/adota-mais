@@ -677,9 +677,12 @@ function obsFisicaBolhas(host) {
     return;
   }
 
-  let mouse = null;
+  let mouse = null, near = null, dwell = 0, held = null;
   host.addEventListener("pointermove", (e) => { const r = host.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
-  host.addEventListener("pointerleave", () => { mouse = null; });
+  host.addEventListener("pointerleave", () => {
+    mouse = null; near = null; dwell = 0;
+    if (held) { held.el.classList.remove("held"); held = null; }
+  });
   const ro = new ResizeObserver(() => { const r = host.getBoundingClientRect(); W = r.width; H = r.height || H; });
   ro.observe(host);
 
@@ -687,23 +690,46 @@ function obsFisicaBolhas(host) {
   const step = () => {
     if (!running) return;
 
+    // Bolha sob o cursor; se ele fica parado nela um instante, ela é "capturada".
+    let nearest = null, best = Infinity;
+    if (mouse) {
+      for (const b of state) {
+        const cx = b.x + b.r, cy = b.y + b.r, d = Math.hypot(cx - mouse.x, cy - mouse.y);
+        if (d < b.r + 24 && d < best) { best = d; nearest = b; }
+      }
+    }
+    if (nearest && nearest === near) dwell++; else { near = nearest; dwell = 0; }
+    const wantHeld = nearest && dwell > 22 ? nearest : null; // ~0,35s parado perto
+    if (held !== wantHeld) {
+      if (held) held.el.classList.remove("held");
+      held = wantHeld;
+      if (held) held.el.classList.add("held");
+    }
+
     state.forEach((b) => {
+      if (b === held) {
+        // capturada: sem gravidade — para no cursor (fácil de clicar).
+        const cx = b.x + b.r, cy = b.y + b.r;
+        b.vx = (b.vx + (mouse.x - cx) * 0.16) * 0.5;
+        b.vy = (b.vy + (mouse.y - cy) * 0.16) * 0.5;
+        return;
+      }
       b.vy += G;               // gravidade
       b.vx *= AIR;
 
-      // Ponteiro perto → "sopro de ar": empurra pra longe, com forte viés pra cima.
+      // Ponteiro perto → empurrãozinho leve (não foge do cursor).
       if (mouse) {
         const cx = b.x + b.r, cy = b.y + b.r;
         const dx = cx - mouse.x, dy = cy - mouse.y;
-        const reach = b.r + 55;
+        const reach = b.r + 46;
         const d = Math.hypot(dx, dy);
         if (d < reach) {
           const f = (reach - Math.max(d, 0.001)) / reach;
           if (d > 0.5) {
-            b.vx += (dx / d) * f * 0.35;
-            b.vy += (dy / d) * f * 0.2;
+            b.vx += (dx / d) * f * 0.12;
+            b.vy += (dy / d) * f * 0.07;
           }
-          b.vy -= f * 0.85; // sobe de leve, como uma bexiga cutucada
+          b.vy -= f * 0.34; // sobe de leve, como uma bexiga cutucada
         }
       }
     });
@@ -719,8 +745,9 @@ function obsFisicaBolhas(host) {
         if (d < min && d > 0.01) {
           const nx = dx / d, ny = dy / d;
           const overlap = (min - d) / 2;
-          a.x -= nx * overlap; a.y -= ny * overlap;
-          b.x += nx * overlap; b.y += ny * overlap;
+          // a bolha capturada fica firme no cursor; a outra é quem se afasta.
+          if (a !== held) { a.x -= nx * overlap; a.y -= ny * overlap; }
+          if (b !== held) { b.x += nx * overlap; b.y += ny * overlap; }
           // amortece a componente normal (empilha em vez de saltar)
           const rel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
           if (rel < 0) {

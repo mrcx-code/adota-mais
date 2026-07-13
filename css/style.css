@@ -357,14 +357,21 @@ button {
 }
 
 .site-footer {
-  text-align: center;
-  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 22px max(28px, calc((100% - 1240px) / 2 + 20px));
   color: var(--color-text-soft);
   font-size: 13px;
 }
 .site-footer a { color: var(--color-text-muted); }
-.footer-links { margin-top: 6px; font-size: 12px; }
-.footer-links a { margin: 0 6px; }
+.footer-links { font-size: 13px; }
+.footer-links a { margin: 0 2px; }
+@media (max-width: 640px) {
+  .site-footer { justify-content: center; text-align: center; }
+}
 
 /* ---------- Páginas legais (Termos / Privacidade) ---------- */
 
