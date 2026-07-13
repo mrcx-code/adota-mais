@@ -1,5 +1,66 @@
 /** Funções auxiliares compartilhadas entre index.html e admin.html */
 
+const PAW_SVG =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z"/></svg>';
+
+/**
+ * "Mapa do Maroto": trilhas de patinhas que caminham pelo fundo da página,
+ * surgem, deslizam um pouco e somem. Decorativo; respeita prefers-reduced-motion.
+ * Deve ser chamado só nas páginas públicas (não no admin).
+ */
+function pawMarauder() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const layer = document.createElement("div");
+  layer.className = "paw-map";
+  layer.setAttribute("aria-hidden", "true");
+  document.body.appendChild(layer);
+
+  const W = () => window.innerWidth;
+  const H = () => document.documentElement.clientHeight;
+
+  function spawnPaw(cx, cy, angRad, delay) {
+    const el = document.createElement("span");
+    el.className = "paw-print";
+    el.innerHTML = PAW_SVG;
+    const size = 18 + Math.round(Math.random() * 12);
+    el.style.width = el.style.height = size + "px";
+    el.style.left = cx + "px";
+    el.style.top = cy + "px";
+    const rot = `rotate(${angRad + Math.PI / 2}rad)`;
+    el.style.transform = `translate(-50%,-50%) ${rot}`;
+    layer.appendChild(el);
+    setTimeout(() => {
+      el.classList.add("show");
+      const dx = Math.cos(angRad) * 12, dy = Math.sin(angRad) * 12;
+      el.style.transform = `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) ${rot}`;
+      setTimeout(() => {
+        el.classList.remove("show");
+        setTimeout(() => el.remove(), 800);
+      }, 1300 + Math.random() * 800);
+    }, delay);
+  }
+
+  function trail() {
+    let x = Math.random() * W();
+    let y = Math.random() * H();
+    let ang = Math.random() * Math.PI * 2;
+    const steps = 7 + Math.floor(Math.random() * 7);
+    const stride = 34 + Math.random() * 16;
+    for (let i = 0; i < steps; i++) {
+      const side = i % 2 === 0 ? 1 : -1;
+      const perp = ang + Math.PI / 2;
+      spawnPaw(x + Math.cos(perp) * 8 * side, y + Math.sin(perp) * 8 * side, ang, i * 150);
+      x += Math.cos(ang) * stride;
+      y += Math.sin(ang) * stride;
+      ang += (Math.random() - 0.5) * 0.6;
+      if (x < -50 || x > W() + 50 || y < -50 || y > H() + 50) break;
+    }
+    setTimeout(trail, 800 + Math.random() * 1400);
+  }
+  trail();
+  setTimeout(trail, 1200);
+}
+
 /**
  * Comprime e redimensiona uma imagem no navegador ANTES de enviar ao Supabase.
  * Fotos de celular chegam com vários MB e em resolução altíssima; para um card

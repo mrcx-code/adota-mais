@@ -787,9 +787,20 @@ function obsHeroScanner() {
 
   if (OBS_REDUCED || !comet) return;
 
-  let x = 0, y = 0, px = 0, py = 0, lx = 0, ly = 0;
-  let emit = 0;       // distância acumulada desde a última partícula
-  let loop = 0;
+  const canvas = document.getElementById("obs-trail");
+  const ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const pts = [];          // pontos recentes do rastro (a cabeça fica no fim)
+  const MAX = 64;          // comprimento máximo do rastro
+  let x = 0, y = 0, px = 0, py = 0, loop = 0;
+
+  function sizeCanvas() {
+    if (!canvas) return;
+    const r = hero.getBoundingClientRect();
+    canvas.width = Math.round(r.width * dpr);
+    canvas.height = Math.round(r.height * dpr);
+  }
+  if (canvas) { sizeCanvas(); new ResizeObserver(sizeCanvas).observe(hero); }
 
   hero.addEventListener("pointermove", (e) => {
     if (e.pointerType === "touch") return; // sem hover no toque
@@ -802,55 +813,54 @@ function obsHeroScanner() {
     hero.style.setProperty("--px", px.toFixed(3));
     hero.style.setProperty("--py", py.toFixed(3));
     hero.classList.add("scanning", "par");
-    if (!loop) { lx = x; ly = y; loop = requestAnimationFrame(tick); }
+    if (!loop) loop = requestAnimationFrame(tick);
   });
   hero.addEventListener("pointerleave", () => {
     hero.classList.remove("scanning", "par");
     hero.style.removeProperty("--px");
     hero.style.removeProperty("--py");
-    cancelAnimationFrame(loop); loop = 0; emit = 0;
+    cancelAnimationFrame(loop); loop = 0;
+    pts.length = 0;
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   });
 
-  /** Solta uma partícula de poeira cósmica em (px,py), que deriva e se apaga. */
-  function spawnDust(cx, cy, sp) {
-    const d = document.createElement("span");
-    d.className = "obs-dust";
-    const size = 3 + Math.random() * (3 + Math.min(sp, 12) * 0.4);
-    d.style.setProperty("--s", size.toFixed(1) + "px");
-    // nasce um pouco atrás do cometa, com dispersão aleatória (poeira).
-    const jx = (Math.random() - 0.5) * 10;
-    const jy = (Math.random() - 0.5) * 10;
-    const sx = cx - 8 + jx, sy = cy - 8 + jy;
-    // deriva leve numa direção aleatória → nuvem que se espalha devagar.
-    const dxp = (Math.random() - 0.5) * 22;
-    const dyp = (Math.random() - 0.5) * 22 + 4;
-    d.style.transform = `translate(${sx}px, ${sy}px)`;
-    hero.appendChild(d);
-    const life = 460 + Math.random() * 520;
-    d.animate(
-      [
-        { opacity: Math.min(0.55, 0.22 + sp * 0.03), transform: `translate(${sx}px, ${sy}px) scale(1)` },
-        { opacity: 0, transform: `translate(${sx + dxp}px, ${sy + dyp}px) scale(0.4)` },
-      ],
-      { duration: life, easing: "ease-out", fill: "forwards" }
-    ).onfinish = () => d.remove();
+  function tick() {
+    comet.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
+    const last = pts[pts.length - 1];
+    const moved = !last || Math.hypot(x - last.x, y - last.y) > 1.2;
+    // enquanto o mouse anda, o rastro cresce; parado, ele recua suavemente.
+    if (moved) pts.push({ x, y });
+    else if (pts.length) pts.shift();
+    while (pts.length > MAX) pts.shift();
+    if (ctx) drawTrail();
+    loop = requestAnimationFrame(tick);
   }
 
-  function tick() {
-    const dx = x - lx, dy = y - ly;
-    const sp = Math.hypot(dx, dy);
-    comet.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
-    // emite poeira proporcional à distância percorrida (velocidade) — sutil.
-    emit += sp;
-    const gap = 9; // px entre partículas
-    let guard = 0;
-    while (emit >= gap && guard++ < 6) {
-      emit -= gap;
-      const t = guard / 6;
-      spawnDust(lx + dx * t, ly + dy * t, sp);
+  /** Desenha um rastro âmbar fluido e brilhante que afina/apaga na cauda. */
+  function drawTrail() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const n = pts.length;
+    if (n < 2) return;
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.globalCompositeOperation = "lighter";
+    ctx.shadowColor = "rgba(231, 200, 137, 0.55)";
+    ctx.shadowBlur = 8;
+    for (let i = 1; i < n; i++) {
+      const t = i / (n - 1);                    // 0 = cauda, 1 = cabeça
+      const a = pts[i - 1], b = pts[i];
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const prev = pts[i - 2] || a;
+      ctx.beginPath();
+      ctx.moveTo((prev.x + a.x) / 2, (prev.y + a.y) / 2);
+      ctx.quadraticCurveTo(a.x, a.y, mx, my); // suaviza a curva pelos pontos médios
+      ctx.lineWidth = 0.6 + t * 7.5;
+      ctx.strokeStyle = "rgba(231, 200, 137, " + (0.04 + t * 0.5).toFixed(3) + ")";
+      ctx.stroke();
     }
-    lx = x; ly = y;
-    loop = requestAnimationFrame(tick);
+    ctx.restore();
   }
 }
 
@@ -878,14 +888,18 @@ function obsMarauder() {
     el.style.left = cx + "px";
     el.style.top = cy + "px";
     // a patinha "aponta" para a direção da caminhada (SVG aponta p/ cima).
-    el.style.transform = `translate(-50%,-50%) rotate(${angRad + Math.PI / 2}rad)`;
+    const rot = `rotate(${angRad + Math.PI / 2}rad)`;
+    el.style.transform = `translate(-50%,-50%) ${rot}`;
     layer.appendChild(el);
     setTimeout(() => {
       el.classList.add("show");
+      // desliza um pouco na direção da caminhada → parece que anda.
+      const dx = Math.cos(angRad) * 12, dy = Math.sin(angRad) * 12;
+      el.style.transform = `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) ${rot}`;
       setTimeout(() => {
         el.classList.remove("show");
-        setTimeout(() => el.remove(), 900);
-      }, 1500 + Math.random() * 900);
+        setTimeout(() => el.remove(), 800);
+      }, 1300 + Math.random() * 800);
     }, delay);
   }
 
@@ -893,20 +907,22 @@ function obsMarauder() {
     let x = Math.random() * W();
     let y = Math.random() * H();
     let ang = Math.random() * Math.PI * 2;
-    const steps = 6 + Math.floor(Math.random() * 7);
+    const steps = 7 + Math.floor(Math.random() * 7);
     const stride = 34 + Math.random() * 16;
     for (let i = 0; i < steps; i++) {
       const side = i % 2 === 0 ? 1 : -1;
       const perp = ang + Math.PI / 2;
-      spawnPaw(x + Math.cos(perp) * 8 * side, y + Math.sin(perp) * 8 * side, ang, i * 200);
+      spawnPaw(x + Math.cos(perp) * 8 * side, y + Math.sin(perp) * 8 * side, ang, i * 150);
       x += Math.cos(ang) * stride;
       y += Math.sin(ang) * stride;
       ang += (Math.random() - 0.5) * 0.6; // vagueia
       if (x < -50 || x > W() + 50 || y < -50 || y > H() + 50) break;
     }
-    setTimeout(trail, 1500 + Math.random() * 2000);
+    setTimeout(trail, 800 + Math.random() * 1400); // mais frequente → mais vivo
   }
+  // Duas trilhas simultâneas p/ dar densidade e movimento constante.
   trail();
+  setTimeout(trail, 1200);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

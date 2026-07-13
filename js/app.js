@@ -648,4 +648,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKanbanDots();
   setupBackToTop();
   setupHeroTilt();
+  if (typeof pawMarauder === "function") pawMarauder();
 });
