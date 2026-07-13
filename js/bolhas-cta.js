@@ -38,13 +38,14 @@
 
   function render(host, pets) {
     const base = host.dataset.petHref || "index.html";
+    const MAX = 5; // no máximo 5 bolinhas — enxuto e amigável
     const comFoto = (pets || []).filter((p) => safeUrl(p.photo_url));
     const fontes = comFoto.map((p) => ({ foto: safeUrl(p.photo_url), id: p.id }));
-    // Poucos pets no começo → completa com emojis (mínimo 12 bolhas).
-    const emojis = ["🐶", "🐕", "🦴", "🐾", "🐩", "🐕", "🦮", "🐶"];
+    // Poucos (ou nenhum) pet → completa com emojis até fechar 5 bolhas.
+    const emojis = ["🐶", "🐱", "🐾", "🦴", "🐩"];
     let i = 0;
-    while (fontes.length < 12) fontes.push({ emoji: emojis[i++ % emojis.length] });
-    const usadas = fontes.slice(0, 15);
+    while (fontes.length < MAX) fontes.push({ emoji: emojis[i++ % emojis.length] });
+    const usadas = fontes.slice(0, MAX);
 
     host.innerHTML = usadas.map((s) => {
       const r = 26 + Math.round(Math.random() * 20);

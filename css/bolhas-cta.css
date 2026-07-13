@@ -26,7 +26,7 @@
 .petcta--bolhas {
   position: relative;
   overflow: hidden;
-  min-height: 360px;
+  min-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,5 +71,5 @@
   .petcta { margin-top: 40px; padding: 32px 20px; }
   .petcta-actions { flex-direction: column; align-items: stretch; }
   .petcta-actions .btn { width: 100%; }
-  .petcta--bolhas { min-height: 620px; padding-bottom: 210px; align-items: flex-start; padding-top: 40px; }
+  .petcta--bolhas { min-height: 460px; padding-bottom: 150px; align-items: flex-start; padding-top: 40px; }
 }

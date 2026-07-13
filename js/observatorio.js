@@ -622,13 +622,16 @@ async function obsFetchPets() {
 function obsRenderReencontros(pets) {
   const wrap = document.getElementById("obs-reencontros");
   if (!wrap) return;
+  const secao = wrap.closest("section");
   const adotados = (pets || [])
     .filter((p) => p.status === "adotado")
     .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+  // Sem pets adotados → não há reencontros: esconde a seção inteira.
   if (!adotados.length) {
-    wrap.innerHTML = `<p class="obs-vazio">Os primeiros reencontros do Patinhas ainda vão acontecer — e podem começar com você. 💚</p>`;
+    if (secao) secao.hidden = true;
     return;
   }
+  if (secao) secao.hidden = false;
   wrap.innerHTML = adotados.map((p) => {
     const foto = obsSafeUrl(p.photo_url);
     const espera = Math.max(0, Math.round((new Date(p.updated_at) - new Date(p.created_at)) / 86400000));
