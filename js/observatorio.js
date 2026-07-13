@@ -166,6 +166,29 @@ const OBS_PAW =
    Hero — carrossel de números
    ===================================================================== */
 
+/** Céu estrelado bem sutil no fundo de TODA a página (camada fixa, atrás do
+ * conteúdo). Pontinhos com opacidade baixíssima — só textura, sem atrapalhar. */
+function obsCeuFundo() {
+  if (document.querySelector(".obs-starfield")) return;
+  const layer = document.createElement("div");
+  layer.className = "obs-starfield";
+  layer.setAttribute("aria-hidden", "true");
+  const N = OBS_REDUCED ? 70 : 150;
+  const frag = [];
+  for (let k = 0; k < N; k++) {
+    const x = (Math.random() * 100).toFixed(2);
+    const y = (Math.random() * 100).toFixed(2);
+    const big = Math.random() < 0.16;
+    const size = big ? (2 + Math.random() * 1.4) : (1 + Math.random() * 0.8);
+    const o = (big ? 0.08 : 0.045) + Math.random() * 0.04; // ~0,045–0,12 (bem baixinho)
+    const d = Math.round(Math.random() * 4200);
+    const t = 3200 + Math.round(Math.random() * 3200);
+    frag.push(`<span class="obs-fstar" style="left:${x}%;top:${y}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;--o:${o.toFixed(3)};--d:${d}ms;--t:${t}ms"></span>`);
+  }
+  layer.innerHTML = frag.join("");
+  document.body.appendChild(layer);
+}
+
 /** Céu estrelado do hero (estrelas espalhadas que piscam). */
 function obsCeu() {
   const sky = document.getElementById("obs-sky");
@@ -786,6 +809,7 @@ function obsMarauder() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  obsCeuFundo();
   obsCeu();
   obsLeituraRotativa();
   obsHeroScanner();

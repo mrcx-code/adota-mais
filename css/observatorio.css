@@ -412,6 +412,29 @@ body > .site-footer { position: relative; z-index: 1; }
 .obs-paw-print.show { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .obs-paw-map { display: none; } }
 
+/* ---- Céu estrelado sutil no fundo de toda a página ---- */
+/* Camada fixa atrás do conteúdo: pontinhos bem apagados, só pra dar textura de
+   céu sem escurecer a página nem atrapalhar a leitura. */
+.obs-starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.obs-fstar {
+  position: absolute;
+  border-radius: 50%;
+  background: #2b3a4a;         /* azul-ardósia discreto sobre o creme */
+  opacity: var(--o, 0.05);
+  animation: obs-twinkle-soft var(--t, 4200ms) ease-in-out var(--d, 0ms) infinite;
+}
+@keyframes obs-twinkle-soft {
+  0%, 100% { opacity: calc(var(--o, 0.05) * 0.45); }
+  50% { opacity: var(--o, 0.05); }
+}
+@media (prefers-reduced-motion: reduce) { .obs-fstar { animation: none; } }
+
 /* ---- Parallax de profundidade (sensação de espaço) ---- */
 /* Cada camada anda uma fração do deslocamento do mouse → paralaxe. */
 .obs-sky   { transition: transform 0.18s ease-out; }
