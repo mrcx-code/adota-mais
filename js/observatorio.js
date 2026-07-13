@@ -39,6 +39,9 @@ const OBS = {
     { valor: "1,3", unidade: "mi", label: "de animais ganharam “RG” no <strong>SinPatinhas</strong> em 1 ano", fonte: "MMA · Gov. Federal (abr 2026)" },
     { valor: "4,8", unidade: "mi", label: "de cães e gatos em condição de <strong>vulnerabilidade</strong>", fonte: "Instituto Pet Brasil (2024)" },
     { valor: "675", unidade: "mil", label: "<strong>castrações gratuitas</strong> pelo programa ProPatinhas", fonte: "MMA / ProPatinhas (2026)" },
+    { valor: "44", unidade: "%", label: "dos tutores são <strong>contra comprar</strong> animais — preferem adotar", fonte: "Opinion Box · Mercado Pet (fev 2026)" },
+    { valor: "160,9", unidade: "mi", label: "de pets no Brasil — a <strong>3ª maior população</strong> do mundo", fonte: "Abempet (ref. 2023)" },
+    { valor: "201", unidade: "mil", label: "animais acolhidos por cerca de <strong>400 ONGs</strong> e protetores", fonte: "Instituto Pet Brasil (2024)" },
   ],
 
   fatosAdocao: [
