@@ -424,7 +424,7 @@ body > .site-footer { position: relative; z-index: 1; }
   /* Eco bem apagado do céu de observatório do hero — só um véu, pra página
      não ficar branca e ganhar clima de céu, sem atrapalhar a leitura. */
   background:
-    radial-gradient(120% 95% at 80% -10%, rgba(28, 59, 70, 0.10) 0%, rgba(23, 41, 59, 0.07) 45%, rgba(16, 29, 43, 0.05) 100%);
+    radial-gradient(120% 95% at 80% -10%, rgba(28, 59, 70, 0.18) 0%, rgba(23, 41, 59, 0.13) 45%, rgba(16, 29, 43, 0.10) 100%);
 }
 .obs-fstar {
   position: absolute;

@@ -181,7 +181,7 @@ function obsCeuFundo() {
     const big = Math.random() < 0.18;
     const amber = Math.random() < 0.14; // algumas patinhas âmbar, como as estrelas do hero
     const size = big ? (14 + Math.random() * 8) : (8 + Math.random() * 5); // px
-    const o = (big ? 0.07 : 0.04) + Math.random() * 0.035; // ~0,04–0,105 (bem baixinho)
+    const o = (big ? 0.11 : 0.07) + Math.random() * 0.045; // ~0,07–0,155 (um pouco mais forte)
     const rot = Math.round(Math.random() * 360);
     const d = Math.round(Math.random() * 4200);
     const t = 3200 + Math.round(Math.random() * 3200);
