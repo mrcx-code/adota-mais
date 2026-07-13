@@ -26,7 +26,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=20260712l" />
+  <link rel="stylesheet" href="css/style.css?v=20260712m" />
+  <link rel="stylesheet" href="css/bolhas-cta.css?v=20260712a" />
 </head>
 <body>
 
@@ -214,23 +215,16 @@
       <p class="about-emphasis">Queremos construir a maior rede brasileira de apoio à adoção responsável, oferecendo ferramentas para ONGs, protetores e toda a comunidade envolvida na causa animal.</p>
     </section>
 
-    <!-- CTA final -->
-    <section class="about-cta-final reveal">
-      <div class="about-hero-blob about-hero-blob--c" aria-hidden="true"></div>
-      <h2>Vamos transformar vidas juntos?</h2>
-      <p>Conheça os animais disponíveis para adoção ou faça parte da nossa rede de ONGs parceiras.</p>
-      <div class="about-cta-final-actions">
-        <a href="index.html" class="btn btn-primary btn-cta">Conhecer Pets</a>
-        <a href="admin.html" class="btn btn-secondary btn-cta">Cadastrar ONG</a>
-      </div>
-      <!-- Bolhas com os bichinhos: boiam como líquido e "grudam" no cursor. -->
-      <div class="about-cta-bolhas" aria-hidden="true">
-        <img src="https://images.unsplash.com/photo-1558788353-f76d92427f16?q=80&w=220&auto=format&fit=crop" loading="lazy" alt="" />
-        <img src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=220&auto=format&fit=crop" loading="lazy" alt="" />
-        <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=220&auto=format&fit=crop" loading="lazy" alt="" />
-        <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=220&auto=format&fit=crop" loading="lazy" alt="" />
-        <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=220&auto=format&fit=crop" loading="lazy" alt="" />
-        <img src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?q=80&w=220&auto=format&fit=crop" loading="lazy" alt="" />
+    <!-- CTA final com as bolhas (componente compartilhado com o Observatório) -->
+    <section class="petcta petcta--bolhas reveal">
+      <div class="petcta-bolhas" data-petbolhas data-pet-href="index.html" aria-hidden="true"></div>
+      <div class="petcta-conteudo">
+        <h2>Vamos transformar vidas juntos?</h2>
+        <p>Conheça os animais disponíveis para adoção ou faça parte da nossa rede de ONGs parceiras.</p>
+        <div class="petcta-actions">
+          <a href="index.html" class="btn btn-primary btn-cta">Conhecer Pets</a>
+          <a href="admin.html" class="btn btn-secondary btn-cta">Cadastrar ONG</a>
+        </div>
       </div>
     </section>
   </main>
@@ -250,6 +244,7 @@
   <script src="js/analytics.js"></script>
   <script src="js/utils.js?v=20260712k"></script>
   <script src="js/mockData.js"></script>
-  <script src="js/sobre.js?v=20260712k"></script>
+  <script src="js/bolhas-cta.js?v=20260712a"></script>
+  <script src="js/sobre.js?v=20260712m"></script>
 </body>
 </html>

@@ -46,6 +46,7 @@
   <link rel="preconnect" href="https://servicodados.ibge.gov.br" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/observatorio.css?v=20260712l" />
+  <link rel="stylesheet" href="../css/bolhas-cta.css?v=20260712a" />
 </head>
 <body data-obs-page="home">
 
@@ -244,13 +245,13 @@
       </div>
     </section>
 
-    <!-- ============ S6: CTA final com as bolhas ============ -->
-    <section class="obs-cta obs-cta--bolhas" id="obs-cta-bolhas">
-      <div id="obs-bolhas" class="obs-bolhas" aria-hidden="true"></div>
-      <div class="obs-cta-conteudo">
+    <!-- ============ S6: CTA final com as bolhas (componente compartilhado) ============ -->
+    <section class="petcta petcta--bolhas" id="obs-cta-bolhas">
+      <div class="petcta-bolhas" data-petbolhas data-pet-href="../index.html" aria-hidden="true"></div>
+      <div class="petcta-conteudo">
         <h2>Atrás de cada número,<br />tem um focinho esperando.</h2>
         <p>Estão bem aqui embaixo — cada bolinha é um bichinho de verdade à procura de um lar. Brinca com elas e vem conhecer todo mundo no mural.</p>
-        <div class="obs-cta-actions">
+        <div class="petcta-actions">
           <a href="../index.html" class="btn btn-primary btn-cta">Conhecer os pets disponíveis 🐾</a>
           <a href="../admin.html" class="btn btn-secondary btn-cta">Sou um abrigo / ONG</a>
         </div>
@@ -277,6 +278,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabaseClient.js"></script>
   <script src="../js/analytics.js"></script>
-  <script src="../js/observatorio.js?v=20260712l"></script>
+  <script src="../js/bolhas-cta.js?v=20260712a"></script>
+  <script src="../js/observatorio.js?v=20260712m"></script>
 </body>
 </html>

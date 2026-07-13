@@ -619,175 +619,8 @@ function obsRenderReencontros(pets) {
   }).join("");
 }
 
-function obsRenderBolhas(pets) {
-  const host = document.getElementById("obs-bolhas");
-  if (!host) return;
-  const comFoto = (pets || []).filter((p) => obsSafeUrl(p.photo_url));
-  const fontes = comFoto.map((p) => ({ foto: obsSafeUrl(p.photo_url), id: p.id }));
-  // Poucos pets no começo → completa com emojis de cachorro (mínimo 12 bolhas).
-  const emojis = ["🐶", "🐕", "🦴", "🐾", "🐩", "🐕", "🦮", "🐶"];
-  let i = 0;
-  while (fontes.length < 12) fontes.push({ emoji: emojis[i++ % emojis.length] });
-  const usadas = fontes.slice(0, 15);
-
-  host.innerHTML = usadas.map((s) => {
-    const r = 26 + Math.round(Math.random() * 20);
-    const inner = s.foto
-      ? `<img src="${obsEsc(s.foto)}" alt="" loading="lazy" decoding="async" />`
-      : `<span class="obs-bolha-emoji">${s.emoji}</span>`;
-    const href = s.id ? `../index.html#pet-${obsEsc(s.id)}` : "../index.html";
-    return `<a class="obs-bolha" href="${href}" tabindex="-1" style="--r:${r}px" data-r="${r}">${inner}</a>`;
-  }).join("");
-
-  obsFisicaBolhas(host);
-}
-
-/**
- * Física de "balões com gravidade": as bolhas caem e descansam no fundo,
- * empilhando (com colisão simples entre elas). Ao passar o ponteiro perto, elas
- * são empurradas para cima — como se enchessem de ar — e depois caem de novo.
- */
-function obsFisicaBolhas(host) {
-  const bolhas = [...host.querySelectorAll(".obs-bolha")];
-  const rect0 = host.getBoundingClientRect();
-  let W = rect0.width, H = rect0.height || 360;
-
-  const G = 0.11;          // gravidade leve (balão caindo devagar)
-  const AIR = 0.975;       // bastante arrasto → movimento macio, flutuante
-  const FLOOR_BOUNCE = 0.12; // quase não quica ao tocar o chão
-  const WALL_BOUNCE = 0.4;
-
-  const state = bolhas.map((el, idx) => {
-    const r = Number(el.dataset.r);
-    return {
-      el, r,
-      x: Math.random() * Math.max(1, W - 2 * r),
-      y: -r - Math.random() * 200 - idx * 20, // caem do topo, escalonado
-      vx: (Math.random() - 0.5) * 0.6,
-      vy: 0,
-    };
-  });
-  const place = (b) => { b.el.style.transform = `translate(${b.x}px, ${b.y}px)`; };
-  state.forEach(place);
-
-  if (OBS_REDUCED) {
-    // Estático: assenta todas no fundo, lado a lado.
-    let cx = 8;
-    state.forEach((b) => { b.x = Math.min(cx, W - 2 * b.r); b.y = H - 2 * b.r; cx += 2 * b.r + 6; place(b); });
-    return;
-  }
-
-  let mouse = null, near = null, dwell = 0, held = null;
-  host.addEventListener("pointermove", (e) => { const r = host.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; });
-  host.addEventListener("pointerleave", () => {
-    mouse = null; near = null; dwell = 0;
-    if (held) { held.el.classList.remove("held"); held = null; }
-  });
-  const ro = new ResizeObserver(() => { const r = host.getBoundingClientRect(); W = r.width; H = r.height || H; });
-  ro.observe(host);
-
-  let raf = 0, running = false;
-  const step = () => {
-    if (!running) return;
-
-    // Bolha sob o cursor; se ele fica parado nela um instante, ela é "capturada".
-    let nearest = null, best = Infinity;
-    if (mouse) {
-      for (const b of state) {
-        const cx = b.x + b.r, cy = b.y + b.r, d = Math.hypot(cx - mouse.x, cy - mouse.y);
-        if (d < b.r + 24 && d < best) { best = d; nearest = b; }
-      }
-    }
-    if (nearest && nearest === near) dwell++; else { near = nearest; dwell = 0; }
-    const wantHeld = nearest && dwell > 22 ? nearest : null; // ~0,35s parado perto
-    if (held !== wantHeld) {
-      if (held) held.el.classList.remove("held");
-      held = wantHeld;
-      if (held) held.el.classList.add("held");
-    }
-
-    state.forEach((b) => {
-      if (b === held) {
-        // capturada: sem gravidade — para no cursor (fácil de clicar).
-        const cx = b.x + b.r, cy = b.y + b.r;
-        b.vx = (b.vx + (mouse.x - cx) * 0.16) * 0.5;
-        b.vy = (b.vy + (mouse.y - cy) * 0.16) * 0.5;
-        return;
-      }
-      b.vy += G;               // gravidade
-      b.vx *= AIR;
-
-      // Ponteiro perto → empurrãozinho leve (não foge do cursor).
-      if (mouse) {
-        const cx = b.x + b.r, cy = b.y + b.r;
-        const dx = cx - mouse.x, dy = cy - mouse.y;
-        const reach = b.r + 46;
-        const d = Math.hypot(dx, dy);
-        if (d < reach) {
-          const f = (reach - Math.max(d, 0.001)) / reach;
-          if (d > 0.5) {
-            b.vx += (dx / d) * f * 0.12;
-            b.vy += (dy / d) * f * 0.07;
-          }
-          b.vy -= f * 0.34; // sobe de leve, como uma bexiga cutucada
-        }
-      }
-    });
-
-    // Colisão simples entre bolhas (separa + troca um pouco de velocidade).
-    for (let i = 0; i < state.length; i++) {
-      for (let j = i + 1; j < state.length; j++) {
-        const a = state[i], b = state[j];
-        const ax = a.x + a.r, ay = a.y + a.r, bx = b.x + b.r, by = b.y + b.r;
-        let dx = bx - ax, dy = by - ay;
-        let d = Math.hypot(dx, dy);
-        const min = a.r + b.r;
-        if (d < min && d > 0.01) {
-          const nx = dx / d, ny = dy / d;
-          const overlap = (min - d) / 2;
-          // a bolha capturada fica firme no cursor; a outra é quem se afasta.
-          if (a !== held) { a.x -= nx * overlap; a.y -= ny * overlap; }
-          if (b !== held) { b.x += nx * overlap; b.y += ny * overlap; }
-          // amortece a componente normal (empilha em vez de saltar)
-          const rel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
-          if (rel < 0) {
-            const imp = rel * 0.5;
-            a.vx += nx * imp; a.vy += ny * imp;
-            b.vx -= nx * imp; b.vy -= ny * imp;
-          }
-        }
-      }
-    }
-
-    // Velocidade máxima (baixa = suave) + integra + paredes/chão.
-    state.forEach((b) => {
-      const sp = Math.hypot(b.vx, b.vy), max = 2.4;
-      if (sp > max) { b.vx = b.vx / sp * max; b.vy = b.vy / sp * max; }
-      b.x += b.vx; b.y += b.vy;
-
-      if (b.x < 0) { b.x = 0; b.vx = -b.vx * WALL_BOUNCE; }
-      if (b.x > W - 2 * b.r) { b.x = W - 2 * b.r; b.vx = -b.vx * WALL_BOUNCE; }
-      if (b.y < 0) { b.y = 0; b.vy = -b.vy * WALL_BOUNCE; }
-      if (b.y > H - 2 * b.r) {           // chão
-        b.y = H - 2 * b.r;
-        b.vy = -b.vy * FLOOR_BOUNCE;
-        b.vx *= 0.9;                     // atrito no chão
-        if (Math.abs(b.vy) < 0.4) b.vy = 0; // assenta
-      }
-      place(b);
-    });
-
-    raf = requestAnimationFrame(step);
-  };
-
-  const vis = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting && !raf) { running = true; raf = requestAnimationFrame(step); }
-      else if (!entry.isIntersecting) { running = false; cancelAnimationFrame(raf); raf = 0; }
-    });
-  }, { threshold: 0.05 });
-  vis.observe(host);
-}
+/* As bolhas do CTA final agora vêm do componente compartilhado js/bolhas-cta.js
+   (mesma coisa na página Sobre). Ver o boot mais abaixo: PetBolhasCTA.mount(). */
 
 /* =====================================================================
    Boot
@@ -977,6 +810,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   obsFetchPets().then((pets) => {
     obsRenderReencontros(pets);
-    obsRenderBolhas(pets);
   });
+
+  // CTA final com as bolhas: componente compartilhado com a página Sobre
+  // (js/bolhas-cta.js + css/bolhas-cta.css). Fonte única para os dois.
+  if (window.PetBolhasCTA) PetBolhasCTA.mount(document.querySelector("[data-petbolhas]"));
 });
