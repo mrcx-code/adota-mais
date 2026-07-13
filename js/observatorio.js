@@ -674,30 +674,28 @@ function obsHeroScanner() {
 
   const canvas = document.getElementById("obs-trail");
   const ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const pts = [];          // pontos recentes do rastro (a cabeça fica no fim)
-  const MAX = 64;          // comprimento máximo do rastro
-  let x = 0, y = 0, px = 0, py = 0, loop = 0;
+  // dpr limitado a 1.5: menos pixels pra limpar/pintar por frame (mais leve).
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+  // Só guardamos as coordenadas do ponteiro no evento (barato). TODO o trabalho
+  // pesado — parallax, cometa e rastro — acontece UMA vez por frame no rAF,
+  // então mexer o mouse rápido não dispara recálculo de estilo N vezes por frame.
+  let cx = 0, cy = 0;                 // posição do cursor na viewport (client)
+  let lx = 0, ly = 0, hasLast = false; // último ponto desenhado (local ao hero)
+  let loop = 0;
 
   function sizeCanvas() {
     if (!canvas) return;
     const r = hero.getBoundingClientRect();
-    canvas.width = Math.round(r.width * dpr);
-    canvas.height = Math.round(r.height * dpr);
+    canvas.width = Math.max(1, Math.round(r.width * dpr));
+    canvas.height = Math.max(1, Math.round(r.height * dpr));
   }
   if (canvas) { sizeCanvas(); new ResizeObserver(sizeCanvas).observe(hero); }
 
   hero.addEventListener("pointermove", (e) => {
     if (e.pointerType === "touch") return; // sem hover no toque
-    const r = hero.getBoundingClientRect();
-    x = e.clientX - r.left;
-    y = e.clientY - r.top;
-    // deslocamento do centro, normalizado -1..1 → alimenta o parallax (CSS vars)
-    px = (x / r.width) * 2 - 1;
-    py = (y / r.height) * 2 - 1;
-    hero.style.setProperty("--px", px.toFixed(3));
-    hero.style.setProperty("--py", py.toFixed(3));
-    hero.classList.add("scanning", "par");
+    cx = e.clientX; cy = e.clientY;
+    if (!hero.classList.contains("scanning")) hero.classList.add("scanning", "par");
     if (!loop) loop = requestAnimationFrame(tick);
   });
   hero.addEventListener("pointerleave", () => {
@@ -705,47 +703,50 @@ function obsHeroScanner() {
     hero.style.removeProperty("--px");
     hero.style.removeProperty("--py");
     cancelAnimationFrame(loop); loop = 0;
-    pts.length = 0;
-    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasLast = false;
+    if (ctx) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); }
   });
 
   function tick() {
+    const r = hero.getBoundingClientRect();       // 1 leitura/frame (pós-layout)
+    const x = cx - r.left, y = cy - r.top;
+
+    // Parallax: atualiza as CSS vars uma vez por frame.
+    hero.style.setProperty("--px", ((x / r.width) * 2 - 1).toFixed(3));
+    hero.style.setProperty("--py", ((y / r.height) * 2 - 1).toFixed(3));
+
+    // Cabeça do cometa.
     comet.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
-    const last = pts[pts.length - 1];
-    const moved = !last || Math.hypot(x - last.x, y - last.y) > 1.2;
-    // enquanto o mouse anda, o rastro cresce; parado, ele recua suavemente.
-    if (moved) pts.push({ x, y });
-    else if (pts.length) pts.shift();
-    while (pts.length > MAX) pts.shift();
-    if (ctx) drawTrail();
+
+    if (ctx) drawStep(x, y);
     loop = requestAnimationFrame(tick);
   }
 
-  /** Desenha um rastro âmbar fluido e brilhante que afina/apaga na cauda. */
-  function drawTrail() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const n = pts.length;
-    if (n < 2) return;
-    ctx.save();
-    ctx.scale(dpr, dpr);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.globalCompositeOperation = "lighter";
-    ctx.shadowColor = "rgba(231, 200, 137, 0.55)";
-    ctx.shadowBlur = 8;
-    for (let i = 1; i < n; i++) {
-      const t = i / (n - 1);                    // 0 = cauda, 1 = cabeça
-      const a = pts[i - 1], b = pts[i];
-      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-      const prev = pts[i - 2] || a;
-      ctx.beginPath();
-      ctx.moveTo((prev.x + a.x) / 2, (prev.y + a.y) / 2);
-      ctx.quadraticCurveTo(a.x, a.y, mx, my); // suaviza a curva pelos pontos médios
-      ctx.lineWidth = 0.6 + t * 7.5;
-      ctx.strokeStyle = "rgba(231, 200, 137, " + (0.04 + t * 0.5).toFixed(3) + ")";
-      ctx.stroke();
+  /**
+   * Rastro por "fade": a cada frame apagamos um pouco do que já existe
+   * (destination-out) e desenhamos só o segmento novo. Custo O(1) por frame —
+   * nada de redesenhar dezenas de segmentos nem de shadowBlur.
+   */
+  function drawStep(x, y) {
+    // 1) apaga um tiquinho do rastro anterior (ele some sozinho quando você para).
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "rgba(0,0,0,0.11)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2) desenha o segmento novo (brilho largo + núcleo claro) — 2 traços curtos.
+    if (hasLast) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.globalCompositeOperation = "lighter";
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "rgba(231, 200, 137, 0.16)";
+      ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(x, y); ctx.stroke();
+      ctx.strokeStyle = "rgba(255, 248, 230, 0.55)";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(x, y); ctx.stroke();
     }
-    ctx.restore();
+    lx = x; ly = y; hasLast = true;
   }
 }
 
