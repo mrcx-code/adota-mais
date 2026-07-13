@@ -26,7 +26,7 @@
 .petcta--bolhas {
   position: relative;
   overflow: hidden;
-  min-height: 300px;
+  min-height: 360px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,5 +71,25 @@
   .petcta { margin-top: 40px; padding: 32px 20px; }
   .petcta-actions { flex-direction: column; align-items: stretch; }
   .petcta-actions .btn { width: 100%; }
-  .petcta--bolhas { min-height: 460px; padding-bottom: 150px; align-items: flex-start; padding-top: 40px; }
+  /* No mobile o componente deixa de ser "bolhas ao fundo": vira um empilhado —
+     conteúdo em cima e as bolhas numa faixa curta embaixo (nunca sobre o botão).
+     Uso order p/ jogar as bolhas pra baixo (no HTML elas vêm antes). */
+  .petcta--bolhas {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 28px 20px 18px;
+  }
+  .petcta-conteudo { order: 1; }
+  .petcta-bolhas {
+    order: 2;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 104px;
+    margin-top: 16px;
+    flex: 0 0 auto;
+  }
 }

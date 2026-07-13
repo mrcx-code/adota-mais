@@ -1479,6 +1479,7 @@ body > .site-footer { position: relative; z-index: 1; }
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0; /* deixa o item do grid encolher → o texto usa reticências em vez de vazar */
   padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1692,7 +1693,7 @@ body[data-obs-page] .site-main { padding-bottom: 24px; }
   .obs-uf-item { grid-template-columns: 26px 78px 1fr 44px; gap: 8px; }
   .obs-denuncia { flex-direction: column; gap: 12px; }
   .obs-reencontro { flex-basis: 180px; }
-  .obs-ref-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .obs-ref-grid { grid-template-columns: 1fr; gap: 10px; }
   .obs-fato-linha { grid-template-columns: 40px 1fr; gap: 8px 12px; padding: 14px 16px; }
   .obs-fato-txt { grid-column: 1 / -1; }
   .obs-engaje-grid { grid-template-columns: 1fr 1fr; }

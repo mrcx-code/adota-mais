@@ -38,17 +38,19 @@
 
   function render(host, pets) {
     const base = host.dataset.petHref || "index.html";
-    const MAX = 5; // no máximo 5 bolinhas — enxuto e amigável
+    const MAX = 10; // no máximo 10 bolinhas
     const comFoto = (pets || []).filter((p) => safeUrl(p.photo_url));
     const fontes = comFoto.map((p) => ({ foto: safeUrl(p.photo_url), id: p.id }));
-    // Poucos (ou nenhum) pet → completa com emojis até fechar 5 bolhas.
-    const emojis = ["🐶", "🐱", "🐾", "🦴", "🐩"];
+    // Poucos (ou nenhum) pet → completa com emojis até fechar 10 bolhas.
+    const emojis = ["🐶", "🐱", "🐾", "🦴", "🐩", "🐕", "🦮", "🐈", "🐾", "🐶"];
     let i = 0;
     while (fontes.length < MAX) fontes.push({ emoji: emojis[i++ % emojis.length] });
     const usadas = fontes.slice(0, MAX);
 
+    // No mobile as bolhas ficam numa faixa curta embaixo → menores, pra caberem.
+    const mobile = window.matchMedia("(max-width: 640px)").matches;
     host.innerHTML = usadas.map((s) => {
-      const r = 26 + Math.round(Math.random() * 20);
+      const r = mobile ? (16 + Math.round(Math.random() * 8)) : (26 + Math.round(Math.random() * 20));
       const inner = s.foto
         ? `<img src="${esc(s.foto)}" alt="" loading="lazy" decoding="async" />`
         : `<span class="petbolha-emoji">${s.emoji}</span>`;

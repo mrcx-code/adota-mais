@@ -33,6 +33,7 @@ async function loadPets() {
     }
     populateMuralFilters();
     renderBoard();
+    updateMuralFiltersVisibility();
     loading.classList.add("hidden");
     board.classList.remove("hidden");
     // Rola até o alvo do hash só depois que o mural renderizou — se rolasse
@@ -52,6 +53,17 @@ async function loadPets() {
 }
 
 /* ---------------- Filtros do mural ---------------- */
+
+/** Sem nenhum pet no mural, o filtro não faz sentido → esconde o botão e o
+ * painel (no desktop e no mobile). Com pets, volta ao comportamento normal
+ * (no mobile continua recolhido atrás do botão). */
+function updateMuralFiltersVisibility() {
+  const has = ALL_PETS.length > 0;
+  const toggle = document.getElementById("mural-filters-toggle");
+  const panel = document.getElementById("mural-filters");
+  if (toggle) toggle.style.display = has ? "" : "none";
+  if (panel) panel.style.display = has ? "" : "none";
+}
 
 /** Valores dos chips ativos de um grupo (espécie, porte ou saúde). */
 function selectedChipValues(groupId) {
