@@ -173,18 +173,19 @@ function obsCeuFundo() {
   const layer = document.createElement("div");
   layer.className = "obs-starfield";
   layer.setAttribute("aria-hidden", "true");
-  const N = OBS_REDUCED ? 50 : 100;
+  const N = OBS_REDUCED ? 90 : 180;
   const frag = [];
   for (let k = 0; k < N; k++) {
     const x = (Math.random() * 100).toFixed(2);
     const y = (Math.random() * 100).toFixed(2);
     const big = Math.random() < 0.18;
+    const amber = Math.random() < 0.14; // algumas patinhas âmbar, como as estrelas do hero
     const size = big ? (14 + Math.random() * 8) : (8 + Math.random() * 5); // px
     const o = (big ? 0.07 : 0.04) + Math.random() * 0.035; // ~0,04–0,105 (bem baixinho)
     const rot = Math.round(Math.random() * 360);
     const d = Math.round(Math.random() * 4200);
     const t = 3200 + Math.round(Math.random() * 3200);
-    frag.push(`<span class="obs-fstar" style="left:${x}%;top:${y}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;transform:rotate(${rot}deg);--o:${o.toFixed(3)};--d:${d}ms;--t:${t}ms">${OBS_PAW}</span>`);
+    frag.push(`<span class="obs-fstar${amber ? " amber" : ""}" style="left:${x}%;top:${y}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;transform:rotate(${rot}deg);--o:${o.toFixed(3)};--d:${d}ms;--t:${t}ms">${OBS_PAW}</span>`);
   }
   layer.innerHTML = frag.join("");
   document.body.appendChild(layer);
