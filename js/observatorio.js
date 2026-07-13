@@ -166,24 +166,25 @@ const OBS_PAW =
    Hero — carrossel de números
    ===================================================================== */
 
-/** Céu estrelado bem sutil no fundo de TODA a página (camada fixa, atrás do
- * conteúdo). Pontinhos com opacidade baixíssima — só textura, sem atrapalhar. */
+/** "Céu" de patinhas bem sutil no fundo de TODA a página (camada fixa, atrás do
+ * conteúdo). Patinhas com opacidade baixíssima — só textura, sem atrapalhar. */
 function obsCeuFundo() {
   if (document.querySelector(".obs-starfield")) return;
   const layer = document.createElement("div");
   layer.className = "obs-starfield";
   layer.setAttribute("aria-hidden", "true");
-  const N = OBS_REDUCED ? 70 : 150;
+  const N = OBS_REDUCED ? 50 : 100;
   const frag = [];
   for (let k = 0; k < N; k++) {
     const x = (Math.random() * 100).toFixed(2);
     const y = (Math.random() * 100).toFixed(2);
-    const big = Math.random() < 0.16;
-    const size = big ? (2 + Math.random() * 1.4) : (1 + Math.random() * 0.8);
-    const o = (big ? 0.08 : 0.045) + Math.random() * 0.04; // ~0,045–0,12 (bem baixinho)
+    const big = Math.random() < 0.18;
+    const size = big ? (14 + Math.random() * 8) : (8 + Math.random() * 5); // px
+    const o = (big ? 0.07 : 0.04) + Math.random() * 0.035; // ~0,04–0,105 (bem baixinho)
+    const rot = Math.round(Math.random() * 360);
     const d = Math.round(Math.random() * 4200);
     const t = 3200 + Math.round(Math.random() * 3200);
-    frag.push(`<span class="obs-fstar" style="left:${x}%;top:${y}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;--o:${o.toFixed(3)};--d:${d}ms;--t:${t}ms"></span>`);
+    frag.push(`<span class="obs-fstar" style="left:${x}%;top:${y}%;width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;transform:rotate(${rot}deg);--o:${o.toFixed(3)};--d:${d}ms;--t:${t}ms">${OBS_PAW}</span>`);
   }
   layer.innerHTML = frag.join("");
   document.body.appendChild(layer);
@@ -790,22 +791,21 @@ function obsMarauder() {
     let x = Math.random() * W();
     let y = Math.random() * H();
     let ang = Math.random() * Math.PI * 2;
-    const steps = 7 + Math.floor(Math.random() * 7);
+    const steps = 5 + Math.floor(Math.random() * 4);
     const stride = 34 + Math.random() * 16;
     for (let i = 0; i < steps; i++) {
       const side = i % 2 === 0 ? 1 : -1;
       const perp = ang + Math.PI / 2;
-      spawnPaw(x + Math.cos(perp) * 8 * side, y + Math.sin(perp) * 8 * side, ang, i * 150);
+      spawnPaw(x + Math.cos(perp) * 8 * side, y + Math.sin(perp) * 8 * side, ang, i * 170);
       x += Math.cos(ang) * stride;
       y += Math.sin(ang) * stride;
       ang += (Math.random() - 0.5) * 0.6; // vagueia
       if (x < -50 || x > W() + 50 || y < -50 || y > H() + 50) break;
     }
-    setTimeout(trail, 800 + Math.random() * 1400); // mais frequente → mais vivo
+    setTimeout(trail, 2600 + Math.random() * 2600); // mais espaçado → bem sutil
   }
-  // Duas trilhas simultâneas p/ dar densidade e movimento constante.
+  // Uma trilha por vez, sem pressa.
   trail();
-  setTimeout(trail, 1200);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
