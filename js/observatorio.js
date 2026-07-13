@@ -74,9 +74,9 @@ const OBS = {
   populacao: { caes: 63.7, gatos: 32.2, fonte: "Abempet (ex-Abinpet / Instituto Pet Brasil), ref. 2024" },
 
   leis: [
-    { ano: "1998", titulo: "Maus-tratos viram crime", texto: "A Lei de Crimes Ambientais (9.605/1998) torna crime praticar abuso ou maus-tratos contra animais.", fonte: "Lei nº 9.605/1998 — Planalto" },
-    { ano: "2020", titulo: "Lei Sansão endurece a pena", texto: "Maus-tratos a cães e gatos passam a dar reclusão de 2 a 5 anos, multa e proibição de guarda.", fonte: "Lei nº 14.064/2020 — Planalto" },
-    { ano: "2021", titulo: "Fim da eliminação em canis públicos", texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis — o controle passa por castração e adoção.", fonte: "Lei nº 14.228/2021 — Planalto" },
+    { ano: "1998", icone: "⚖️", cor: "#C98A2C", titulo: "Maus-tratos viram crime", texto: "A Lei de Crimes Ambientais (9.605/1998) torna crime praticar abuso ou maus-tratos contra animais.", fonte: "Lei nº 9.605/1998 — Planalto" },
+    { ano: "2020", icone: "🛡️", cor: "#527353", titulo: "Lei Sansão endurece a pena", texto: "Maus-tratos a cães e gatos passam a dar reclusão de 2 a 5 anos, multa e proibição de guarda.", fonte: "Lei nº 14.064/2020 — Planalto" },
+    { ano: "2021", icone: "🚫", cor: "#6E9256", titulo: "Fim da eliminação em canis públicos", texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis — o controle passa por castração e adoção.", fonte: "Lei nº 14.228/2021 — Planalto" },
   ],
 
   // Projetos em tramitação no Congresso em 2026 (o que está acontecendo agora).
@@ -540,13 +540,52 @@ function obsRenderSplit(el) {
 }
 
 function obsRenderLeis(el) {
-  el.innerHTML = OBS.leis.map((l) => `
-      <div class="obs-timeline-item">
-        <span class="obs-timeline-year">${l.ano}</span>
-        <h3>${obsEsc(l.titulo)}</h3>
-        <p>${obsEsc(l.texto)}</p>
-        <span class="obs-fonte">📌 ${obsEsc(l.fonte)}</span>
+  el.innerHTML = OBS.leis.map((l, i) => `
+      <div class="obs-lei" style="--accent:${l.cor};--i:${i}">
+        <span class="obs-lei-dot" aria-hidden="true"><span class="obs-lei-ic">${l.icone}</span></span>
+        <div class="obs-lei-body">
+          <span class="obs-lei-ano">${obsEsc(l.ano)}</span>
+          <h4>${obsEsc(l.titulo)}</h4>
+          <p>${obsEsc(l.texto)}</p>
+          <span class="obs-fonte">📌 ${obsEsc(l.fonte)}</span>
+        </div>
       </div>`).join("");
+
+  // Reveal ao entrar na tela (desenha a linha + dots pulam em sequência).
+  // IntersectionObserver dispara uma vez e para — sem custo contínuo.
+  if (OBS_REDUCED) { el.classList.add("revealed"); return; }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      el.classList.add("revealed");
+      io.disconnect();
+    });
+  }, { threshold: 0.3 });
+  io.observe(el);
+}
+
+/** Count-up dos números das leis (SinPatinhas / castrações) ao entrar na tela. */
+function obsStatCountUp() {
+  document.querySelectorAll(".obs-gov-stats .obs-stat-value").forEach((el) => {
+    const target = parseInt(el.textContent.replace(/\D/g, ""), 10);
+    if (!target) return;
+    if (OBS_REDUCED) { el.textContent = target.toLocaleString("pt-BR"); return; }
+    el.textContent = "0";
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        const dur = 1500, t0 = performance.now();
+        const tick = (t) => {
+          const p = Math.min((t - t0) / dur, 1);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString("pt-BR");
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.4 });
+    io.observe(el);
+  });
 }
 
 function obsRenderTramitacao(el) {
@@ -831,6 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (split) obsRenderSplit(split);
   const leis = document.getElementById("obs-leis");
   if (leis) obsRenderLeis(leis);
+  obsStatCountUp();
   const tramita = document.getElementById("obs-tramitacao");
   if (tramita) obsRenderTramitacao(tramita);
   const engaje = document.getElementById("obs-engaje-grid");
