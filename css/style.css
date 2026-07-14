@@ -108,20 +108,27 @@ button {
 .cursor-paw button,
 .hero a,
 .hero button {
-  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48dGV4dCB4PSIxNiIgeT0iMjQiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfkL48L3RleHQ+PC9zdmc+")
-    16 16, auto;
+  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNTI3MzUzIj48cGF0aCBkPSJNNC41IDEyLjVhMiAyIDAgMTAwLTQgMiAyIDAgMDAwIDR6TTggOGEyIDIgMCAxMDAtNCAyIDIgMCAwMDAgNHpNMTIuNSA2YTIgMiAwIDEwMC00IDIgMiAwIDAwMCA0ek0xNyA4YTIgMiAwIDEwMC00IDIgMiAwIDAwMCA0ek0xMiAyMmMtMyAwLTYtMS42LTYtNC4zIDAtMi4yIDIuNC0zLjIgMy4zLTQuOS42LTEuMSAxLjMtMS45IDIuNy0xLjlzMi4xLjggMi43IDEuOWMuOSAxLjcgMy4zIDIuNyAzLjMgNC45QzE4IDIwLjQgMTUgMjIgMTIgMjJ6Ii8+PC9zdmc+")
+    14 14, auto;
 }
 
 .about-hero-logo {
   position: relative;
   display: inline-block;
   line-height: 0;
+  /* Isola o blend e dá um fundo creme conhecido → o multiply do logo mescla o
+     branco do PNG contra esse creme (some), sem depender do fundo da seção. */
+  background: var(--color-bg);
+  isolation: isolate;
 }
 .about-hero-logo img {
   width: clamp(200px, 34vw, 340px);
   height: auto;
   margin: 0 auto 4px;
   transform-origin: 50% 60%;
+  /* O PNG do logo tem fundo branco; multiply faz o branco virar a cor do fundo
+     (some) e mantém o verde — sem precisar de PNG transparente. */
+  mix-blend-mode: multiply;
 }
 /* O pingo do "i" do logo já é uma patinha. Ao passar o mouse, os quatro
  * dedinhos surgem um a um por cima dela (só decorativo). As posições são % da
@@ -141,11 +148,11 @@ button {
   transform: translate(-50%, -50%) scale(0);
   opacity: 0;
 }
-/* Arco dos quatro dedos sobre a patinha (centros em % do logo). */
-.about-toe-1 { left: 41.6%; top: 12.8%; }
-.about-toe-2 { left: 43.4%; top: 8.6%; }
-.about-toe-3 { left: 45.2%; top: 8.6%; }
-.about-toe-4 { left: 47.0%; top: 12.8%; }
+/* Arco dos quatro dedos sobre a patinha do "i" (centros em % do logo novo). */
+.about-toe-1 { left: 43.4%; top: 20.5%; }
+.about-toe-2 { left: 44.9%; top: 16.3%; }
+.about-toe-3 { left: 46.4%; top: 16.3%; }
+.about-toe-4 { left: 47.9%; top: 20.5%; }
 @keyframes about-toe-pop {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
   60% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
@@ -179,6 +186,7 @@ button {
   z-index: 2;
   transform-origin: 50% 55%;
   transform: translateY(1px);
+  mix-blend-mode: multiply; /* some o fundo branco do PNG sobre o header claro */
 }
 
 /* Ao passar o mouse no logo: o próprio logo dá um wiggle suave e três

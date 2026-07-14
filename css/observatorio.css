@@ -112,6 +112,7 @@ button { font-family: inherit; cursor: pointer; }
   z-index: 2;
   transform-origin: 50% 55%;
   transform: translateY(1px);
+  mix-blend-mode: multiply; /* some o fundo branco do PNG sobre o header claro */
 }
 
 /* Wiggle do logo + rastro de pegadas âmbar (mesmo gesto do site). */
@@ -163,8 +164,8 @@ button { font-family: inherit; cursor: pointer; }
 .cursor-paw a,
 .cursor-paw button,
 .cursor-paw label {
-  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48dGV4dCB4PSIxNiIgeT0iMjQiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfkL48L3RleHQ+PC9zdmc+")
-    16 16, auto;
+  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNTI3MzUzIj48cGF0aCBkPSJNNC41IDEyLjVhMiAyIDAgMTAwLTQgMiAyIDAgMDAwIDR6TTggOGEyIDIgMCAxMDAtNCAyIDIgMCAwMDAgNHpNMTIuNSA2YTIgMiAwIDEwMC00IDIgMiAwIDAwMCA0ek0xNyA4YTIgMiAwIDEwMC00IDIgMiAwIDAwMCA0ek0xMiAyMmMtMyAwLTYtMS42LTYtNC4zIDAtMi4yIDIuNC0zLjIgMy4zLTQuOS42LTEuMSAxLjMtMS45IDIuNy0xLjlzMi4xLjggMi43IDEuOWMuOSAxLjcgMy4zIDIuNyAzLjMgNC45QzE4IDIwLjQgMTUgMjIgMTIgMjJ6Ii8+PC9zdmc+")
+    14 14, auto;
 }
 
 /* Desktop: links à esquerda, botão "Sou um abrigo" sempre à direita. */

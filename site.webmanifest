@@ -9,7 +9,7 @@
   "theme_color": "#527353",
   "icons": [
     {
-      "src": "img/patinhas-logo-full.png",
+      "src": "img/patinhas-logo-full.png?v=2",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any"
