@@ -279,14 +279,27 @@ function renderBoard() {
   if (statAdotado) statAdotado.textContent = (groups.adotado || []).length;
 }
 
+/** Pet recém-cadastrado (últimos 10 dias) — ganha o selinho "novo". */
+function isNewPet(pet) {
+  if (!pet.created_at) return false;
+  return Date.now() - new Date(pet.created_at).getTime() < 10 * 86400000;
+}
+
 function petCardHtml(pet) {
   const org = ORG_BY_ID[pet.org_id] || pet.org || null;
   // Foto renderizada como <img> (não background-image) para ganhar
   // lazy-loading e decodificação assíncrona nativos do navegador — essencial
   // para a performance mobile quando há muitos pets no mural.
   const photoSrc = safeHttpUrl(pet.photo_url);
-  const photoImg = photoSrc
-    ? `<img class="pet-card-photo-img" src="${escapeHtml(photoSrc)}" alt="Foto de ${escapeHtml(pet.name)}, ${escapeHtml(speciesLabel(pet.species).replace(/[^\p{L}\s]/gu, "").trim().toLowerCase())} para adoção" loading="lazy" decoding="async" />`
+  // Card adotado com foto da família → mostra a família com o pet (prova social).
+  const familySrc = pet.status === "adotado" ? safeHttpUrl(pet.family_photo_url) : "";
+  const mainPhotoSrc = familySrc || photoSrc;
+  const isNew = pet.status === "disponivel" && isNewPet(pet);
+  const photoAlt = familySrc
+    ? `A nova família de ${escapeHtml(pet.name)}`
+    : `Foto de ${escapeHtml(pet.name)}, ${escapeHtml(speciesLabel(pet.species).replace(/[^\p{L}\s]/gu, "").trim().toLowerCase())} para adoção`;
+  const photoImg = mainPhotoSrc
+    ? `<img class="pet-card-photo-img" src="${escapeHtml(mainPhotoSrc)}" alt="${photoAlt}" loading="lazy" decoding="async" />`
     : "";
   const interestBtn =
     pet.status === "disponivel"
@@ -309,8 +322,10 @@ function petCardHtml(pet) {
     <article class="pet-card" id="pet-${pet.id}">
       <div class="pet-card-photo">
         ${photoImg}
+        ${isNew ? `<span class="pet-card-new-badge">✨ novo</span>` : ""}
         ${shareBtn}
         ${org ? `<span class="pet-card-org-pin">📍 ${escapeHtml(org.org_name)}</span>` : ""}
+        ${familySrc ? `<span class="pet-card-family-cap">💚 Em seu novo lar</span>` : ""}
       </div>
       <div class="pet-card-body">
         <div class="pet-card-top">

@@ -49,6 +49,9 @@ create table pets (
   -- histórico de pets já cadastrados — o formulário não edita mais este campo.
   description text,
   photo_url text,
+  -- Foto da nova família com o pet (prova social): só aparece nos cards de
+  -- adotado. Opcional; a ONG envia quando quer mostrar o reencontro.
+  family_photo_url text,
   status pet_status not null default 'disponivel',
   vaccinated boolean not null default false,
   dewormed boolean not null default false,

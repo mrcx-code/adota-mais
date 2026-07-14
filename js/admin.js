@@ -5,6 +5,7 @@ let CURRENT_ORG_PROFILE = null;
 let MY_PETS = [];
 let MY_INTERESTS = [];
 let SELECTED_PET_PHOTO_FILE = null;
+let SELECTED_FAMILY_PHOTO_FILE = null;
 let SELECTED_LOGO_FILE = null;
 
 /* ======================================================================
@@ -17,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("pet-form").addEventListener("submit", handlePetFormSubmit);
   document.getElementById("profile-form").addEventListener("submit", handleProfileFormSubmit);
   document.getElementById("pet-photo").addEventListener("change", handlePhotoInputChange);
+  document.getElementById("pet-family-photo").addEventListener("change", handleFamilyPhotoInputChange);
   document.getElementById("profile-logo").addEventListener("change", handleLogoInputChange);
   // Recalcula a prévia da descrição automática a qualquer mudança no formulário
   // (saúde, convivência, personalidade, brinquedo favorito).
@@ -782,6 +784,9 @@ async function changeStatus(petId, newStatus) {
 async function movePet(petId, newStatus, beforePetId) {
   const pet = MY_PETS.find((p) => p.id === petId);
   if (!pet) return;
+  // Vira "família formada" agora? (era outro status e passou a adotado)
+  const virouAdocao = newStatus === "adotado" && pet.status !== "adotado";
+  const petNome = pet.name;
 
   if (window.DEMO_MODE) {
     pet.status = newStatus;
@@ -798,6 +803,7 @@ async function movePet(petId, newStatus, beforePetId) {
       MY_PETS.splice(lastIdx + 1, 0, pet);
     }
     renderAdminBoard();
+    if (virouAdocao) celebrateAdoption(petNome);
     return;
   }
 
@@ -823,6 +829,72 @@ async function movePet(petId, newStatus, beforePetId) {
   }
   await loadMyPets();
   renderAdminBoard();
+  if (virouAdocao) celebrateAdoption(petNome);
+}
+
+/**
+ * Celebração de "família formada": uma chuva rápida de patinhas/confete verde
+ * cai do topo e some, com um selo no centro. Decorativa e leve — usa a Web
+ * Animations API (GPU) e se auto-remove. Respeita prefers-reduced-motion.
+ */
+function celebrateAdoption(petName) {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Selo central "família formada".
+  const badge = document.createElement("div");
+  badge.className = "adopt-celebrate-badge";
+  badge.innerHTML = `<span>🏡💚</span><strong>Família formada!</strong><small>${petName ? escapeHtml(petName) + " encontrou um lar" : "Um pet encontrou um lar"}</small>`;
+  document.body.appendChild(badge);
+  const killBadge = () => badge.remove();
+  if (badge.animate && !reduced) {
+    badge.animate(
+      [
+        { opacity: 0, transform: "translate(-50%, -50%) scale(0.7)" },
+        { opacity: 1, transform: "translate(-50%, -50%) scale(1)", offset: 0.15 },
+        { opacity: 1, transform: "translate(-50%, -50%) scale(1)", offset: 0.8 },
+        { opacity: 0, transform: "translate(-50%, -50%) scale(0.96)" },
+      ],
+      { duration: 2200, easing: "ease-out" }
+    ).onfinish = killBadge;
+  } else {
+    setTimeout(killBadge, 2000);
+  }
+
+  if (reduced) return;
+
+  // Chuva de patinhas/confete.
+  const layer = document.createElement("div");
+  layer.className = "adopt-celebrate-layer";
+  layer.setAttribute("aria-hidden", "true");
+  document.body.appendChild(layer);
+  const pecas = ["🐾", "🐾", "💚", "🐶", "🐱", "🎉", "🦴"];
+  const N = 44;
+  let vivos = N;
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement("span");
+    s.className = "adopt-confetti";
+    s.textContent = pecas[i % pecas.length];
+    const left = Math.random() * 100;
+    const size = 14 + Math.random() * 16;
+    s.style.left = left + "vw";
+    s.style.fontSize = size + "px";
+    layer.appendChild(s);
+    const driftX = (Math.random() - 0.5) * 160;
+    const rot = (Math.random() - 0.5) * 540;
+    const dur = 1600 + Math.random() * 1400;
+    const delay = Math.random() * 500;
+    const anim = s.animate(
+      [
+        { transform: "translate(0, -10vh) rotate(0deg)", opacity: 1 },
+        { transform: `translate(${driftX}px, 105vh) rotate(${rot}deg)`, opacity: 1, offset: 0.9 },
+        { transform: `translate(${driftX}px, 110vh) rotate(${rot}deg)`, opacity: 0 },
+      ],
+      { duration: dur, delay, easing: "cubic-bezier(0.3, 0.6, 0.5, 1)", fill: "forwards" }
+    );
+    anim.onfinish = () => { if (--vivos <= 0) layer.remove(); };
+  }
+  // rede de segurança: remove a camada mesmo que algum onfinish não dispare.
+  setTimeout(() => layer.remove(), 4200);
 }
 
 /** Card antes do qual o arrastado deve entrar, dada a posição do ponteiro. */
@@ -958,7 +1030,9 @@ function openPetModal(petId) {
   document.getElementById("pet-form-error").classList.remove("visible");
   document.getElementById("pet-form").reset();
   document.getElementById("pet-photo-preview").classList.add("hidden");
+  document.getElementById("pet-family-photo-preview").classList.add("hidden");
   SELECTED_PET_PHOTO_FILE = null;
+  SELECTED_FAMILY_PHOTO_FILE = null;
 
   const pet = isEdit ? MY_PETS.find((p) => p.id === petId) : null;
   document.getElementById("pet-id").value = pet ? pet.id : "";
@@ -986,6 +1060,11 @@ function openPetModal(petId) {
     const preview = document.getElementById("pet-photo-preview");
     preview.src = pet.photo_url;
     preview.classList.remove("hidden");
+  }
+  if (pet && pet.family_photo_url) {
+    const fp = document.getElementById("pet-family-photo-preview");
+    fp.src = pet.family_photo_url;
+    fp.classList.remove("hidden");
   }
 
   updatePetDescriptionPreview();
@@ -1022,6 +1101,16 @@ function handlePhotoInputChange(event) {
   const file = event.target.files && event.target.files[0];
   SELECTED_PET_PHOTO_FILE = file || null;
   const preview = document.getElementById("pet-photo-preview");
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
+  }
+}
+
+function handleFamilyPhotoInputChange(event) {
+  const file = event.target.files && event.target.files[0];
+  SELECTED_FAMILY_PHOTO_FILE = file || null;
+  const preview = document.getElementById("pet-family-photo-preview");
   if (file) {
     preview.src = URL.createObjectURL(file);
     preview.classList.remove("hidden");
@@ -1068,6 +1157,9 @@ async function handlePetFormSubmit(event) {
       if (SELECTED_PET_PHOTO_FILE) {
         payload.photo_url = URL.createObjectURL(SELECTED_PET_PHOTO_FILE);
       }
+      if (SELECTED_FAMILY_PHOTO_FILE) {
+        payload.family_photo_url = URL.createObjectURL(SELECTED_FAMILY_PHOTO_FILE);
+      }
       if (petId) {
         const pet = MY_PETS.find((p) => p.id === petId);
         Object.assign(pet, payload);
@@ -1087,6 +1179,9 @@ async function handlePetFormSubmit(event) {
     } else {
       if (SELECTED_PET_PHOTO_FILE) {
         payload.photo_url = await uploadPetPhoto(SELECTED_PET_PHOTO_FILE);
+      }
+      if (SELECTED_FAMILY_PHOTO_FILE) {
+        payload.family_photo_url = await uploadPetPhoto(SELECTED_FAMILY_PHOTO_FILE);
       }
       if (petId) {
         const { error } = await window.sb.from("pets").update(payload).eq("id", petId);

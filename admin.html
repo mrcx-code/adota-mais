@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=20260712p" />
+  <link rel="stylesheet" href="css/style.css?v=20260712q" />
 </head>
 <body>
 
@@ -360,6 +360,12 @@
           </select>
         </div>
         <div class="field">
+          <label for="pet-family-photo">Foto da nova família com o pet 💚</label>
+          <input type="file" id="pet-family-photo" accept="image/*" />
+          <p class="hint">Opcional — aparece <strong>publicamente</strong> no card quando o pet está <strong>Adotado</strong>. Prova social que emociona e incentiva outras adoções.</p>
+          <img id="pet-family-photo-preview" class="hidden" style="margin-top:8px; border-radius:10px; max-height:140px;" />
+        </div>
+        <div class="field">
           <label>Saúde</label>
           <div class="checkbox-row">
             <label class="checkbox-inline"><input type="checkbox" id="pet-vaccinated" /> 💉 Vacinado</label>
@@ -531,6 +537,6 @@ Caramelo,cachorro,Médio,Jovem,macho,disponivel,sim,sim,nao,bolinha de tênis"><
   <script src="js/supabaseClient.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/mockData.js"></script>
-  <script src="js/admin.js"></script>
+  <script src="js/admin.js?v=20260712a"></script>
 </body>
 </html>
