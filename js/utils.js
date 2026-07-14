@@ -1,7 +1,10 @@
 /** Funções auxiliares compartilhadas entre index.html e admin.html */
 
+// Pata oficial da marca (mesmo desenho do cursor logo-patinhas-pata.png):
+// 4 dedos ovais inclinados (internos maiores) + pad robusto com base ondulada.
+// fill=currentColor → recolorível (cinza/verde) onde for usada.
 const PAW_SVG =
-  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.5 12.5a2 2 0 100-4 2 2 0 000 4zM8 8a2 2 0 100-4 2 2 0 000 4zM12.5 6a2 2 0 100-4 2 2 0 000 4zM17 8a2 2 0 100-4 2 2 0 000 4zM12 22c-3 0-6-1.6-6-4.3 0-2.2 2.4-3.2 3.3-4.9.6-1.1 1.3-1.9 2.7-1.9s2.1.8 2.7 1.9c.9 1.7 3.3 2.7 3.3 4.9C18 20.4 15 22 12 22z"/></svg>';
+  '<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><ellipse cx="40" cy="34" rx="11" ry="15" transform="rotate(-13 40 34)"/><ellipse cx="60" cy="34" rx="11" ry="15" transform="rotate(13 60 34)"/><ellipse cx="23" cy="49" rx="8.5" ry="12" transform="rotate(-33 23 49)"/><ellipse cx="77" cy="49" rx="8.5" ry="12" transform="rotate(33 77 49)"/><path d="M50 51C61 51 72 59 76.5 69 80 77 76 87 66.5 87.5 61 87.8 56 85 50 85 44 85 39 87.8 33.5 87.5 24 87 20 77 23.5 69 28 59 39 51 50 51Z"/></svg>';
 
 /**
  * "Mapa do Maroto": trilhas de patinhas que caminham pelo fundo da página,

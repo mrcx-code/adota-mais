@@ -296,7 +296,12 @@ set search_path = public
 stable
 as $$
   select
-    (select count(*) from profiles) as total_orgs,
+    -- Não conta contas de teste (@patinhas.test) como ONGs parceiras.
+    (select count(*) from profiles p
+       where not exists (
+         select 1 from auth.users u
+         where u.id = p.id and u.email like '%@patinhas.test'
+       )) as total_orgs,
     (select count(*) from pets) as total_pets,
     (select count(*) from pets where status = 'adotado') as total_adopted,
     (select count(*) from interests) as total_interests;

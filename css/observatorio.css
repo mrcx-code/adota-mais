@@ -330,6 +330,10 @@ button { font-family: inherit; cursor: pointer; }
 .obs-hero {
   position: relative;
   overflow: hidden;
+  /* Safari (Mac) não recorta filhos animados/compostos (o radar girando) em
+     cantos arredondados só com overflow:hidden — o efeito vazava no canto
+     inferior-esquerdo (96px). clip-path recorta de forma confiável. */
+  clip-path: inset(0 round 28px 28px 28px 96px);
   /* Céu noturno de observatório — azul/petróleo, com só um toque de verde. */
   background:
     radial-gradient(130% 120% at 80% -10%, #1c3b46 0%, #17293b 46%, #101d2b 100%);
