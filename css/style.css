@@ -2205,7 +2205,9 @@ body.scroll-locked {
 .auth-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 61px);
+  /* Header sticky ocupa 83px (padding 18*2 + logo 46 + 1 borda); subtrair o
+     valor certo evita um scroll de sobra na tela de login. */
+  min-height: calc(100vh - 83px);
 }
 
 @media (max-width: 860px) {
