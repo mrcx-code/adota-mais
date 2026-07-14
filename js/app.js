@@ -498,6 +498,20 @@ async function submitInterest(event) {
     return;
   }
 
+  // Consentimento LGPD + maioridade (obrigatórios).
+  const consent = document.getElementById("interest-consent-check");
+  const age = document.getElementById("interest-age-check");
+  if (!consent || !consent.checked) {
+    errorBox.textContent = "Para enviar, é preciso concordar com a Política de Privacidade.";
+    errorBox.classList.add("visible");
+    return;
+  }
+  if (!age || !age.checked) {
+    errorBox.textContent = "É preciso confirmar que você é maior de 18 anos.";
+    errorBox.classList.add("visible");
+    return;
+  }
+
   // --- Anti-spam (camadas leves no cliente; a proteção real é o trigger no
   //     banco). Em todos os casos de bot, fingimos sucesso para não dar pista. ---
   const honeypot = document.getElementById("interest-hp");

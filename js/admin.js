@@ -141,6 +141,13 @@ async function handleSignup(event) {
   errorBox.classList.remove("visible");
   successBox.classList.remove("visible");
 
+  const termsCheck = document.getElementById("signup-terms-check");
+  if (!termsCheck || !termsCheck.checked) {
+    errorBox.textContent = "Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.";
+    errorBox.classList.add("visible");
+    return;
+  }
+
   if (!state || !city) {
     errorBox.textContent = "Selecione o estado e a cidade do abrigo.";
     errorBox.classList.add("visible");
