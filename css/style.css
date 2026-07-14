@@ -142,10 +142,11 @@ button {
   opacity: 0;
 }
 /* Arco dos quatro dedos sobre a patinha do "i" (centros em % do logo novo). */
-.about-toe-1 { left: 43.4%; top: 20.5%; }
-.about-toe-2 { left: 44.9%; top: 16.3%; }
-.about-toe-3 { left: 46.4%; top: 16.3%; }
-.about-toe-4 { left: 47.9%; top: 20.5%; }
+/* Centrados sobre o pingo do "i" (patinha), cujo centro está em 45,1%. */
+.about-toe-1 { left: 42.85%; top: 20.5%; }
+.about-toe-2 { left: 44.35%; top: 16.3%; }
+.about-toe-3 { left: 45.85%; top: 16.3%; }
+.about-toe-4 { left: 47.35%; top: 20.5%; }
 @keyframes about-toe-pop {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
   60% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
@@ -1530,24 +1531,27 @@ textarea { resize: vertical; min-height: 80px; }
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 7px 13px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-text-muted);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-.filter-chip:hover { background: var(--color-surface-muted); }
-.filter-chip.active {
+.filter-chip:hover { background: var(--color-surface-muted); color: var(--color-text); border-color: var(--color-brand-accent); }
+.filter-chip:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(82, 115, 83, 0.18); }
+.filter-chip.active,
+.filter-chip[aria-pressed="true"] {
   background: var(--color-brand);
   border-color: var(--color-brand);
   color: #fff;
+  box-shadow: 0 1px 2px rgba(28, 33, 23, 0.12);
 }
 
 /* Menu de ações (ex: "⚙️ Conta" no header do admin) — mesmo painel do
@@ -1689,6 +1693,7 @@ textarea { resize: vertical; min-height: 80px; }
   overflow: hidden;
   margin-bottom: 24px;
   background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 .filters-toggle {
   display: flex;
@@ -1699,17 +1704,25 @@ textarea { resize: vertical; min-height: 80px; }
   background: transparent;
   border: none;
   border-radius: 0;
-  padding: 13px 16px;
+  padding: 15px 18px;
   margin: 0;
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--color-text);
   cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 .filters-toggle:hover { background: var(--color-surface-muted); }
-.filters-toggle-caret { color: var(--color-text-soft); transition: transform 0.25s ease; }
-.filters-toggle[aria-expanded="true"] .filters-toggle-caret { transform: rotate(180deg); }
+.filters-toggle:focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgba(82, 115, 83, 0.35); }
+.filters-toggle-caret {
+  display: inline-flex;
+  color: var(--color-text-soft);
+  font-size: 12px;
+  transition: transform 0.25s ease, color 0.15s ease;
+}
+.filters-toggle[aria-expanded="true"] .filters-toggle-caret { transform: rotate(180deg); color: var(--color-brand); }
 
 /* O painel vira o corpo do acordeão: sem caixa própria, expande suave. */
 .interest-filters.mural-filters {
@@ -1719,15 +1732,17 @@ textarea { resize: vertical; min-height: 80px; }
   margin: 0;
   max-height: 0;
   overflow: hidden;
-  padding-top: 0;
-  padding-bottom: 0;
+  padding: 0 18px;
   opacity: 0;
   transition: max-height 0.32s ease, padding 0.3s ease, opacity 0.25s ease;
 }
 .interest-filters.mural-filters.filters-open {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px;
+  align-items: start;
   max-height: 1200px;
-  padding-top: 16px;
-  padding-bottom: 6px;
+  padding: 18px;
   opacity: 1;
   border-top: 1px solid var(--color-border);
 }
@@ -1743,6 +1758,50 @@ textarea { resize: vertical; min-height: 80px; }
   padding: 6px 10px;
   font-size: 13px;
   border-radius: 8px;
+}
+
+/* ---- Filtro do mural: refino visual (referência shadcn/ui) ---- */
+.mural-filters .field { margin: 0; min-width: 0; }
+.mural-filters .field > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text-muted);
+  margin-bottom: 7px;
+}
+.mural-filters select {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 12px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238B8C7C' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.mural-filters select:hover { border-color: var(--color-brand-accent); }
+.mural-filters select:focus-visible {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(82, 115, 83, 0.18);
+}
+.mural-filters select:disabled { opacity: 0.55; cursor: not-allowed; background-color: var(--color-surface-muted); }
+/* Célula do "Limpar filtros": botão discreto, alinhado à base da grade. */
+.mural-filters .field .btn-ghost {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
 
 .interest-list {
@@ -2501,7 +2560,9 @@ body.scroll-locked {
   font-size: 16.5px;
   color: var(--color-text-muted);
   line-height: 1.6;
-  max-width: 46ch;
+  /* Largura + balanceamento p/ cair em 2 linhas equilibradas, sem "Brasil" órfão. */
+  max-width: 60ch;
+  text-wrap: balance;
   margin: 0 auto 30px;
 }
 
