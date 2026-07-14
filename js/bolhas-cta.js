@@ -38,17 +38,19 @@
 
   function render(host, pets) {
     const base = host.dataset.petHref || "index.html";
-    const MAX = 5; // no máximo 5 bolinhas
-    const comFoto = (pets || []).filter((p) => safeUrl(p.photo_url));
+    // Sempre 5 bolhas no mobile e 10 no desktop.
+    const mobile = window.matchMedia("(max-width: 640px)").matches;
+    const MAX = mobile ? 5 : 10;
+    // Só pets DISPONÍVEIS e com foto entram como bolha.
+    const comFoto = (pets || []).filter((p) => p.status === "disponivel" && safeUrl(p.photo_url));
     const fontes = comFoto.map((p) => ({ foto: safeUrl(p.photo_url), id: p.id }));
-    // Poucos (ou nenhum) pet → completa com emojis até fechar 5 bolhas.
-    const emojis = ["🐶", "🐱", "🐾", "🦴", "🐩"];
+    // Poucos (ou nenhum) pet → completa com emojis até fechar o total.
+    const emojis = ["🐶", "🐱", "🐾", "🦴", "🐩", "🐕", "🐈", "🐇", "🐾", "🦴"];
     let i = 0;
     while (fontes.length < MAX) fontes.push({ emoji: emojis[i++ % emojis.length] });
     const usadas = fontes.slice(0, MAX);
 
     // No mobile as bolhas ficam numa faixa curta embaixo → menores, pra caberem.
-    const mobile = window.matchMedia("(max-width: 640px)").matches;
     host.innerHTML = usadas.map((s) => {
       const r = mobile ? (16 + Math.round(Math.random() * 8)) : (26 + Math.round(Math.random() * 20));
       const inner = s.foto
@@ -202,6 +204,16 @@
     if (!host) return;
     const pets = await fetchPets();
     render(host, pets);
+    // Re-renderiza ao cruzar o breakpoint (5 no mobile ↔ 10 no desktop),
+    // mantendo o padrão em qualquer largura.
+    const mq = window.matchMedia("(max-width: 640px)");
+    let wasMobile = mq.matches;
+    const onChange = () => {
+      if (mq.matches === wasMobile) return;
+      wasMobile = mq.matches;
+      render(host, pets);
+    };
+    (mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange));
   }
 
   window.PetBolhasCTA = { mount };
