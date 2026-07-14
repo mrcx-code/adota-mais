@@ -382,11 +382,16 @@ async function submitNotify(event) {
   submitBtn.innerHTML = `<span class="paw-spinner">🐾</span> Enviando...`;
   try {
     if (!window.DEMO_MODE) {
+      // Preferências saíram do formulário (mais direto ao ponto); mantemos as
+      // colunas por compatibilidade, preenchidas só se os campos existirem.
+      const ufEl = document.getElementById("notify-uf");
+      const espEl = document.getElementById("notify-especie");
+      const porteEl = document.getElementById("notify-porte");
       const payload = {
         email,
-        uf: document.getElementById("notify-uf").value || null,
-        especie: document.getElementById("notify-especie").value || null,
-        porte: document.getElementById("notify-porte").value || null,
+        uf: ufEl ? (ufEl.value || null) : null,
+        especie: espEl ? (espEl.value || null) : null,
+        porte: porteEl ? (porteEl.value || null) : null,
         consentimento_em: new Date().toISOString(),
       };
       const { error } = await window.sb.from("notificacoes_interesse").insert([payload]);
