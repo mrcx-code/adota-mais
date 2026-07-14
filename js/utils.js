@@ -717,7 +717,18 @@ async function submitPlatformFeedback(message) {
   localStorage.setItem(key, JSON.stringify(queue));
 }
 
+/** Só é staging quando NÃO é produção (patinhasbrasil.com.br) nem local
+ * (localhost/127.0.0.1/arquivo). Ex.: deploys de preview *.vercel.app. */
+function isStagingEnv() {
+  const h = (location.hostname || "").toLowerCase();
+  if (!h || h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.endsWith(".local")) return false;
+  if (h === "patinhasbrasil.com.br" || h === "www.patinhasbrasil.com.br") return false;
+  return true;
+}
+
 function initFeedbackWidget() {
+  // O widget de sugestão só aparece em staging (nem produção, nem local).
+  if (!isStagingEnv()) return;
   if (document.getElementById("feedback-fab")) return;
 
   const fab = document.createElement("button");
