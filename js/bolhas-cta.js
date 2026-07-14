@@ -9,7 +9,7 @@
    ⚠️ Fonte única: qualquer mudança de comportamento deve ser feita
    AQUI — reflete nos dois lugares. O visual fica em css/bolhas-cta.css.
 
-   Uso: <div class="petcta-bolhas" data-petbolhas data-pet-href="index.html"></div>
+   Uso: <div class="petcta-bolhas" data-petbolhas data-pet-href="/"></div>
    e chamar PetBolhasCTA.mount(document.querySelector("[data-petbolhas]")).
    ========================================================= */
 
@@ -37,7 +37,7 @@
   }
 
   function render(host, pets) {
-    const base = host.dataset.petHref || "index.html";
+    const base = host.dataset.petHref || "/";
     // Sempre 5 bolhas no mobile e 10 no desktop.
     const mobile = window.matchMedia("(max-width: 640px)").matches;
     const MAX = mobile ? 5 : 10;

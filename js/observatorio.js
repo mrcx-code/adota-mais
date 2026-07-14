@@ -105,7 +105,7 @@ const OBS = {
   engaje: [
     { icone: "✍️", titulo: "Assine petições", texto: "Some sua voz às campanhas por leis mais duras contra maus-tratos e abandono.", cta: "Ver petições ↗", url: "https://www.change.org/t/direito-dos-animais-pt-br" },
     { icone: "🪪", titulo: "Dê um RG ao seu pet", texto: "Cadastre seu animal no SinPatinhas, o registro nacional gratuito do governo.", cta: "Cadastrar ↗", url: "https://sinpatinhas.mma.gov.br/" },
-    { icone: "🐾", titulo: "Adote, não compre", texto: "Cada adoção tira um número dessa estatística. Conheça quem está esperando.", cta: "Ver pets", url: "../index.html" },
+    { icone: "🐾", titulo: "Adote, não compre", texto: "Cada adoção tira um número dessa estatística. Conheça quem está esperando.", cta: "Ver pets", url: "/" },
     { icone: "🏛️", titulo: "Cobre quem legisla", texto: "Acompanhe os projetos e pressione deputados e senadores a votarem.", cta: "Acompanhar ↗", url: "https://www.congressonacional.leg.br/" },
   ],
 
