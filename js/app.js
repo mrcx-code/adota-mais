@@ -136,6 +136,11 @@ function populateMuralFilters() {
   applyFiltersFromURL();
 }
 
+// Filtro de saúde: valor em português (chip + URL) → coluna do pet (banco, EN).
+const HEALTH_COL = { vacinado: "vaccinated", vermifugado: "dewormed", castrado: "neutered" };
+// Compatibilidade com links antigos que traziam os termos em inglês na URL.
+const HEALTH_ALIAS = { vaccinated: "vacinado", dewormed: "vermifugado", neutered: "castrado" };
+
 /** Reflete os filtros atuais na URL (sem recarregar) pra o link ser
  * compartilhável — ex.: um abrigo manda ?ong=<id> e o mural já abre só com
  * os pets dele. */
@@ -167,7 +172,7 @@ function applyFiltersFromURL() {
   const p = new URLSearchParams(location.search);
   setChipValues("filter-species-chips", (p.get("especie") || "").split(",").filter(Boolean));
   setChipValues("filter-size-chips", (p.get("porte") || "").split(",").filter(Boolean));
-  setChipValues("filter-health-chips", (p.get("saude") || "").split(",").filter(Boolean));
+  setChipValues("filter-health-chips", (p.get("saude") || "").split(",").filter(Boolean).map((v) => HEALTH_ALIAS[v] || v));
 
   const st = p.get("estado");
   const stateSelect = document.getElementById("filter-state");
@@ -247,7 +252,8 @@ function getFilteredPets() {
     if (isPetStale(pet)) return false;
     if (species.length && !species.includes(pet.species)) return false;
     if (sizes.length && !sizes.includes(pet.size)) return false;
-    if (health.some((key) => !pet[key])) return false;
+    // O valor do chip é em PT (aparece na URL); a coluna do pet é em EN.
+    if (health.some((key) => !pet[HEALTH_COL[key] || key])) return false;
     const org = ORG_BY_ID[pet.org_id] || pet.org;
     if (state && org?.state !== state) return false;
     if (city && org?.city !== city) return false;
@@ -285,28 +291,19 @@ function renderBoard() {
 }
 
 /**
- * Só arma o popup quando o mural vazio entra na tela. Ao ficar bem visível,
- * espera ~3s (dwell) antes de abrir; se o usuário sair antes, cancela.
- * Desarma se houver pets.
+ * Arma o popup quando o mural vazio entra na tela — abre assim que fica
+ * visível (sem espera). Desarma se houver pets.
  */
 let notifyMuralObserver = null;
-let notifyDwellTimer = null;
-const NOTIFY_DWELL_MS = 3000;
 function armNotifyOnMuralInView(isEmpty) {
   if (notifyMuralObserver) { notifyMuralObserver.disconnect(); notifyMuralObserver = null; }
-  if (notifyDwellTimer) { clearTimeout(notifyDwellTimer); notifyDwellTimer = null; }
   const board = document.getElementById("kanban-board");
   if (!isEmpty || !board) return;
-  if (!("IntersectionObserver" in window)) { notifyDwellTimer = setTimeout(maybeShowNotifyModal, NOTIFY_DWELL_MS); return; }
+  if (!("IntersectionObserver" in window)) { maybeShowNotifyModal(); return; }
   notifyMuralObserver = new IntersectionObserver((entries) => {
-    const visible = entries.some((e) => e.isIntersecting);
-    if (visible && !notifyDwellTimer) {
-      notifyDwellTimer = setTimeout(() => {
-        maybeShowNotifyModal();
-        if (notifyMuralObserver) { notifyMuralObserver.disconnect(); notifyMuralObserver = null; }
-      }, NOTIFY_DWELL_MS);
-    } else if (!visible && notifyDwellTimer) {
-      clearTimeout(notifyDwellTimer); notifyDwellTimer = null;
+    if (entries.some((e) => e.isIntersecting)) {
+      maybeShowNotifyModal();
+      if (notifyMuralObserver) { notifyMuralObserver.disconnect(); notifyMuralObserver = null; }
     }
   }, { threshold: 0.6 });
   notifyMuralObserver.observe(board);
