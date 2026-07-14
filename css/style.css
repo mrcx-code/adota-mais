@@ -2218,7 +2218,8 @@ body.scroll-locked {
   padding: 48px 44px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 28px;
 }
 
 @media (max-width: 860px) {
