@@ -152,5 +152,5 @@ async function handleLogoutInteressados() {
   if (!window.DEMO_MODE) {
     await window.sb.auth.signOut();
   }
-  window.location.href = "/admin";
+  window.location.href = "/admin/";
 }

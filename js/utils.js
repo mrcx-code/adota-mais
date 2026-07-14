@@ -645,7 +645,7 @@ async function requireOngSession() {
   }
   const { data } = await window.sb.auth.getSession();
   if (!data || !data.session) {
-    window.location.href = "/admin";
+    window.location.href = "/admin/";
     return null;
   }
   const orgId = data.session.user.id;

@@ -65,12 +65,12 @@
       <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
     </span></a>
     <div class="header-actions">
-      <a href="/admin" class="btn btn-primary btn-sm">Sou um abrigo / ONG</a>
+      <a href="/admin/" class="btn btn-primary btn-sm">Sou um abrigo / ONG</a>
       <input type="checkbox" id="nav-toggle" class="nav-toggle-input" hidden />
       <label for="nav-toggle" class="nav-hamburger" aria-label="Abrir menu"><span></span><span></span><span></span></label>
       <nav class="header-nav" aria-label="Navegação">
-        <a href="observatorio/" class="btn btn-ghost btn-sm nav-link">Observatório</a>
-        <a href="/sobre" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
+        <a href="/observatorio/" class="btn btn-ghost btn-sm nav-link">Observatório</a>
+        <a href="/sobre-nos/" class="btn btn-ghost btn-sm nav-link">Sobre nós</a>
         <a href="#faq" class="btn btn-ghost btn-sm nav-link">FAQ</a>
       </nav>
     </div>
@@ -260,7 +260,7 @@
   <footer class="site-footer">
     <span class="footer-note">Feito com 💚 para ajudar pets a encontrarem um lar.</span>
     <span class="footer-links">
-      <a href="/admin">Área do abrigo</a> · <a href="/termos">Termos de Uso</a> · <a href="/privacidade">Política de Privacidade</a>
+      <a href="/admin/">Área do abrigo</a> · <a href="/termos-de-uso/">Termos de Uso</a> · <a href="/politica-de-privacidade/">Política de Privacidade</a>
     </span>
   </footer>
 
@@ -333,14 +333,14 @@
             <textarea id="interest-message" placeholder="Conte um pouco sobre você, se já teve outros pets, etc."></textarea>
           </div>
           <div class="interest-checks">
-            <label class="check-consent"><input type="checkbox" id="interest-consent-check" required /> <span>Li e concordo com a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a> e autorizo o envio do meu contato à ONG responsável.</span></label>
+            <label class="check-consent"><input type="checkbox" id="interest-consent-check" required /> <span>Li e concordo com a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a> e autorizo o envio do meu contato à ONG responsável.</span></label>
             <label class="check-consent"><input type="checkbox" id="interest-age-check" required /> <span>Sou maior de 18 anos.</span></label>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn btn-ghost" onclick="attemptCloseInterestModal()">Cancelar</button>
             <button type="submit" id="interest-submit-btn" class="btn btn-primary">Enviar</button>
           </div>
-          <p class="hint interest-consent">Ao enviar, seu contato é encaminhado ao abrigo responsável. Veja a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</p>
+          <p class="hint interest-consent">Ao enviar, seu contato é encaminhado ao abrigo responsável. Veja a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a>.</p>
         </form>
 
         <a id="interest-whatsapp-cta" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-block hidden" style="margin-top: 12px;">
@@ -397,7 +397,7 @@
           </div>
         </div>
         <div class="interest-checks">
-          <label class="check-consent"><input type="checkbox" id="notify-consent" required /> <span>Quero receber um aviso quando um pet compatível for cadastrado e concordo com a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
+          <label class="check-consent"><input type="checkbox" id="notify-consent" required /> <span>Quero receber um aviso quando um pet compatível for cadastrado e concordo com a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
         </div>
         <button type="submit" id="notify-submit-btn" class="btn btn-primary btn-block">Quero ser avisado(a) 🐾</button>
       </form>
@@ -408,7 +408,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
     <script src="js/analytics.js"></script>
-  <script src="js/utils.js?v=20260714d"></script>
+  <script src="js/utils.js?v=20260714e"></script>
   <script src="js/mockData.js"></script>
   <script src="js/app.js?v=20260712p"></script>
 </body>

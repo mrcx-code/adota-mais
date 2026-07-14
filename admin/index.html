@@ -6,28 +6,28 @@
   <title>Área do abrigo — Patinhas</title>
   <meta name="description" content="Painel administrativo do Patinhas: cadastre pets, gerencie o processo de adoção e acompanhe interessados. Área restrita a abrigos e ONGs parceiras." />
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href="https://patinhasbrasil.com.br/admin" />
+  <link rel="canonical" href="https://patinhasbrasil.com.br/admin/" />
   <meta name="theme-color" content="#527353" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Patinhas" />
   <meta property="og:title" content="Área do abrigo — Patinhas" />
   <meta property="og:description" content="Painel administrativo do Patinhas para abrigos e ONGs parceiras." />
-  <meta property="og:url" content="https://patinhasbrasil.com.br/admin" />
+  <meta property="og:url" content="https://patinhasbrasil.com.br/admin/" />
   <meta property="og:locale" content="pt_BR" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>🐾</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=20260714b" />
+  <link rel="stylesheet" href="../css/style.css?v=20260714b" />
 </head>
 <body>
 
   <header class="site-header cursor-paw">
     <a href="/" class="brand">
       <span class="logo-wrap">
-        <img class="brand-logo" src="img/patinhas-logo-full.png?v=3" alt="Patinhas" />
+        <img class="brand-logo" src="../img/patinhas-logo-full.png?v=3" alt="Patinhas" />
         <span class="logo-paw logo-paw-1" aria-hidden="true"></span>
         <span class="logo-paw logo-paw-2" aria-hidden="true"></span>
         <span class="logo-paw logo-paw-3" aria-hidden="true"></span>
@@ -45,7 +45,7 @@
       <div class="dropdown-menu hidden" id="account-menu">
         <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAccountMenu()">⚙️ Conta ▾</button>
         <div class="dropdown-menu-panel hidden" id="account-menu-panel">
-          <a id="interessados-link" href="/admin-interessados" class="dropdown-menu-item">💬 Interessados</a>
+          <a id="interessados-link" href="/admin-interessados/" class="dropdown-menu-item">💬 Interessados</a>
           <button type="button" class="dropdown-menu-item" onclick="closeAccountMenu(); openProfileModal();">⚙️ Meu perfil</button>
           <button type="button" class="dropdown-menu-item dropdown-menu-item--danger" onclick="confirmInlineAction(this, 'Sim, sair', handleLogout)"><svg class="icon-logout" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</button>
         </div>
@@ -132,7 +132,7 @@
                   </select>
                 </div>
               </div>
-              <label class="check-consent" style="margin: 2px 0 12px;"><input type="checkbox" id="signup-terms-check" required /> <span>Li e aceito os <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
+              <label class="check-consent" style="margin: 2px 0 12px;"><input type="checkbox" id="signup-terms-check" required /> <span>Li e aceito os <a href="/termos-de-uso/" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>
               <button type="submit" id="signup-submit-btn" class="btn btn-primary btn-block">Criar conta</button>
               <p class="hint auth-consent">Ao entrar com o Google você também aceita os Termos e a Política.</p>
             </form>
@@ -147,8 +147,8 @@
           </div>
 
           <p class="auth-legal">
-            <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a> ·
-            <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>
+            <a href="/termos-de-uso/" target="_blank" rel="noopener">Termos de Uso</a> ·
+            <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a>
           </p>
         </div>
       </div>
@@ -179,7 +179,7 @@
           <div class="stat-card-label">Adotados</div>
         </div>
       </div>
-      <a href="/admin-interessados" class="stat-card stat-card--link" title="Ver todos os interessados na Central de Interessados">
+      <a href="/admin-interessados/" class="stat-card stat-card--link" title="Ver todos os interessados na Central de Interessados">
         <span class="stat-card-icon">💬</span>
         <div>
           <div class="stat-card-value" id="stat-count-total-interesses">0</div>
@@ -258,8 +258,8 @@
       <div class="faq-video-card" id="ong-video-tutorial">
         <h3 class="faq-video-title">🎬 Como cadastrar um pet (vídeo)</h3>
         <video controls playsinline preload="metadata" style="max-width:360px;width:100%;border-radius:16px">
-          <source src="media/Patinhas-Tutorial-ONG.mp4" type="video/mp4" />
-          Seu navegador não suporta vídeo. <a href="media/Patinhas-Tutorial-ONG.mp4">Baixar o vídeo</a>.
+          <source src="../media/Patinhas-Tutorial-ONG.mp4" type="video/mp4" />
+          Seu navegador não suporta vídeo. <a href="../media/Patinhas-Tutorial-ONG.mp4">Baixar o vídeo</a>.
         </video>
         <p class="faq-video-caption">Passo a passo em menos de 5 minutos.</p>
       </div>
@@ -304,7 +304,7 @@
   <footer class="site-footer">
     Patinhas · área restrita a abrigos e ONGs parceiras.
     <div class="footer-links">
-      <a href="/termos">Termos de Uso</a> · <a href="/privacidade">Política de Privacidade</a>
+      <a href="/termos-de-uso/">Termos de Uso</a> · <a href="/politica-de-privacidade/">Política de Privacidade</a>
     </div>
   </footer>
 
@@ -547,11 +547,11 @@ Caramelo,cachorro,Médio,Jovem,macho,disponivel,sim,sim,nao,bolinha de tênis"><
     </div>
   </div>
 
-  <script src="js/config.js"></script>
+  <script src="../js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabaseClient.js"></script>
-  <script src="js/utils.js?v=20260714d"></script>
-  <script src="js/mockData.js"></script>
-  <script src="js/admin.js?v=20260712b"></script>
+  <script src="../js/supabaseClient.js"></script>
+  <script src="../js/utils.js?v=20260714e"></script>
+  <script src="../js/mockData.js"></script>
+  <script src="../js/admin.js?v=20260712b"></script>
 </body>
 </html>
