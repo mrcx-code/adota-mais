@@ -277,6 +277,101 @@ function renderBoard() {
   const statAdotado = document.getElementById("stat-adotado");
   if (statDisponivel) statDisponivel.textContent = (groups.disponivel || []).length;
   if (statAdotado) statAdotado.textContent = (groups.adotado || []).length;
+
+  // Mural sem nenhum resultado (vazio ou 0 após filtro) → captura de demanda.
+  const totalVisible = STATUS_ORDER.reduce((n, s) => n + (groups[s] || []).length, 0);
+  if (totalVisible === 0) maybeShowNotifyModal();
+}
+
+/* ---------------- Popup "avise-me quando tiver um pet" ---------------- */
+
+/** Mostra o popup no máximo 1x a cada 7 dias por visitante (localStorage). */
+function maybeShowNotifyModal() {
+  const modal = document.getElementById("notify-modal");
+  if (!modal || modal.classList.contains("open")) return;
+  try {
+    const last = localStorage.getItem("patinhas_notify_dismissed_at");
+    if (last && Date.now() - Number(last) < 7 * 86400000) return;
+  } catch (e) { /* localStorage indisponível → mostra mesmo assim */ }
+  openNotifyModal();
+}
+
+function openNotifyModal() {
+  const modal = document.getElementById("notify-modal");
+  if (!modal) return;
+  const uf = document.getElementById("notify-uf");
+  if (uf && !uf.options.length && typeof populateStateSelect === "function") {
+    populateStateSelect(uf, "Qualquer estado");
+  }
+  document.getElementById("notify-form").reset();
+  document.getElementById("notify-form").classList.remove("hidden");
+  document.getElementById("notify-error").classList.remove("visible");
+  document.getElementById("notify-success").classList.remove("visible");
+  modal.classList.add("open");
+}
+
+/** Fechar (X ou clique fora) registra a dispensa → respeita os 7 dias. */
+function closeNotifyModal() {
+  const modal = document.getElementById("notify-modal");
+  if (modal) modal.classList.remove("open");
+  try { localStorage.setItem("patinhas_notify_dismissed_at", String(Date.now())); } catch (e) {}
+}
+
+function showNotifySuccess() {
+  document.getElementById("notify-form").classList.add("hidden");
+  const s = document.getElementById("notify-success");
+  s.textContent = "Prontinho! A gente te avisa 💚";
+  s.classList.add("visible");
+  try { localStorage.setItem("patinhas_notify_dismissed_at", String(Date.now())); } catch (e) {}
+  setTimeout(() => document.getElementById("notify-modal").classList.remove("open"), 2600);
+}
+
+async function submitNotify(event) {
+  event.preventDefault();
+  const email = document.getElementById("notify-email").value.trim();
+  const consent = document.getElementById("notify-consent");
+  const errorBox = document.getElementById("notify-error");
+  errorBox.classList.remove("visible");
+
+  if (!email) {
+    errorBox.textContent = "Digite seu e-mail para receber o aviso.";
+    errorBox.classList.add("visible");
+    return;
+  }
+  if (!consent || !consent.checked) {
+    errorBox.textContent = "Marque o consentimento para a gente poder te avisar.";
+    errorBox.classList.add("visible");
+    return;
+  }
+
+  // Honeypot: bot preencheu o campo oculto → finge sucesso, não salva.
+  const hp = document.getElementById("notify-hp");
+  if (hp && hp.value.trim() !== "") { showNotifySuccess(); return; }
+
+  const submitBtn = document.getElementById("notify-submit-btn");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span class="paw-spinner">🐾</span> Enviando...`;
+  try {
+    if (!window.DEMO_MODE) {
+      const payload = {
+        email,
+        uf: document.getElementById("notify-uf").value || null,
+        especie: document.getElementById("notify-especie").value || null,
+        porte: document.getElementById("notify-porte").value || null,
+        consentimento_em: new Date().toISOString(),
+      };
+      const { error } = await window.sb.from("notificacoes_interesse").insert([payload]);
+      if (error) throw error;
+    }
+    showNotifySuccess();
+  } catch (err) {
+    console.error("[Patinhas] Erro ao salvar notificação de interesse:", err);
+    errorBox.textContent = "Não foi possível salvar agora. Tente novamente em instantes.";
+    errorBox.classList.add("visible");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "Quero ser avisado(a) 🐾";
+  }
 }
 
 /** Pet recém-cadastrado (últimos 10 dias) — ganha o selinho "novo". */
@@ -690,6 +785,7 @@ function setupDragToScroll(board) {
 document.addEventListener("DOMContentLoaded", () => {
   loadPets();
   document.getElementById("interest-form").addEventListener("submit", submitInterest);
+  document.getElementById("notify-form").addEventListener("submit", submitNotify);
   attachPhoneMask(document.getElementById("interest-phone"));
   setupKanbanDots();
   setupBackToTop();
