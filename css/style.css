@@ -672,6 +672,21 @@ a.stat-pill:hover {
   scroll-margin-top: 90px;
 }
 
+/* Card destacado do vídeo tutorial no FAQ do abrigo. */
+.faq-video-card {
+  background: var(--color-brand-soft);
+  border: 1px solid var(--color-brand-accent);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 18px;
+  text-align: center;
+  scroll-margin-top: 84px; /* não fica embaixo do header ao rolar até ele */
+}
+.faq-video-title { margin: 0 0 12px; font-size: 16.5px; color: var(--color-brand-dark); }
+.faq-video-card video { display: block; margin: 0 auto; box-shadow: var(--shadow-card); }
+.faq-video-caption { margin: 12px 0 0; font-size: 13.5px; color: var(--color-text-muted); }
+.faq-video-link { color: var(--color-brand-dark); font-weight: 700; white-space: nowrap; }
+
 .faq-item {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
