@@ -2718,7 +2718,7 @@ body.scroll-locked {
 .how-step {
   position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 20px;
   padding: 0 0 20px;
 }
@@ -2727,8 +2727,8 @@ body.scroll-locked {
   content: "";
   position: absolute;
   left: 23px;
-  top: 46px;
-  bottom: -2px;
+  top: 38px;
+  bottom: -38px;
   width: 2px;
   background: linear-gradient(var(--color-brand-accent), var(--color-brand-soft));
 }
