@@ -278,9 +278,26 @@ function renderBoard() {
   if (statDisponivel) statDisponivel.textContent = (groups.disponivel || []).length;
   if (statAdotado) statAdotado.textContent = (groups.adotado || []).length;
 
-  // Mural sem nenhum resultado (vazio ou 0 após filtro) → captura de demanda.
+  // Mural sem nenhum resultado (vazio ou 0 após filtro) → captura de demanda,
+  // mas só quando o usuário rolar até o mural (ele entrar na tela).
   const totalVisible = STATUS_ORDER.reduce((n, s) => n + (groups[s] || []).length, 0);
-  if (totalVisible === 0) maybeShowNotifyModal();
+  armNotifyOnMuralInView(totalVisible === 0);
+}
+
+/** Só arma o popup quando o mural entra na viewport; desarma se houver pets. */
+let notifyMuralObserver = null;
+function armNotifyOnMuralInView(isEmpty) {
+  if (notifyMuralObserver) { notifyMuralObserver.disconnect(); notifyMuralObserver = null; }
+  const board = document.getElementById("kanban-board");
+  if (!isEmpty || !board) return;
+  if (!("IntersectionObserver" in window)) { maybeShowNotifyModal(); return; }
+  notifyMuralObserver = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) {
+      maybeShowNotifyModal();
+      if (notifyMuralObserver) { notifyMuralObserver.disconnect(); notifyMuralObserver = null; }
+    }
+  }, { threshold: 0.35 });
+  notifyMuralObserver.observe(board);
 }
 
 /* ---------------- Popup "avise-me quando tiver um pet" ---------------- */
