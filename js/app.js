@@ -54,15 +54,20 @@ async function loadPets() {
 
 /* ---------------- Filtros do mural ---------------- */
 
-/** Sem nenhum pet no mural, o filtro não faz sentido → esconde o botão e o
- * painel (no desktop e no mobile). Com pets, volta ao comportamento normal
- * (no mobile continua recolhido atrás do botão). */
+/** Sem nenhum pet no mural, o filtro fica COLAPSADO (só o botão "Filtrar pets",
+ * com o painel fechado) — igual ao mobile, mas em qualquer tela. Com pets,
+ * volta ao normal (aberto no desktop, recolhido atrás do botão no mobile). */
 function updateMuralFiltersVisibility() {
   const has = ALL_PETS.length > 0;
+  const wrap = document.querySelector(".mural-panel");
   const toggle = document.getElementById("mural-filters-toggle");
   const panel = document.getElementById("mural-filters");
-  if (toggle) toggle.style.display = has ? "" : "none";
-  if (panel) panel.style.display = has ? "" : "none";
+  if (wrap) wrap.classList.toggle("filters-empty", !has);
+  if (!has) {
+    // colapsa: fecha o painel e marca o botão como recolhido
+    if (panel) panel.classList.remove("filters-open");
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+  }
 }
 
 /** Valores dos chips ativos de um grupo (espécie, porte ou saúde). */

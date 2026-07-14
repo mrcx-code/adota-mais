@@ -108,8 +108,8 @@ button {
 .cursor-paw button,
 .hero a,
 .hero button {
-  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48dGV4dCB4PSIxNiIgeT0iMjQiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfkL48L3RleHQ+PC9zdmc+")
-    16 16, auto;
+  cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNTI3MzUzIj48cGF0aCBkPSJNNC41IDEyLjVhMiAyIDAgMTAwLTQgMiAyIDAgMDAwIDR6TTggOGEyIDIgMCAxMDAtNCAyIDIgMCAwMDAgNHpNMTIuNSA2YTIgMiAwIDEwMC00IDIgMiAwIDAwMCA0ek0xNyA4YTIgMiAwIDEwMC00IDIgMiAwIDAwMCA0ek0xMiAyMmMtMyAwLTYtMS42LTYtNC4zIDAtMi4yIDIuNC0zLjIgMy4zLTQuOS42LTEuMSAxLjMtMS45IDIuNy0xLjlzMi4xLjggMi43IDEuOWMuOSAxLjcgMy4zIDIuNyAzLjMgNC45QzE4IDIwLjQgMTUgMjIgMTIgMjJ6Ii8+PC9zdmc+")
+    14 14, auto;
 }
 
 .about-hero-logo {
@@ -1600,6 +1600,12 @@ textarea { resize: vertical; min-height: 80px; }
   .interest-filters.mural-filters { display: none; }
   .interest-filters.mural-filters.filters-open { display: flex; }
 }
+
+/* Sem nenhum pet: filtro colapsado (botão visível, painel fechado) em qualquer
+   tela — o botão abre/fecha o painel normalmente. */
+.mural-panel.filters-empty .filters-toggle { display: flex; }
+.mural-panel.filters-empty .interest-filters.mural-filters { display: none; }
+.mural-panel.filters-empty .interest-filters.mural-filters.filters-open { display: flex; }
 .interest-filters .field {
   margin-bottom: 12px;
   min-width: 160px;
