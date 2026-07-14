@@ -184,8 +184,10 @@ function obsCeuFundo() {
     const y = (Math.random() * 100).toFixed(2);
     const big = Math.random() < 0.18;
     const amber = Math.random() < 0.14; // algumas patinhas âmbar, como as estrelas do hero
-    const size = big ? (14 + Math.random() * 8) : (8 + Math.random() * 5); // px
-    const o = (big ? 0.11 : 0.07) + Math.random() * 0.045; // ~0,07–0,155 (um pouco mais forte)
+    // A pata da marca é bem mais "cheia" que o desenho antigo → tamanho/opacidade
+    // menores pra manter o céu só como textura sutil (senão fica pesado e estático).
+    const size = big ? (11 + Math.random() * 6) : (6 + Math.random() * 4); // px
+    const o = (big ? 0.055 : 0.035) + Math.random() * 0.022; // ~0,035–0,077
     const rot = Math.round(Math.random() * 360);
     const d = Math.round(Math.random() * 4200);
     const t = 3200 + Math.round(Math.random() * 3200);
