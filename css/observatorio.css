@@ -112,7 +112,6 @@ button { font-family: inherit; cursor: pointer; }
   z-index: 2;
   transform-origin: 50% 55%;
   transform: translateY(1px);
-  mix-blend-mode: multiply; /* some o fundo branco do PNG sobre o header claro */
 }
 
 /* Wiggle do logo + rastro de pegadas âmbar (mesmo gesto do site). */

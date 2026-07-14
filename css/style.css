@@ -116,19 +116,12 @@ button {
   position: relative;
   display: inline-block;
   line-height: 0;
-  /* Isola o blend e dá um fundo creme conhecido → o multiply do logo mescla o
-     branco do PNG contra esse creme (some), sem depender do fundo da seção. */
-  background: var(--color-bg);
-  isolation: isolate;
 }
 .about-hero-logo img {
   width: clamp(200px, 34vw, 340px);
   height: auto;
   margin: 0 auto 4px;
   transform-origin: 50% 60%;
-  /* O PNG do logo tem fundo branco; multiply faz o branco virar a cor do fundo
-     (some) e mantém o verde — sem precisar de PNG transparente. */
-  mix-blend-mode: multiply;
 }
 /* O pingo do "i" do logo já é uma patinha. Ao passar o mouse, os quatro
  * dedinhos surgem um a um por cima dela (só decorativo). As posições são % da
@@ -186,7 +179,6 @@ button {
   z-index: 2;
   transform-origin: 50% 55%;
   transform: translateY(1px);
-  mix-blend-mode: multiply; /* some o fundo branco do PNG sobre o header claro */
 }
 
 /* Ao passar o mouse no logo: o próprio logo dá um wiggle suave e três
