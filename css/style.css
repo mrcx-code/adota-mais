@@ -1646,39 +1646,60 @@ textarea { resize: vertical; min-height: 80px; }
   margin-bottom: 24px;
 }
 
-/* Botão que abre os filtros — só aparece no mobile (ver media query). */
+/* ---- Filtro do mural = acordeão integrado ----
+   O botão é o cabeçalho e o painel expande dentro do MESMO componente (não é
+   uma caixa separada que aparece). Vale em qualquer tela. */
+.mural-filter-accordion {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 24px;
+  background: var(--color-surface);
+}
 .filters-toggle {
-  display: none;
+  display: flex;
   width: 100%;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 13px 16px;
+  margin: 0;
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
+  cursor: pointer;
 }
-.filters-toggle-caret { color: var(--color-text-soft); transition: transform 0.2s ease; }
+.filters-toggle:hover { background: var(--color-surface-muted); }
+.filters-toggle-caret { color: var(--color-text-soft); transition: transform 0.25s ease; }
 .filters-toggle[aria-expanded="true"] .filters-toggle-caret { transform: rotate(180deg); }
 
-@media (max-width: 700px) {
-  /* Mobile: filtros recolhidos por padrão; abrem no botão e recolhem depois
-     que a busca é aplicada (ver collapseMuralFiltersOnMobile no app.js). */
-  .filters-toggle { display: flex; }
-  .interest-filters.mural-filters { display: none; }
-  .interest-filters.mural-filters.filters-open { display: flex; }
+/* O painel vira o corpo do acordeão: sem caixa própria, expande suave. */
+.interest-filters.mural-filters {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  transition: max-height 0.32s ease, padding 0.3s ease, opacity 0.25s ease;
 }
-
-/* Sem nenhum pet: filtro colapsado (botão visível, painel fechado) em qualquer
-   tela — o botão abre/fecha o painel normalmente. */
-.mural-panel.filters-empty .filters-toggle { display: flex; }
-.mural-panel.filters-empty .interest-filters.mural-filters { display: none; }
-.mural-panel.filters-empty .interest-filters.mural-filters.filters-open { display: flex; }
+.interest-filters.mural-filters.filters-open {
+  max-height: 1200px;
+  padding-top: 16px;
+  padding-bottom: 6px;
+  opacity: 1;
+  border-top: 1px solid var(--color-border);
+}
+@media (prefers-reduced-motion: reduce) {
+  .interest-filters.mural-filters { transition: none; }
+}
 .interest-filters .field {
   margin-bottom: 12px;
   min-width: 160px;
