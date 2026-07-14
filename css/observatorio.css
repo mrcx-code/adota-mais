@@ -1314,10 +1314,10 @@ body > .site-footer { position: relative; z-index: 1; }
 }
 .obs-abandono-big span { color: #C97A2C; }
 
-.obs-abandono-paws { display: inline-flex; gap: 8px; margin: 12px 0; }
+.obs-abandono-paws { display: inline-flex; gap: 6px; margin: 12px 0; }
 .obs-abandono-paw {
-  width: 34px;
-  height: 34px;
+  width: 24px;
+  height: 24px;
   color: #B7BFA9;
   opacity: 0;
   transform: scale(0.4) translateY(8px);
