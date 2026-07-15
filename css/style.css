@@ -1737,11 +1737,12 @@ textarea { resize: vertical; min-height: 80px; }
   transition: max-height 0.32s ease, padding 0.3s ease, opacity 0.25s ease;
 }
 .interest-filters.mural-filters.filters-open {
-  /* Todos os campos numa linha só: 6 campos flexíveis + o ícone de limpar.
+  /* Todos os campos numa linha só. Chips (espécie/porte/saúde) com largura de
+     conteúdo pra não sobrar vão em branco; selects ocupam o espaço restante.
      Sem border-top: o painel é continuação do "Filtrar pets", não outra caixa. */
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
-  gap: 16px;
+  grid-template-columns: auto auto auto minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 14px 20px;
   align-items: start;
   max-height: 1200px;
   padding: 16px 18px 18px;
@@ -2139,10 +2140,77 @@ body.scroll-locked {
 /* Popup "avise-me quando tiver um pet". */
 #notify-modal .modal { max-width: 440px; }
 .notify-head { text-align: center; margin-bottom: 16px; }
-.notify-logo { height: 40px; width: auto; display: block; margin: 2px auto 12px; }
+.notify-logo { height: 54px; width: auto; display: block; margin: 2px auto 14px; }
 .notify-head h2 { margin: 0 0 6px; font-size: 20px; line-height: 1.2; }
 .notify-head p { margin: 0 auto; max-width: 40ch; font-size: 14px; color: var(--color-text-muted); }
 #notify-modal .interest-checks { margin: 8px 0 14px; }
+
+/* Preferências (opcionais) com cara mais bonita — chips visuais com emoji. */
+.notify-prefs { margin: 6px 0 4px; }
+.notify-prefs-title { display: block; font-size: 12.5px; font-weight: 700; color: var(--color-text-muted); margin-bottom: 10px; }
+.notify-prefs-opt { font-weight: 500; color: var(--color-text-soft); }
+.notify-field { margin-bottom: 12px; }
+.notify-field-label { display: block; font-size: 12px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 6px; }
+.notify-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.notify-seg-opt { position: relative; display: inline-flex; }
+.notify-seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+.notify-seg-opt span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+.notify-seg-opt span:hover { border-color: var(--color-brand-accent); color: var(--color-text); }
+.notify-seg-opt span:active { transform: scale(0.96); }
+.notify-seg-opt input:checked + span {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(28, 33, 23, 0.12);
+}
+.notify-seg-opt input:focus-visible + span { box-shadow: 0 0 0 3px rgba(82, 115, 83, 0.18); }
+#notify-modal select {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 12px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238B8C7C' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+#notify-modal select:focus-visible { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(82, 115, 83, 0.18); }
+
+/* Bichinhos que sobem ao passar o mouse nos atalhos do popup. */
+.notify-burst-layer { position: fixed; inset: 0; pointer-events: none; z-index: 10000; overflow: hidden; }
+.notify-burst {
+  position: fixed;
+  transform: translate(-50%, 0);
+  font-size: 18px;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: notify-burst-rise 1s ease-out var(--delay, 0ms) forwards;
+}
+@keyframes notify-burst-rise {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), -48px) scale(1); }
+}
 
 /* Botão principal com interação: sobe de leve e ganha sombra ao passar o mouse. */
 .btn-notify { transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease; }

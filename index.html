@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://hdhqziqvrthxtgyraemk.supabase.co" crossorigin />
   <link rel="preconnect" href="https://images.unsplash.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=20260714h" />
+  <link rel="stylesheet" href="css/style.css?v=20260714i" />
 
   <script type="application/ld+json">
   {
@@ -374,6 +374,30 @@
           <label for="notify-email">Seu e-mail</label>
           <input type="email" id="notify-email" required placeholder="voce@email.com" />
         </div>
+        <div class="notify-prefs">
+          <span class="notify-prefs-title">O que você procura? <span class="notify-prefs-opt">— opcional</span></span>
+          <div class="notify-field">
+            <span class="notify-field-label">Espécie</span>
+            <div class="notify-seg" role="radiogroup" aria-label="Espécie">
+              <label class="notify-seg-opt"><input type="radio" name="notify-especie-r" value="" checked /><span>Tanto faz</span></label>
+              <label class="notify-seg-opt"><input type="radio" name="notify-especie-r" value="cachorro" /><span>🐶 Cachorro</span></label>
+              <label class="notify-seg-opt"><input type="radio" name="notify-especie-r" value="gato" /><span>🐱 Gato</span></label>
+            </div>
+          </div>
+          <div class="notify-field">
+            <span class="notify-field-label">Porte</span>
+            <div class="notify-seg" role="radiogroup" aria-label="Porte">
+              <label class="notify-seg-opt"><input type="radio" name="notify-porte-r" value="" checked /><span>Tanto faz</span></label>
+              <label class="notify-seg-opt"><input type="radio" name="notify-porte-r" value="Pequeno" /><span>🐾 Pequeno</span></label>
+              <label class="notify-seg-opt"><input type="radio" name="notify-porte-r" value="Médio" /><span>🐕 Médio</span></label>
+              <label class="notify-seg-opt"><input type="radio" name="notify-porte-r" value="Grande" /><span>🦮 Grande</span></label>
+            </div>
+          </div>
+          <div class="notify-field">
+            <label class="notify-field-label" for="notify-uf">Estado</label>
+            <select id="notify-uf"></select>
+          </div>
+        </div>
         <div class="interest-checks">
           <label class="check-consent"><input type="checkbox" id="notify-consent" required /> <span>Concordo com a <a href="/politica-de-privacidade/" target="_blank" rel="noopener">Política de Privacidade</a> e quero receber o aviso.</span></label>
         </div>
@@ -382,8 +406,8 @@
       <div class="notify-explore">
         <span class="notify-explore-label">Enquanto isso, dá uma olhada:</span>
         <div class="notify-explore-links">
-          <a href="/observatorio/" class="notify-explore-btn"><span aria-hidden="true">📊</span> Observatório</a>
-          <a href="/sobre-nos/" class="notify-explore-btn"><span aria-hidden="true">🐾</span> Sobre nós</a>
+          <a href="/observatorio/" class="notify-explore-btn" data-burst="🔭,👀,🔭"><span aria-hidden="true">📊</span> Observatório</a>
+          <a href="/sobre-nos/" class="notify-explore-btn" data-burst="👋,👋,🐾"><span aria-hidden="true">🐾</span> Sobre nós</a>
         </div>
       </div>
     </div>
@@ -395,6 +419,6 @@
     <script src="js/analytics.js"></script>
   <script src="js/utils.js?v=20260714f"></script>
   <script src="js/mockData.js"></script>
-  <script src="js/app.js?v=20260714i"></script>
+  <script src="js/app.js?v=20260714j"></script>
 </body>
 </html>

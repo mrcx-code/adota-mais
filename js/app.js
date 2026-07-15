@@ -379,16 +379,14 @@ async function submitNotify(event) {
   submitBtn.innerHTML = `<span class="paw-spinner">🐾</span> Enviando...`;
   try {
     if (!window.DEMO_MODE) {
-      // Preferências saíram do formulário (mais direto ao ponto); mantemos as
-      // colunas por compatibilidade, preenchidas só se os campos existirem.
       const ufEl = document.getElementById("notify-uf");
-      const espEl = document.getElementById("notify-especie");
-      const porteEl = document.getElementById("notify-porte");
+      const espRadio = document.querySelector('input[name="notify-especie-r"]:checked');
+      const porteRadio = document.querySelector('input[name="notify-porte-r"]:checked');
       const payload = {
         email,
         uf: ufEl ? (ufEl.value || null) : null,
-        especie: espEl ? (espEl.value || null) : null,
-        porte: porteEl ? (porteEl.value || null) : null,
+        especie: espRadio ? (espRadio.value || null) : null,
+        porte: porteRadio ? (porteRadio.value || null) : null,
         consentimento_em: new Date().toISOString(),
       };
       const { error } = await window.sb.from("notificacoes_interesse").insert([payload]);
@@ -821,5 +819,36 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKanbanDots();
   setupBackToTop();
   setupHeroTilt();
+  setupNotifyBursts();
   if (typeof pawMarauder === "function") pawMarauder();
 });
+
+/** Bichinhos "voando" ao passar o mouse nos atalhos do popup (charme rápido). */
+function setupNotifyBursts() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let layer = null;
+  const getLayer = () => (layer && document.body.contains(layer)) ? layer :
+    (layer = Object.assign(document.createElement("div"), { className: "notify-burst-layer" }), document.body.appendChild(layer), layer);
+  document.querySelectorAll(".notify-explore-btn[data-burst]").forEach((btn) => {
+    let last = 0;
+    btn.addEventListener("mouseenter", () => {
+      const now = Date.now();
+      if (now - last < 700) return;
+      last = now;
+      const emojis = (btn.getAttribute("data-burst") || "🐾").split(",");
+      const r = btn.getBoundingClientRect();
+      const L = getLayer();
+      emojis.forEach((emo, i) => {
+        const el = document.createElement("span");
+        el.className = "notify-burst";
+        el.textContent = emo;
+        el.style.left = (r.left + r.width * (0.2 + Math.random() * 0.6)) + "px";
+        el.style.top = (r.top + 8) + "px";
+        el.style.setProperty("--dx", ((Math.random() - 0.5) * 28).toFixed(0) + "px");
+        el.style.setProperty("--delay", (i * 80) + "ms");
+        L.appendChild(el);
+        setTimeout(() => el.remove(), 1100);
+      });
+    });
+  });
+}
