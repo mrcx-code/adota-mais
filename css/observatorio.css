@@ -1458,6 +1458,8 @@ body > .site-footer { position: relative; z-index: 1; }
   overflow-y: auto;
   scrollbar-width: thin;
   scroll-behavior: smooth;
+  /* referência p/ item.offsetTop no scroll ao clicar num estado do mapa */
+  position: relative;
 }
 .obs-uf-item {
   display: grid;
