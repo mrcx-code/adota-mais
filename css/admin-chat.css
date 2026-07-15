@@ -126,6 +126,34 @@
 .pchat-escalate.primary { background: var(--color-brand); border-color: var(--color-brand); color: #fff; }
 .pchat-escalate.primary:hover { background: var(--color-brand-dark); }
 
+/* Barra de respostas rápidas (chips prontos acima do input, tipo Uber/99) */
+.pchat-quick {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 12px 4px;
+  scrollbar-width: none;
+  background: var(--color-surface);
+  -webkit-overflow-scrolling: touch;
+}
+.pchat-quick::-webkit-scrollbar { display: none; }
+.pchat-quick-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-brand-dark);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.pchat-quick-chip:hover { background: var(--color-brand-soft); border-color: var(--color-brand-accent); }
+.pchat-quick-chip.escalate { background: var(--color-brand); border-color: var(--color-brand); color: #fff; }
+.pchat-quick-chip.escalate:hover { background: var(--color-brand-dark); }
+
 /* Input */
 .pchat-inputrow {
   display: flex; align-items: center; gap: 8px;

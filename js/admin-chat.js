@@ -98,6 +98,17 @@
 
   const GREETING_SUGGESTIONS = ["Como cadastro um pet?", "Como vejo os interessados?", "Como movo um pet de coluna?", "Esqueci minha senha"];
 
+  // Barra de respostas rápidas (estilo Uber/99): sempre visível acima do input.
+  const QUICK = [
+    { label: "🐾 Cadastrar um pet", q: "Como cadastro um pet?" },
+    { label: "💬 Ver interessados", q: "Como vejo quem demonstrou interesse?" },
+    { label: "↔️ Mover de coluna", q: "Como movo um pet entre as colunas?" },
+    { label: "📸 Trocar a foto", q: "Como adiciono ou troco a foto do pet?" },
+    { label: "⚙️ Meu perfil", q: "Como atualizo o nome e o WhatsApp do abrigo?" },
+    { label: "🔑 Esqueci a senha", q: "Esqueci minha senha" },
+    { label: "✉️ Falar com a equipe", escalate: true },
+  ];
+
   // --------------------------- Correspondência ---------------------------
   const STOP = new Set(("a o as os um uma de do da das dos e ou que qual quais como onde quando porque pra para por com no na nos nas " +
     "em meu minha meus minhas eu voce vc se sobre tem ter posso pode consigo quero preciso um uma isso isto ao aos").split(" "));
@@ -154,6 +165,7 @@
         </header>
         <div id="pchat-body" class="pchat-body"></div>
         <div id="pchat-msgs" class="pchat-msgs" hidden></div>
+        <div id="pchat-quick" class="pchat-quick" hidden></div>
         <form id="pchat-form" class="pchat-inputrow" hidden>
           <input id="pchat-input" type="text" autocomplete="off" placeholder="Escreva sua dúvida..." />
           <button type="submit" class="pchat-send" aria-label="Enviar">➤</button>
@@ -170,6 +182,25 @@
     root.querySelector("#pchat-close").addEventListener("click", closeChat);
     root.querySelector("#pchat-inbox-btn").addEventListener("click", openInbox);
     root.querySelector("#pchat-form").addEventListener("submit", (e) => { e.preventDefault(); const v = elInput.value.trim(); if (v) handleUserText(v); });
+    buildQuickBar();
+  }
+
+  // Barra de respostas rápidas (chips prontos acima do input, tipo Uber/99).
+  function buildQuickBar() {
+    const bar = root.querySelector("#pchat-quick");
+    bar.innerHTML = "";
+    QUICK.forEach((item) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "pchat-quick-chip" + (item.escalate ? " escalate" : "");
+      b.textContent = item.label;
+      b.addEventListener("click", () => { if (item.escalate) showEscalateForm(); else handleUserText(item.q); });
+      bar.appendChild(b);
+    });
+  }
+  function showQuick(on) {
+    const bar = root && root.querySelector("#pchat-quick");
+    if (bar) bar.hidden = !on;
   }
 
   function toggleLauncher(show) {
@@ -193,6 +224,7 @@
     root.querySelector("#pchat-body").hidden = true;
     elMsgs.hidden = false;
     root.querySelector("#pchat-form").hidden = false;
+    showQuick(true);
     root.querySelector("#pchat-inbox-btn").hidden = !(CTX && CTX.isStaff);
     if (!elMsgs.dataset.greeted) {
       elMsgs.dataset.greeted = "1";
@@ -277,6 +309,7 @@
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
+    showQuick(false);
     body.hidden = false;
     body.innerHTML = `
       <div class="pchat-view">
@@ -330,6 +363,7 @@
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
+    showQuick(false);
     body.hidden = false;
     body.innerHTML = `<div class="pchat-view"><button type="button" class="pchat-back">← Voltar</button><h3>Minhas dúvidas</h3><p class="pchat-view-sub">Carregando...</p></div>`;
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
@@ -356,6 +390,7 @@
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
+    showQuick(false);
     body.hidden = false;
     body.innerHTML = `<div class="pchat-view"><button type="button" class="pchat-back">← Voltar</button><h3>Caixa de suporte</h3><p class="pchat-view-sub">Carregando...</p></div>`;
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
