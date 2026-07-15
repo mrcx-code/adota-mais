@@ -467,7 +467,7 @@ function statusLabel(value) {
  * uma função global `updateInterestStatus(id, novoStatus)` definida por
  * quem renderiza (cada página decide como persistir e re-renderizar). */
 function interestRowHtml(i) {
-  const wa = whatsappLink(i.phone, `Olá, ${i.name}! Vi seu interesse pelo(a) ${i.pet_name} no Patinhas.`);
+  const wa = whatsappLink(i.phone, `Olá, ${i.name}! Vi seu interesse em ${i.pet_name} no Patinhas.`);
   return `
     <article class="interest-row" data-status="${i.status}">
       <div class="interest-row-main">
@@ -800,7 +800,7 @@ function initFeedbackWidget() {
     sendBtn.innerHTML = '<span class="paw-spinner">🐾</span> Enviando...';
     try {
       await submitPlatformFeedback(text);
-      msg.textContent = "Obrigado! Sua sugestão foi registrada. 💚";
+      msg.textContent = "Agradecemos! Sua sugestão foi registrada. 💚";
       msg.className = "feedback-pop-msg success";
       textarea.value = "";
       setTimeout(closePop, 1600);

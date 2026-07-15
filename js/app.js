@@ -291,8 +291,9 @@ function renderBoard() {
 }
 
 /**
- * Arma o popup quando o mural vazio entra na tela — abre assim que fica
- * visível (sem espera). Desarma se houver pets.
+ * Arma o popup só quando o mural vazio INTEIRO fica visível — as três colunas,
+ * deixando claro que não há nenhum pet. Usa uma sentinela logo abaixo do board:
+ * quando ela entra na tela, o fundo do mural chegou à viewport. Desarma se houver pets.
  */
 let notifyMuralObserver = null;
 function armNotifyOnMuralInView(isEmpty) {
@@ -300,13 +301,21 @@ function armNotifyOnMuralInView(isEmpty) {
   const board = document.getElementById("kanban-board");
   if (!isEmpty || !board) return;
   if (!("IntersectionObserver" in window)) { maybeShowNotifyModal(); return; }
+  let sentinel = document.getElementById("notify-mural-sentinel");
+  if (!sentinel) {
+    sentinel = document.createElement("div");
+    sentinel.id = "notify-mural-sentinel";
+    sentinel.setAttribute("aria-hidden", "true");
+    sentinel.style.cssText = "height:1px;width:100%;pointer-events:none;";
+    board.insertAdjacentElement("afterend", sentinel);
+  }
   notifyMuralObserver = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
       maybeShowNotifyModal();
       if (notifyMuralObserver) { notifyMuralObserver.disconnect(); notifyMuralObserver = null; }
     }
-  }, { threshold: 0.6 });
-  notifyMuralObserver.observe(board);
+  }, { threshold: 0 });
+  notifyMuralObserver.observe(sentinel);
 }
 
 /* ---------------- Popup "avise-me quando tiver um pet" ---------------- */
@@ -399,7 +408,7 @@ async function submitNotify(event) {
     errorBox.classList.add("visible");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.innerHTML = "Quero ser avisado(a) 🐾";
+    submitBtn.innerHTML = "Quero receber o aviso 🐾";
   }
 }
 
@@ -681,7 +690,7 @@ async function submitInterest(event) {
     if (org && org.contact_whatsapp) {
       const link = whatsappLink(
         org.contact_whatsapp,
-        `Olá! Tenho interesse em adotar o(a) ${CURRENT_INTEREST_PET.name} 🐾`
+        `Olá! Tenho interesse em adotar ${CURRENT_INTEREST_PET.name} 🐾`
       );
       const cta = document.getElementById("interest-whatsapp-cta");
       cta.href = link;
