@@ -408,7 +408,7 @@ async function submitNotify(event) {
     errorBox.classList.add("visible");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.innerHTML = "Quero receber o aviso 🐾";
+    submitBtn.innerHTML = "Me avise quando chegar 🐾";
   }
 }
 
@@ -829,35 +829,66 @@ document.addEventListener("DOMContentLoaded", () => {
   setupBackToTop();
   setupHeroTilt();
   setupNotifyBursts();
+  setupFamilyHeart();
   if (typeof pawMarauder === "function") pawMarauder();
 });
 
-/** Bichinhos "voando" ao passar o mouse nos atalhos do popup (charme rápido). */
+/** Camada fixa onde os emojis "voam"; criada sob demanda e reaproveitada. */
+function getBurstLayer() {
+  let layer = document.querySelector(".notify-burst-layer");
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.className = "notify-burst-layer";
+    layer.setAttribute("aria-hidden", "true");
+    document.body.appendChild(layer);
+  }
+  return layer;
+}
+
+/** Solta emojis subindo a partir de um elemento (charme rápido no hover). */
+function emojiBurstFrom(el, emojis) {
+  const r = el.getBoundingClientRect();
+  const layer = getBurstLayer();
+  emojis.forEach((emo, i) => {
+    const s = document.createElement("span");
+    s.className = "notify-burst";
+    s.textContent = emo;
+    s.style.left = (r.left + r.width * (0.2 + Math.random() * 0.6)) + "px";
+    s.style.top = (r.top + 8) + "px";
+    s.style.setProperty("--dx", ((Math.random() - 0.5) * 28).toFixed(0) + "px");
+    s.style.setProperty("--delay", (i * 85) + "ms");
+    layer.appendChild(s);
+    setTimeout(() => s.remove(), 1100);
+  });
+}
+
+/** Bichinhos "voando" ao passar o mouse nos destaques do popup. */
 function setupNotifyBursts() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  let layer = null;
-  const getLayer = () => (layer && document.body.contains(layer)) ? layer :
-    (layer = Object.assign(document.createElement("div"), { className: "notify-burst-layer" }), document.body.appendChild(layer), layer);
-  document.querySelectorAll(".notify-explore-btn[data-burst]").forEach((btn) => {
+  document.querySelectorAll(".notify-explore [data-burst]").forEach((btn) => {
     let last = 0;
     btn.addEventListener("mouseenter", () => {
       const now = Date.now();
       if (now - last < 700) return;
       last = now;
-      const emojis = (btn.getAttribute("data-burst") || "🐾").split(",");
-      const r = btn.getBoundingClientRect();
-      const L = getLayer();
-      emojis.forEach((emo, i) => {
-        const el = document.createElement("span");
-        el.className = "notify-burst";
-        el.textContent = emo;
-        el.style.left = (r.left + r.width * (0.2 + Math.random() * 0.6)) + "px";
-        el.style.top = (r.top + 8) + "px";
-        el.style.setProperty("--dx", ((Math.random() - 0.5) * 28).toFixed(0) + "px");
-        el.style.setProperty("--delay", (i * 80) + "ms");
-        L.appendChild(el);
-        setTimeout(() => el.remove(), 1100);
-      });
+      emojiBurstFrom(btn, (btn.getAttribute("data-burst") || "🐾").split(","));
     });
+  });
+}
+
+/** Coração ao passar o mouse em "famílias formadas" — só quando já há famílias. */
+function setupFamilyHeart() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const span = document.getElementById("stat-adotado");
+  const pill = span && span.closest(".stat-pill");
+  if (!pill) return;
+  let last = 0;
+  pill.addEventListener("mouseenter", () => {
+    const n = parseInt((span.textContent || "0").replace(/\D/g, ""), 10) || 0;
+    if (n <= 0) return;
+    const now = Date.now();
+    if (now - last < 500) return;
+    last = now;
+    emojiBurstFrom(pill, ["💚", "❤️", "💚"]);
   });
 }

@@ -167,6 +167,20 @@ button { font-family: inherit; cursor: pointer; }
 .cursor-paw input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),
 .cursor-paw textarea,
 .cursor-paw [contenteditable="true"] { cursor: text; }
+/* Elementos clicáveis mostram o cursor de clique (pointer) — fica claro que dá pra clicar. */
+.cursor-paw a,
+.cursor-paw button,
+.cursor-paw label[for],
+.cursor-paw select,
+.cursor-paw summary,
+.cursor-paw [role="button"],
+.cursor-paw input[type="checkbox"],
+.cursor-paw input[type="radio"] { cursor: pointer; }
+/* Exceção: header e CTAs mantêm a patinha (identidade da marca). */
+.cursor-paw .site-header a,
+.cursor-paw .site-header button,
+.cursor-paw .site-header label,
+.cursor-paw .btn-cta { cursor: url("data:image/png;base64,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") 13 13, auto; }
 
 
 /* Desktop: links à esquerda, botão "Sou um abrigo" sempre à direita. */
