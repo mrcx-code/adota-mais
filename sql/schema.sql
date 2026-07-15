@@ -359,3 +359,48 @@ create policy "Qualquer pessoa envia sugestão"
   on platform_feedback for insert
   to anon, authenticated
   with check (true);
+
+
+-- =========================================================
+-- Suporte: assistente do abrigo + tickets
+-- =========================================================
+-- Dúvidas que o assistente (chatbot de FAQ, client-side) não resolveu viram
+-- tickets aqui, respondidos pela equipe. profiles.is_staff marca quem é da
+-- equipe Patinhas (vê a caixa de suporte de todas as ONGs).
+
+alter table profiles add column if not exists is_staff boolean not null default false;
+
+create table if not exists suporte_tickets (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references profiles (id) on delete cascade,
+  org_name text,
+  pergunta text not null,
+  contexto text,                 -- última pergunta feita ao bot (opcional)
+  status text not null default 'aberto' check (status in ('aberto','respondido','fechado')),
+  resposta text,
+  created_at timestamptz not null default now(),
+  respondido_em timestamptz
+);
+create index if not exists suporte_tickets_org_idx on suporte_tickets (org_id);
+create index if not exists suporte_tickets_status_idx on suporte_tickets (status);
+
+alter table suporte_tickets enable row level security;
+
+-- O usuário logado é da equipe? (security definer evita recursão de RLS)
+create or replace function public.is_staff()
+returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select is_staff from profiles where id = auth.uid()), false);
+$$;
+
+create policy "ONG cria ticket de suporte"
+  on suporte_tickets for insert to authenticated
+  with check (auth.uid() = org_id);
+
+create policy "Ticket visivel para dono ou equipe"
+  on suporte_tickets for select to authenticated
+  using (auth.uid() = org_id or public.is_staff());
+
+create policy "Equipe responde tickets"
+  on suporte_tickets for update to authenticated
+  using (public.is_staff())
+  with check (public.is_staff());
