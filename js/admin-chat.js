@@ -98,17 +98,6 @@
 
   const GREETING_SUGGESTIONS = ["Como cadastro um pet?", "Como vejo os interessados?", "Como movo um pet de coluna?", "Esqueci minha senha"];
 
-  // Barra de respostas rápidas (estilo Uber/99): sempre visível acima do input.
-  const QUICK = [
-    { label: "🐾 Cadastrar um pet", q: "Como cadastro um pet?" },
-    { label: "💬 Ver interessados", q: "Como vejo quem demonstrou interesse?" },
-    { label: "↔️ Mover de coluna", q: "Como movo um pet entre as colunas?" },
-    { label: "📸 Trocar a foto", q: "Como adiciono ou troco a foto do pet?" },
-    { label: "⚙️ Meu perfil", q: "Como atualizo o nome e o WhatsApp do abrigo?" },
-    { label: "🔑 Esqueci a senha", q: "Esqueci minha senha" },
-    { label: "✉️ Falar com a equipe", escalate: true },
-  ];
-
   // --------------------------- Correspondência ---------------------------
   const STOP = new Set(("a o as os um uma de do da das dos e ou que qual quais como onde quando porque pra para por com no na nos nas " +
     "em meu minha meus minhas eu voce vc se sobre tem ter posso pode consigo quero preciso um uma isso isto ao aos").split(" "));
@@ -148,6 +137,7 @@
       <button type="button" id="pchat-launcher" class="pchat-launcher" aria-label="Abrir assistente do abrigo" hidden>
         <span class="pchat-launcher-ico" aria-hidden="true">💬</span>
         <span class="pchat-launcher-txt">Precisa de ajuda?</span>
+        <span id="pchat-launcher-dot" class="pchat-launcher-dot" hidden></span>
       </button>
       <section id="pchat-panel" class="pchat-panel" role="dialog" aria-label="Assistente do abrigo" hidden>
         <header class="pchat-head">
@@ -165,7 +155,6 @@
         </header>
         <div id="pchat-body" class="pchat-body"></div>
         <div id="pchat-msgs" class="pchat-msgs" hidden></div>
-        <div id="pchat-quick" class="pchat-quick" hidden></div>
         <form id="pchat-form" class="pchat-inputrow" hidden>
           <input id="pchat-input" type="text" autocomplete="off" placeholder="Escreva sua dúvida..." />
           <button type="submit" class="pchat-send" aria-label="Enviar">➤</button>
@@ -182,25 +171,6 @@
     root.querySelector("#pchat-close").addEventListener("click", closeChat);
     root.querySelector("#pchat-inbox-btn").addEventListener("click", openInbox);
     root.querySelector("#pchat-form").addEventListener("submit", (e) => { e.preventDefault(); const v = elInput.value.trim(); if (v) handleUserText(v); });
-    buildQuickBar();
-  }
-
-  // Barra de respostas rápidas (chips prontos acima do input, tipo Uber/99).
-  function buildQuickBar() {
-    const bar = root.querySelector("#pchat-quick");
-    bar.innerHTML = "";
-    QUICK.forEach((item) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "pchat-quick-chip" + (item.escalate ? " escalate" : "");
-      b.textContent = item.label;
-      b.addEventListener("click", () => { if (item.escalate) showEscalateForm(); else handleUserText(item.q); });
-      bar.appendChild(b);
-    });
-  }
-  function showQuick(on) {
-    const bar = root && root.querySelector("#pchat-quick");
-    if (bar) bar.hidden = !on;
   }
 
   function toggleLauncher(show) {
@@ -213,6 +183,7 @@
     panel.hidden = false;
     launcher.hidden = true;
     showChatView();
+    checkTeamReplies(true); // entrega na conversa as respostas novas da equipe
   }
   function closeChat() {
     if (panel) panel.hidden = true;
@@ -224,7 +195,6 @@
     root.querySelector("#pchat-body").hidden = true;
     elMsgs.hidden = false;
     root.querySelector("#pchat-form").hidden = false;
-    showQuick(true);
     root.querySelector("#pchat-inbox-btn").hidden = !(CTX && CTX.isStaff);
     if (!elMsgs.dataset.greeted) {
       elMsgs.dataset.greeted = "1";
@@ -309,7 +279,6 @@
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
-    showQuick(false);
     body.hidden = false;
     body.innerHTML = `
       <div class="pchat-view">
@@ -363,7 +332,6 @@
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
-    showQuick(false);
     body.hidden = false;
     body.innerHTML = `<div class="pchat-view"><button type="button" class="pchat-back">← Voltar</button><h3>Minhas dúvidas</h3><p class="pchat-view-sub">Carregando...</p></div>`;
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
@@ -390,7 +358,6 @@
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
-    showQuick(false);
     body.hidden = false;
     body.innerHTML = `<div class="pchat-view"><button type="button" class="pchat-back">← Voltar</button><h3>Caixa de suporte</h3><p class="pchat-view-sub">Carregando...</p></div>`;
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
@@ -478,6 +445,41 @@
     } catch (e) { /* silencioso */ }
   }
 
+  // --------------------------- Respostas da equipe → conversa ---------------------------
+  function getSeenReplies() { try { return JSON.parse(localStorage.getItem("pchat_seen_replies") || "{}"); } catch (e) { return {}; } }
+  function setSeenReplies(o) { try { localStorage.setItem("pchat_seen_replies", JSON.stringify(o)); } catch (e) {} }
+
+  /** Busca respostas da equipe ainda não vistas. Se inject=true, mostra na
+   *  conversa e marca como vistas; senão, só retorna quantas há (pro aviso). */
+  async function checkTeamReplies(inject) {
+    if (!CTX || CTX.isStaff || !window.sb) return 0;
+    let list = [];
+    try {
+      const { data } = await window.sb.from("suporte_tickets")
+        .select("id,pergunta,resposta,respondido_em")
+        .eq("org_id", CTX.orgId).eq("status", "respondido")
+        .not("resposta", "is", null).order("respondido_em", { ascending: true });
+      list = data || [];
+    } catch (e) { return 0; }
+    const seen = getSeenReplies();
+    const novos = list.filter((t) => seen[t.id] !== t.respondido_em);
+    if (inject && novos.length) {
+      novos.forEach((t) => {
+        addBot(`💬 <strong>A equipe respondeu</strong> a sua dúvida <em>"${esc(t.pergunta)}"</em>:<br><br>${esc(t.resposta)}`);
+        seen[t.id] = t.respondido_em;
+      });
+      setSeenReplies(seen);
+      elMsgs.scrollTop = elMsgs.scrollHeight;
+      updateLauncherDot(0);
+    }
+    return novos.length;
+  }
+
+  function updateLauncherDot(n) {
+    const dot = root && root.querySelector("#pchat-launcher-dot");
+    if (dot) dot.hidden = !(n > 0);
+  }
+
   // --------------------------- Contexto / sessão ---------------------------
   async function refreshContext() {
     if (!window.sb || window.DEMO_MODE) { CTX = null; toggleLauncher(false); return; }
@@ -492,6 +494,7 @@
       CTX = { orgId: session.user.id, orgName: (prof && prof.org_name) || "seu abrigo", email: session.user.email, isStaff: !!(prof && prof.is_staff) };
       toggleLauncher(true);
       refreshInboxBadge();
+      if (!CTX.isStaff) checkTeamReplies(false).then((n) => updateLauncherDot(n));
     } catch (e) {
       CTX = null; toggleLauncher(false);
     }
