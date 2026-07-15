@@ -123,6 +123,7 @@
   // --------------------------- Estado / contexto ---------------------------
   let CTX = null;           // { orgId, orgName, email, isStaff }
   let lastUserQuestion = "";
+  let ticketImage = null;   // { url } da imagem colada/anexada no ticket
   let root = null, launcher = null, panel = null, elMsgs = null, elInput = null;
 
   const esc = (s) => (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -276,6 +277,7 @@
   // --------------------------- View: falar com a equipe ---------------------------
   function showEscalateForm() {
     if (!CTX) { addBot("Entre na sua conta para falar com a equipe."); return; }
+    ticketImage = null;
     const body = root.querySelector("#pchat-body");
     elMsgs.hidden = true;
     root.querySelector("#pchat-form").hidden = true;
@@ -285,13 +287,56 @@
         <button type="button" class="pchat-back">← Voltar</button>
         <h3>Falar com a equipe</h3>
         <p class="pchat-view-sub">Escreva sua dúvida que a gente responde por aqui e pelo seu e-mail (${esc(CTX.email || "")}).</p>
-        <textarea id="pchat-ticket-text" rows="5" placeholder="Sua dúvida...">${esc(lastUserQuestion)}</textarea>
+        <textarea id="pchat-ticket-text" rows="5" placeholder="Sua dúvida... (pode colar uma imagem aqui)">${esc(lastUserQuestion)}</textarea>
+        <div class="pchat-attach">
+          <button type="button" id="pchat-attach-btn" class="pchat-attach-btn">📎 Anexar imagem</button>
+          <span class="pchat-attach-hint">ou cole (Ctrl+V)</span>
+          <input type="file" id="pchat-attach-input" accept="image/*" hidden />
+        </div>
+        <div id="pchat-attach-preview" class="pchat-attach-preview" hidden></div>
         <div id="pchat-ticket-err" class="pchat-err" hidden></div>
         <button type="button" id="pchat-ticket-send" class="pchat-primary-btn">Enviar para a equipe</button>
       </div>`;
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
     body.querySelector("#pchat-ticket-send").addEventListener("click", submitTicket);
-    body.querySelector("#pchat-ticket-text").focus();
+    const ta = body.querySelector("#pchat-ticket-text");
+    ta.addEventListener("paste", handleTicketPaste);
+    body.querySelector("#pchat-attach-btn").addEventListener("click", () => body.querySelector("#pchat-attach-input").click());
+    body.querySelector("#pchat-attach-input").addEventListener("change", (e) => { const f = e.target.files && e.target.files[0]; if (f) uploadTicketImage(f); });
+    ta.focus();
+  }
+
+  function handleTicketPaste(e) {
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    for (const it of items) {
+      if (it.type && it.type.indexOf("image") === 0) {
+        const file = it.getAsFile();
+        if (file) { e.preventDefault(); uploadTicketImage(file); return; }
+      }
+    }
+  }
+
+  async function uploadTicketImage(file) {
+    if (!file || !/^image\//.test(file.type) || !CTX || !window.sb) return;
+    const preview = root.querySelector("#pchat-attach-preview");
+    if (!preview) return;
+    preview.hidden = false;
+    preview.innerHTML = `<span class="pchat-attach-loading">Enviando imagem...</span>`;
+    try {
+      const ext = (file.type.split("/")[1] || "png").replace("jpeg", "jpg");
+      const uid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+      const path = `${CTX.orgId}/suporte-${uid}.${ext}`;
+      const { error } = await window.sb.storage.from("pet-photos").upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = window.sb.storage.from("pet-photos").getPublicUrl(path);
+      ticketImage = { url: data.publicUrl };
+      preview.innerHTML = `<img src="${esc(data.publicUrl)}" alt="anexo" /><button type="button" class="pchat-attach-remove">✕ remover</button>`;
+      preview.querySelector(".pchat-attach-remove").addEventListener("click", () => { ticketImage = null; preview.hidden = true; preview.innerHTML = ""; });
+    } catch (e) {
+      console.error("[Patinhas] Erro ao enviar imagem:", e);
+      preview.innerHTML = `<span class="pchat-err">Não deu para enviar a imagem. Tente outra.</span>`;
+      ticketImage = null;
+    }
   }
 
   async function submitTicket() {
@@ -305,8 +350,10 @@
     try {
       const { error } = await window.sb.from("suporte_tickets").insert([{
         org_id: CTX.orgId, org_name: CTX.orgName, pergunta, contexto: lastUserQuestion || null,
+        imagem_url: ticketImage ? ticketImage.url : null,
       }]);
       if (error) throw error;
+      ticketImage = null;
       const body = root.querySelector("#pchat-body");
       body.innerHTML = `
         <div class="pchat-view pchat-center">
@@ -337,7 +384,7 @@
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
     try {
       const { data, error } = await window.sb.from("suporte_tickets")
-        .select("pergunta,resposta,status,created_at,respondido_em")
+        .select("pergunta,resposta,status,created_at,respondido_em,imagem_url")
         .eq("org_id", CTX.orgId).order("created_at", { ascending: false }).limit(30);
       if (error) throw error;
       const view = body.querySelector(".pchat-view");
@@ -363,7 +410,7 @@
     body.querySelector(".pchat-back").addEventListener("click", showChatView);
     try {
       const { data, error } = await window.sb.from("suporte_tickets")
-        .select("id,org_name,pergunta,contexto,resposta,status,created_at")
+        .select("id,org_name,pergunta,contexto,resposta,status,created_at,imagem_url")
         .order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       const view = body.querySelector(".pchat-view");
@@ -387,6 +434,7 @@
         <span class="pchat-ticket-status">${esc(statusLabel(t.status))}</span>
       </div>
       <p class="pchat-ticket-q">${esc(t.pergunta)}</p>
+      ${t.imagem_url ? `<a href="${esc(t.imagem_url)}" target="_blank" rel="noopener" class="pchat-ticket-img"><img src="${esc(t.imagem_url)}" alt="anexo" loading="lazy" /></a>` : ""}
       <span class="pchat-ticket-when">${esc(when)}</span>
       ${t.resposta ? `<div class="pchat-ticket-answer"><span>Resposta da equipe:</span>${esc(t.resposta)}</div>` : ""}`;
     if (staff) {

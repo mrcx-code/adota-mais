@@ -380,6 +380,7 @@ create table if not exists suporte_tickets (
   contexto text,                 -- última pergunta feita ao bot (opcional)
   status text not null default 'aberto' check (status in ('aberto','respondido','fechado')),
   resposta text,
+  imagem_url text,               -- print/imagem colada ou anexada pela ONG (opcional)
   created_at timestamptz not null default now(),
   respondido_em timestamptz
 );

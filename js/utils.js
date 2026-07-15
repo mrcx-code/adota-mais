@@ -587,9 +587,14 @@ function confirmInlineAction(button, confirmLabel, onConfirm) {
   const original = button.cloneNode(true);
   original.removeAttribute("data-confirming");
 
+  // Se o botão ocupa a largura toda (ex: item de menu), o confirmar/cancelar
+  // dividem essa mesma largura — assim o componente não "pula" de tamanho.
+  const fullWidth = button.classList.contains("dropdown-menu-item") || button.classList.contains("btn-block");
+
   const wrapper = document.createElement("span");
-  wrapper.style.display = "inline-flex";
+  wrapper.style.display = fullWidth ? "flex" : "inline-flex";
   wrapper.style.gap = "6px";
+  if (fullWidth) wrapper.style.width = "100%";
 
   const sizeClass = button.className.includes("btn-sm") ? " btn-sm" : "";
 
@@ -604,6 +609,12 @@ function confirmInlineAction(button, confirmLabel, onConfirm) {
   noBtn.className = `btn btn-secondary${sizeClass}`;
   noBtn.textContent = "Cancelar";
   noBtn.onclick = () => wrapper.replaceWith(original);
+
+  if (fullWidth) {
+    // min-width:0 deixa os botões encolherem até a largura do painel (não empurram).
+    yesBtn.style.flex = "1"; yesBtn.style.minWidth = "0"; yesBtn.style.whiteSpace = "nowrap";
+    noBtn.style.flex = "1"; noBtn.style.minWidth = "0"; noBtn.style.whiteSpace = "nowrap";
+  }
 
   button.dataset.confirming = "true";
   button.replaceWith(wrapper);

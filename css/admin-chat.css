@@ -190,6 +190,26 @@
 .pchat-primary-btn.sm { padding: 7px 12px; font-size: 12.5px; margin-top: 0; }
 .pchat-primary-btn:disabled { opacity: 0.6; cursor: default; }
 .pchat-err { color: var(--color-danger); font-size: 12.5px; margin-top: 6px; }
+
+/* Anexar / colar imagem no ticket */
+.pchat-attach { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.pchat-attach-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--color-text); cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.pchat-attach-btn:hover { background: var(--color-surface-muted); border-color: var(--color-brand-accent); }
+.pchat-attach-hint { font-size: 12px; color: var(--color-text-soft); }
+.pchat-attach-preview { margin-top: 8px; }
+.pchat-attach-preview img { max-width: 100%; max-height: 160px; border-radius: 10px; border: 1px solid var(--color-border); display: block; }
+.pchat-attach-loading { font-size: 12.5px; color: var(--color-text-soft); }
+.pchat-attach-remove { display: inline-block; margin-top: 6px; background: none; border: none; color: var(--color-danger); font-size: 12px; cursor: pointer; text-decoration: underline; }
+.pchat-ticket-img { display: block; margin: 6px 0 4px; }
+.pchat-ticket-img img { max-width: 100%; max-height: 140px; border-radius: 8px; border: 1px solid var(--color-border); }
 .pchat-center { text-align: center; padding-top: 18px; }
 .pchat-ok-ico { font-size: 40px; }
 /* Botões da tela de "Recebemos sua dúvida" — empilhados e com respiro. */
