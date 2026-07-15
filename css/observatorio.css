@@ -160,12 +160,14 @@ button { font-family: inherit; cursor: pointer; }
 }
 /* Cursor de patinha no header (mesmo do resto do site, aqui no CSS isolado). */
 .cursor-paw,
-.cursor-paw a,
-.cursor-paw button,
-.cursor-paw label {
-  cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAEe0lEQVR4nL1VW2wbRRSdmZ1d73od553Yjp130sQ471Qhz0LTIF4iRWqFUL8qAepHxQdfUJAACcQXXwhB+OEDISQkXgo/iIJQxaOgplHzaBpIoqSJ26bO03Xc9e7sXDR+JE4U+INrWTueO3N87j333kXo/zKMcfJZGQzUDp97ZPqh0z0faLpKMj5JIqhzqPWFp88/Otcy0Hgy+062kYOgAIBcebrceiw4hikKllQUnGseaHxJ+IWvvr2mv6rZP2Ixq6K+s/orb1VJsdjHBP8zMEr7ymo8rbKTupllx4x4gnmqi9/R3U5KCEEVIf+HppFgGFCcA3BfTenwYZHTbLZYMEaAVJcjAIA4RpgCAFccsuJ0azkAENV0R9DmNsKYKAiAKKrsT3HCSZrAYT8wACCwU5vMtKPZESCMOMYYU0oJkTCyOeJpNtwyWUQQ4pwfngp/rdfnr/P5xHrt1sY4AkQAAUMccdvixNhJ7Bhxg5kJFhP7HLhBCCHr4a2LglRpeXGBv87nzwiZBA51Nwx1D3eEe4c7wu3Hm86uLkXW15Y3PtZ01aW6HOrm6vYnse2dhGUyiCytve3UNUXV1bztyL2fF68vzzYeres7dqprvWe4Y7llIHh6N9gnnx9cIAop4zaYeo7muvTFH57NO1uRjsGmC5JM867+OPlKbGvHEmcdmkI6TzRfkBSaM/7D1GtUkeiJM33xRMI0hT5go9i3IxcLkzkmhOgYYYWInFmMVTWVv3h7YfXVX0avvJX2oyJfYQ4hmGze3Y5m9oV1DrWcBSEZIEYIcXIMyq54sej9S+4i/STYXByhTrfWK1EJ2cxGgXpfeaiv4VMtR+1DAMg0zKmZy/Nn5icWJ0Q+cwtdxznnBAMiCCNmxIxfd3N88/rKm7IsUw5ggM0NgrFTqFwSKMrverxtSdXlPjNhMtM0GVVoqH0odK28oaxSiEYozQWODAAwFIdMF6fDL+8CL0zenAr/decN3a3lqS5NjSyvvSfqMdRb/xEHG1mWHZcIoZIkUWbbpviTYHftN+Lu6uLd9zWXqjrdWt7K7Orr8xOL49mVikToda1VXbJDzpv+bfY7T2Wxp+epjttGwjQl0QxZHcs5N1XNoYx9P9W0MLk09cCDR/qthBWdm1i8xu10iR/Wjpqukoef6RmTNRoSzDHBex0qmgklG4SDzSM/ff57VXTjXuIgxt6swCn1qUxR12NtI5pbbeXAeQYUpz+p3kREaEBV2dv1RNuoQ1OwuJs95XaBcbot/XXempLKoufM+5ZBRAoyLZ/8pmFTJUjNBIvnl7qHKoOBo8mWxocxhtSjqKxg0GaMZWLes30/0mSAMmazfE/u0MEj+1IhzGb2DpEITeYRJ6cV45yzzAGxBgCWDBswIxgTxnhqaKF/Ybw0E/6aWbYpy8Qp6lSSJao4FIpTgpliTWUqximSJOwU0q7cCH92EHhfVWTeIBWNgZrm/sYvJRlXRzfjo+HZW+9Gwhs3gAMv9ObXBI54z+cWu58F4Jszl+dO/Xl14Urm7n9ufwMWlg9GghJEOQAAAABJRU5ErkJggg==")
-    11 11, auto;
+.cursor-paw * {
+  cursor: url("data:image/png;base64,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") 13 13, auto;
 }
+/* Inputs de texto mantêm o cursor de texto (não atrapalha digitar). */
+.cursor-paw input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=file]),
+.cursor-paw textarea,
+.cursor-paw [contenteditable="true"] { cursor: text; }
+
 
 /* Desktop: links à esquerda, botão "Sou um abrigo" sempre à direita. */
 .header-nav { display: flex; align-items: center; gap: 10px; order: -1; }
@@ -354,8 +356,7 @@ button { font-family: inherit; cursor: pointer; }
 .obs-hero > *:not(.obs-sky):not(.obs-trail):not(.obs-comet):not(.obs-hero-hint) { position: relative; z-index: 2; }
 
 /* Ao explorar com o mouse, o cursor vira uma estrela cadente. */
-.obs-hero.scanning { cursor: none; }
-.obs-hero.scanning .btn { cursor: none; }
+.obs-hero.scanning, .obs-hero.scanning * { cursor: none; }
 
 /* ---- Cursor "estrela cadente" (cometa) ---- */
 .obs-comet {
@@ -596,6 +597,27 @@ body > .site-footer { position: relative; z-index: 1; }
 .obs-leitura.swap .obs-leitura-label,
 .obs-leitura.swap .obs-leitura-fonte { animation: obs-read-in 0.5s ease; }
 @keyframes obs-read-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Desktop: card mais expansivo, com o número e a descrição na mesma linha. */
+@media (min-width: 780px) {
+  .obs-leitura {
+    max-width: 620px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "tag  tag"
+      "num  label"
+      "dots fonte";
+    align-items: center;
+    column-gap: 24px;
+    row-gap: 4px;
+  }
+  .obs-leitura-tag { grid-area: tag; }
+  .obs-leitura-num { grid-area: num; margin: 10px 0; }
+  .obs-leitura-label { grid-area: label; margin: 0; align-self: center; }
+  .obs-leitura-dots { grid-area: dots; margin: 12px 0 0; }
+  .obs-leitura-fonte { grid-area: fonte; text-align: right; align-self: end; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .obs-star, .obs-sweep, .obs-orbit, .obs-leitura-dot-live { animation: none !important; }

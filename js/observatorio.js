@@ -442,14 +442,15 @@ function obsReactBichinhos(x, y) {
     const el = document.createElement("span");
     el.className = "obs-react";
     el.textContent = i === 0 ? base.emoji : set[Math.floor(Math.random() * set.length)];
-    el.style.left = x + "px";
-    el.style.top = y + "px";
-    el.style.setProperty("--dx", ((Math.random() - 0.5) * 90).toFixed(0) + "px");
-    el.style.setProperty("--rot", ((Math.random() - 0.5) * 44).toFixed(0) + "deg");
-    el.style.setProperty("--delay", (i * 60) + "ms");
+    // Espalha o ponto de partida e a subida pra não ficarem grudadas.
+    el.style.left = (x + (Math.random() - 0.5) * 64) + "px";
+    el.style.top = (y + (Math.random() - 0.5) * 24) + "px";
+    el.style.setProperty("--dx", ((Math.random() - 0.5) * 150).toFixed(0) + "px");
+    el.style.setProperty("--rot", ((Math.random() - 0.5) * 50).toFixed(0) + "deg");
+    el.style.setProperty("--delay", (i * 130) + "ms");
     el.style.fontSize = (18 + Math.random() * 14).toFixed(0) + "px";
     layer.appendChild(el);
-    setTimeout(() => el.remove(), 1700);
+    setTimeout(() => el.remove(), 2500);
   }
 }
 
