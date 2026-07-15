@@ -1387,6 +1387,21 @@ body > .site-footer { position: relative; z-index: 1; }
 .obs-dot { width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%; background: rgba(244, 241, 230, 0.3); cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease; }
 .obs-dot.on { background: var(--color-brand-accent); transform: scale(1.35); }
 
+/* Reação de bichinhos ao clicar num estado do mapa (estilo react de live). */
+.obs-react-layer { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+.obs-react {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: obs-react-float 1.5s cubic-bezier(0.22, 0.9, 0.3, 1) var(--delay, 0ms) forwards;
+}
+@keyframes obs-react-float {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(0); }
+  18% { opacity: 1; transform: translate(-50%, -95%) scale(1.1) rotate(var(--rot)); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), -260%) scale(0.95) rotate(var(--rot)); }
+}
+
 /* ---------- Mapa: lista rolável por estado ---------- */
 
 .obs-uf-list-wrap {
@@ -1424,9 +1439,10 @@ body > .site-footer { position: relative; z-index: 1; }
 }
 .obs-uf-item {
   display: grid;
-  grid-template-columns: 34px 96px 1fr 52px;
+  /* colunas flexíveis (minmax 0) pra % nunca vazar do componente em telas estreitas */
+  grid-template-columns: 26px minmax(0, 88px) minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 9px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -1453,7 +1469,7 @@ body > .site-footer { position: relative; z-index: 1; }
 }
 @keyframes obs-bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .obs-uf-item.active .obs-uf-bar-fill { background: linear-gradient(90deg, #E7C889, #C98A2C); }
-.obs-uf-pct { font-family: var(--font-display); font-weight: 800; font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; color: var(--color-brand-dark); }
+.obs-uf-pct { font-family: var(--font-display); font-weight: 800; font-size: 13.5px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--color-brand-dark); }
 
 /* ---------- Cards de estatística (abandono + governo) ---------- */
 

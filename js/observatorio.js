@@ -422,11 +422,34 @@ async function obsMontaMapaReal() {
     host.onmouseleave = () => tip.classList.remove("visible");
     host.onclick = (e) => {
       const path = e.target.closest(".obs-uf-path");
-      if (path) obsSelecionarUF(path.getAttribute("data-uf"), true);
+      if (path) { obsSelecionarUF(path.getAttribute("data-uf"), true); obsReactBichinhos(e.clientX, e.clientY); }
     };
   } catch (err) {
     host.classList.add("obs-map-fail");
     host.innerHTML = '<p class="obs-vazio">Não foi possível carregar o mapa agora — veja o ranking ao lado.</p>';
+  }
+}
+
+/** Reação de bichinhos "voando" (estilo react de live) ao clicar num estado. */
+function obsReactBichinhos(x, y) {
+  if (OBS_REDUCED) return;
+  const base = OBS_ESPECIE_INFO[OBS_MAPA.atual] || OBS_ESPECIE_INFO.caes;
+  const set = OBS_MAPA.atual === "gatos" ? ["🐱", "😺", "🐾", "💛"] : ["🐶", "🐕", "🐾", "💚"];
+  let layer = document.querySelector(".obs-react-layer");
+  if (!layer) { layer = document.createElement("div"); layer.className = "obs-react-layer"; layer.setAttribute("aria-hidden", "true"); document.body.appendChild(layer); }
+  const n = 5 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement("span");
+    el.className = "obs-react";
+    el.textContent = i === 0 ? base.emoji : set[Math.floor(Math.random() * set.length)];
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.setProperty("--dx", ((Math.random() - 0.5) * 90).toFixed(0) + "px");
+    el.style.setProperty("--rot", ((Math.random() - 0.5) * 44).toFixed(0) + "deg");
+    el.style.setProperty("--delay", (i * 60) + "ms");
+    el.style.fontSize = (18 + Math.random() * 14).toFixed(0) + "px";
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 1700);
   }
 }
 
