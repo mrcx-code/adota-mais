@@ -585,7 +585,8 @@ body > .site-footer { position: relative; z-index: 1; }
   margin: 12px 0 8px;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(46px, 9vw, 72px);
+  /* mais sutil que antes (era 46–72px) */
+  font-size: clamp(32px, 4.2vw, 44px);
   line-height: 1;
   color: #FCFAF4;
   font-variant-numeric: tabular-nums;
@@ -596,7 +597,8 @@ body > .site-footer { position: relative; z-index: 1; }
   font-size: 15px;
   line-height: 1.5;
   color: rgba(244, 241, 230, 0.85);
-  min-height: 45px;
+  /* reserva o pior caso (label mais longa) pra o card não mudar de tamanho */
+  min-height: 74px;
 }
 .obs-leitura-label strong { color: #E7C889; font-weight: 700; }
 .obs-leitura-fonte { color: rgba(244, 241, 230, 0.55); }
@@ -620,15 +622,16 @@ body > .site-footer { position: relative; z-index: 1; }
 /* Desktop: card mais expansivo, com o número e a descrição na mesma linha. */
 @media (min-width: 780px) {
   .obs-leitura {
-    max-width: 620px;
+    /* largura fixa e coluna do número fixa → o card não "pula" ao trocar o dado */
+    max-width: 560px;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 190px 1fr;
     grid-template-areas:
       "tag  tag"
       "num  label"
       "dots fonte";
     align-items: center;
-    column-gap: 24px;
+    column-gap: 22px;
     row-gap: 4px;
   }
   .obs-leitura-tag { grid-area: tag; }
