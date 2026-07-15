@@ -23,6 +23,14 @@ async function loadImpactStats() {
   setCountTarget("impact-pets", stats.total_pets);
   setCountTarget("impact-adopted", stats.total_adopted);
   setCountTarget("impact-interests", stats.total_interests);
+
+  // Só mostra os números quando algum for > 0; senão, o banner fofo.
+  const total = (Number(stats.total_orgs) || 0) + (Number(stats.total_pets) || 0)
+    + (Number(stats.total_adopted) || 0) + (Number(stats.total_interests) || 0);
+  const numbers = document.getElementById("impact-numbers");
+  const empty = document.getElementById("impact-empty");
+  if (numbers) numbers.classList.toggle("hidden", total === 0);
+  if (empty) empty.classList.toggle("hidden", total > 0);
 }
 
 function setCountTarget(id, value) {

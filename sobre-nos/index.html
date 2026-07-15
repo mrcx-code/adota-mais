@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/style.css?v=20260714i" />
+  <link rel="stylesheet" href="../css/style.css?v=20260714j" />
   <link rel="stylesheet" href="../css/bolhas-cta.css?v=20260712e" />
 </head>
 <body>
@@ -173,6 +173,7 @@
 
     <!-- Nosso impacto -->
     <section class="about-impact reveal">
+      <div id="impact-numbers" class="hidden">
       <span class="section-eyebrow section-eyebrow--center section-eyebrow--onDark">Números que importam</span>
       <h2 class="section-title--center section-title--onDark">Nosso impacto</h2>
       <div class="stats-row stats-row--onDark" id="impact-stats">
@@ -203,6 +204,19 @@
             <div class="stat-card-value" id="impact-interests" data-count="0">0</div>
             <div class="stat-card-label">Interessados enviados</div>
           </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Enquanto não há números, um banner fofo (mostrado quando tudo é 0). -->
+      <div id="impact-empty" class="impact-empty">
+        <div class="impact-empty-photos" aria-hidden="true">
+          <img src="../img/anakin.jpeg" alt="" loading="lazy" />
+          <img src="../img/steven.jpeg" alt="" loading="lazy" />
+        </div>
+        <div class="impact-empty-text">
+          <h2 class="section-title--onDark">Os primeiros números vêm aí 🐾</h2>
+          <p>Em breve, o impacto da nossa rede aparece aqui — ONGs parceiras, pets cadastrados e famílias formadas. Cada adoção vai somar.</p>
         </div>
       </div>
     </section>
@@ -245,6 +259,6 @@
   <script src="../js/utils.js?v=20260714f"></script>
   <script src="../js/mockData.js"></script>
   <script src="../js/bolhas-cta.js?v=20260714d"></script>
-  <script src="../js/sobre.js?v=20260712m"></script>
+  <script src="../js/sobre.js?v=20260714k"></script>
 </body>
 </html>

@@ -2990,6 +2990,34 @@ body.scroll-locked {
   text-align: center;
 }
 
+/* Banner fofo enquanto não há números (foto de cão + gato). */
+.impact-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vw, 36px);
+  flex-wrap: wrap;
+  text-align: left;
+}
+.impact-empty-photos { display: flex; flex-shrink: 0; }
+.impact-empty-photos img {
+  width: clamp(78px, 12vw, 104px);
+  height: clamp(78px, 12vw, 104px);
+  border-radius: 22px;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+.impact-empty-photos img:first-child { transform: rotate(-5deg); }
+.impact-empty-photos img:nth-child(2) { margin-left: -20px; transform: rotate(5deg); }
+.impact-empty-text { color: #F4F1E6; }
+.impact-empty-text h2 { margin: 0 0 6px; font-size: clamp(20px, 3vw, 26px); }
+.impact-empty-text p { margin: 0; max-width: 44ch; font-size: 15px; line-height: 1.55; opacity: 0.9; }
+@media (max-width: 560px) {
+  .impact-empty { flex-direction: column; text-align: center; }
+  .impact-empty-text p { margin: 0 auto; }
+}
+
 .stats-row--onDark {
   margin-bottom: 0;
 }
