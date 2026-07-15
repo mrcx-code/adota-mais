@@ -85,7 +85,7 @@ const OBS = {
       pl: "PL 6.191/2025", status: "em análise na CCJ do Senado",
       titulo: "Estatuto dos Cães e Gatos",
       texto: "Cria um estatuto próprio e prevê reclusão de 6 meses a 10 anos para quem matar ou torturar cães e gatos. Já aprovado por unanimidade na CDH.",
-      url: "https://agenciabrasil.ebc.com.br/politica/noticia/2026-02/estatuto-dos-caes-e-gatos-pode-ampliar-pena-para-quem-maltrata-animais",
+      url: "https://www12.senado.leg.br/noticias/materias/2026/02/23/paim-defende-estatuto-dos-caes-e-gatos",
     },
     {
       pl: "PL 172/2026", status: "apresentado em 2026",
