@@ -204,7 +204,7 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, org_name, contact_email, contact_whatsapp, city, state)
+  insert into public.profiles (id, org_name, contact_email, contact_whatsapp, city, state, is_staff)
   values (
     new.id,
     coalesce(
@@ -216,7 +216,9 @@ begin
     coalesce(new.raw_user_meta_data ->> 'contact_email', new.email),
     new.raw_user_meta_data ->> 'contact_whatsapp',
     new.raw_user_meta_data ->> 'city',
-    new.raw_user_meta_data ->> 'state'
+    new.raw_user_meta_data ->> 'state',
+    -- E-mails da equipe Patinhas já entram como staff (veem a caixa de suporte).
+    (lower(new.email) = any (array['brasilpatinhas@gmail.com']))
   );
   return new;
 end;
