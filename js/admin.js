@@ -8,6 +8,16 @@ let MY_INTERESTS = [];
 let ADMIN_VIEW = (function () { try { return localStorage.getItem("patinhas_admin_view") || "kanban"; } catch (e) { return "kanban"; } })();
 let ADMIN_LIST_FILTER = "todos";               // todos | disponivel | em_processo | adotado
 let ADMIN_LIST_SORT = "az";                    // az | za
+let ADMIN_LIST_SEARCH = "";                    // busca por nome (normalizada)
+
+/** Normaliza texto pra busca: minúsculas e sem acento. */
+function normalizeSearch(s) {
+  return (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+function setListSearch(v) {
+  ADMIN_LIST_SEARCH = normalizeSearch(v);
+  renderListView();
+}
 let SELECTED_PET_PHOTO_FILE = null;
 let SELECTED_FAMILY_PHOTO_FILE = null;
 let SELECTED_LOGO_FILE = null;
@@ -385,12 +395,14 @@ function renderListView() {
 
   let pets = MY_PETS.slice();
   if (ADMIN_LIST_FILTER !== "todos") pets = pets.filter((p) => p.status === ADMIN_LIST_FILTER);
+  if (ADMIN_LIST_SEARCH) pets = pets.filter((p) => normalizeSearch(p.name).includes(ADMIN_LIST_SEARCH));
   pets.sort((a, b) => (a.name || "").localeCompare(b.name || "", "pt-BR", { sensitivity: "base" }));
   if (ADMIN_LIST_SORT === "za") pets.reverse();
 
+  const vazio = ADMIN_LIST_SEARCH ? "Nenhum pet com esse nome." : "Nenhum pet com esse status.";
   wrap.innerHTML = pets.length
     ? pets.map((pet) => adminListRowHtml(pet, interestCounts[pet.id] || 0)).join("")
-    : `<div class="alist-empty">Nenhum pet com esse status.</div>`;
+    : `<div class="alist-empty">${vazio}</div>`;
 }
 
 function adminListRowHtml(pet, interestCount) {

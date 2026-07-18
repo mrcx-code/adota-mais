@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/style.css?v=20260715f" />
+  <link rel="stylesheet" href="../css/style.css?v=20260715g" />
   <link rel="stylesheet" href="../css/admin-chat.css?v=20260715d" />
 </head>
 <body>
@@ -262,13 +262,19 @@
 
     <!-- Controles da visualização em lista -->
     <div id="admin-list-controls" class="admin-list-controls hidden">
-      <div class="admin-list-filters" role="group" aria-label="Filtrar por status">
-        <button type="button" class="alist-filter active" data-status="todos" onclick="setListFilter('todos')">Todos <span class="alist-filter-n" id="alist-n-todos">0</span></button>
-        <button type="button" class="alist-filter" data-status="disponivel" onclick="setListFilter('disponivel')">🐾 Disponível <span class="alist-filter-n" id="alist-n-disponivel">0</span></button>
-        <button type="button" class="alist-filter" data-status="em_processo" onclick="setListFilter('em_processo')">🤝 Em processo <span class="alist-filter-n" id="alist-n-em_processo">0</span></button>
-        <button type="button" class="alist-filter" data-status="adotado" onclick="setListFilter('adotado')">🏡 Adotado <span class="alist-filter-n" id="alist-n-adotado">0</span></button>
+      <div class="admin-list-search">
+        <svg class="admin-list-search-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="alist-search" placeholder="Buscar pet por nome..." autocomplete="off" aria-label="Buscar pet por nome" oninput="setListSearch(this.value)" />
       </div>
-      <button type="button" id="alist-sort-btn" class="alist-sort" onclick="toggleListSort()">↓ Nome A–Z</button>
+      <div class="admin-list-controls-row">
+        <div class="admin-list-filters" role="group" aria-label="Filtrar por status">
+          <button type="button" class="alist-filter active" data-status="todos" onclick="setListFilter('todos')">Todos <span class="alist-filter-n" id="alist-n-todos">0</span></button>
+          <button type="button" class="alist-filter" data-status="disponivel" onclick="setListFilter('disponivel')">🐾 Disponível <span class="alist-filter-n" id="alist-n-disponivel">0</span></button>
+          <button type="button" class="alist-filter" data-status="em_processo" onclick="setListFilter('em_processo')">🤝 Em processo <span class="alist-filter-n" id="alist-n-em_processo">0</span></button>
+          <button type="button" class="alist-filter" data-status="adotado" onclick="setListFilter('adotado')">🏡 Adotado <span class="alist-filter-n" id="alist-n-adotado">0</span></button>
+        </div>
+        <button type="button" id="alist-sort-btn" class="alist-sort" onclick="toggleListSort()">↓ Nome A–Z</button>
+      </div>
     </div>
 
     <div id="admin-list" class="admin-list hidden"></div>
@@ -560,7 +566,7 @@ Caramelo,cachorro,Médio,Jovem,macho,disponivel,sim,sim,nao,bolinha de tênis"><
   <script src="../js/supabaseClient.js"></script>
   <script src="../js/utils.js?v=20260715b"></script>
   <script src="../js/mockData.js"></script>
-  <script src="../js/admin.js?v=20260715a"></script>
+  <script src="../js/admin.js?v=20260715b"></script>
   <script src="../js/admin-chat.js?v=20260715d"></script>
 </body>
 </html>
