@@ -3115,3 +3115,135 @@ body.scroll-locked {
 .about-cta-final .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.26);
 }
+
+/* =========================================================
+   Admin — toggle de visualização (Kanban / Lista) + lista
+   ========================================================= */
+.admin-view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+.admin-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.admin-view-btn:hover { color: var(--color-text); }
+.admin-view-btn.active { background: var(--color-brand); color: #fff; }
+
+#admin-kanban-flow { margin-bottom: 20px; }
+
+.admin-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.admin-list-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.alist-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.alist-filter:hover { border-color: var(--color-brand-accent); color: var(--color-text); }
+.alist-filter.active { background: var(--color-brand); border-color: var(--color-brand); color: #fff; }
+.alist-filter-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 11px; font-weight: 700;
+}
+.alist-filter.active .alist-filter-n { background: rgba(255, 255, 255, 0.25); color: #fff; }
+.alist-sort {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.alist-sort:hover { background: var(--color-surface-muted); border-color: var(--color-brand-accent); }
+
+.admin-list { display: flex; flex-direction: column; gap: 8px; }
+.alist-empty { padding: 32px; text-align: center; color: var(--color-text-soft); }
+.alist-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.15s ease;
+}
+.alist-row:hover { box-shadow: var(--shadow-card-hover); }
+.alist-thumb {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 12px;
+  background-size: cover; background-position: center;
+  background-color: var(--color-surface-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.alist-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.alist-name { font-weight: 700; font-size: 15px; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alist-meta { font-size: 12.5px; color: var(--color-text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alist-status {
+  flex-shrink: 0;
+  width: 150px;
+  height: 34px;
+  padding: 0 30px 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 12.5px; font-weight: 700;
+  cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B8C7C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.alist-status.status-disponivel { background-color: var(--color-status-disponivel-bg); color: #2f6b31; border-color: transparent; }
+.alist-status.status-em_processo { background-color: var(--color-status-processo-bg); color: #8a5a17; border-color: transparent; }
+.alist-status.status-adotado { background-color: var(--color-status-adotado-bg); color: #8a2f33; border-color: transparent; }
+.alist-acts { display: flex; gap: 6px; flex-shrink: 0; }
+
+@media (max-width: 600px) {
+  .admin-list-controls { align-items: stretch; }
+  .alist-sort { align-self: flex-start; }
+  .alist-row { flex-wrap: wrap; }
+  .alist-main { flex-basis: calc(100% - 62px); }
+  .alist-status { order: 3; }
+  .alist-acts { order: 4; margin-left: auto; }
+}

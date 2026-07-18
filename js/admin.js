@@ -4,6 +4,10 @@ let CURRENT_ORG_ID = null;
 let CURRENT_ORG_PROFILE = null;
 let MY_PETS = [];
 let MY_INTERESTS = [];
+// Visualização do painel: "kanban" (padrão) ou "lista".
+let ADMIN_VIEW = (function () { try { return localStorage.getItem("patinhas_admin_view") || "kanban"; } catch (e) { return "kanban"; } })();
+let ADMIN_LIST_FILTER = "todos";               // todos | disponivel | em_processo | adotado
+let ADMIN_LIST_SORT = "az";                    // az | za
 let SELECTED_PET_PHOTO_FILE = null;
 let SELECTED_FAMILY_PHOTO_FILE = null;
 let SELECTED_LOGO_FILE = null;
@@ -298,17 +302,24 @@ function renderAdminBoard() {
 
   const loading = document.getElementById("dash-loading");
   const empty = document.getElementById("dash-empty");
-  const board = document.getElementById("admin-board");
   loading.classList.add("hidden");
 
   if (MY_PETS.length === 0) {
     empty.classList.remove("hidden");
-    board.classList.add("hidden");
+    ["admin-board", "admin-list", "admin-list-controls", "admin-kanban-flow"].forEach((id) => {
+      const el = document.getElementById(id); if (el) el.classList.add("hidden");
+    });
     return;
   }
   empty.classList.add("hidden");
-  board.classList.remove("hidden");
 
+  renderKanbanView();
+  renderListView();
+  applyAdminView();
+}
+
+/** Preenche o Kanban (3 colunas por status). */
+function renderKanbanView() {
   const interestCounts = countInterestsByPet();
   const groups = groupByStatus(MY_PETS);
   STATUS_ORDER.forEach((status) => {
@@ -320,8 +331,88 @@ function renderAdminBoard() {
       ? pets.map((pet) => adminPetCardHtml(pet, interestCounts[pet.id] || 0)).join("")
       : `<div class="kanban-empty">Nenhum pet aqui.</div>`;
   });
-
   setupDragAndDrop();
+}
+
+/** Mostra a visualização ativa (kanban x lista) e atualiza o toggle. */
+function applyAdminView() {
+  const isList = ADMIN_VIEW === "lista";
+  const set = (id, hidden) => { const el = document.getElementById(id); if (el) el.classList.toggle("hidden", hidden); };
+  const empty = document.getElementById("dash-empty");
+  const hasPets = empty && empty.classList.contains("hidden");
+  set("admin-board", isList || !hasPets);
+  set("admin-list", !isList || !hasPets);
+  set("admin-list-controls", !isList || !hasPets);
+  set("admin-kanban-flow", isList);
+  const kb = document.getElementById("view-kanban-btn");
+  const lb = document.getElementById("view-list-btn");
+  if (kb) kb.classList.toggle("active", !isList);
+  if (lb) lb.classList.toggle("active", isList);
+}
+
+function setAdminView(view) {
+  ADMIN_VIEW = view === "lista" ? "lista" : "kanban";
+  try { localStorage.setItem("patinhas_admin_view", ADMIN_VIEW); } catch (e) {}
+  applyAdminView();
+}
+
+function setListFilter(status) {
+  ADMIN_LIST_FILTER = status;
+  document.querySelectorAll(".alist-filter").forEach((b) => b.classList.toggle("active", b.dataset.status === status));
+  renderListView();
+}
+
+function toggleListSort() {
+  ADMIN_LIST_SORT = ADMIN_LIST_SORT === "az" ? "za" : "az";
+  renderListView();
+}
+
+/** Preenche a lista: todos os pets, com filtro de status e ordem alfabética. */
+function renderListView() {
+  const wrap = document.getElementById("admin-list");
+  if (!wrap) return;
+  const interestCounts = countInterestsByPet();
+  const groups = groupByStatus(MY_PETS);
+
+  // contadores nos filtros
+  const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  setN("alist-n-todos", MY_PETS.length);
+  STATUS_ORDER.forEach((s) => setN(`alist-n-${s}`, (groups[s] || []).length));
+
+  // botão de ordenação
+  const sortBtn = document.getElementById("alist-sort-btn");
+  if (sortBtn) sortBtn.innerHTML = ADMIN_LIST_SORT === "az" ? "↓ Nome A–Z" : "↑ Nome Z–A";
+
+  let pets = MY_PETS.slice();
+  if (ADMIN_LIST_FILTER !== "todos") pets = pets.filter((p) => p.status === ADMIN_LIST_FILTER);
+  pets.sort((a, b) => (a.name || "").localeCompare(b.name || "", "pt-BR", { sensitivity: "base" }));
+  if (ADMIN_LIST_SORT === "za") pets.reverse();
+
+  wrap.innerHTML = pets.length
+    ? pets.map((pet) => adminListRowHtml(pet, interestCounts[pet.id] || 0)).join("")
+    : `<div class="alist-empty">Nenhum pet com esse status.</div>`;
+}
+
+function adminListRowHtml(pet, interestCount) {
+  const thumb = pet.photo_url
+    ? `<span class="alist-thumb" style="background-image:url('${escapeHtml(pet.photo_url)}')"></span>`
+    : `<span class="alist-thumb alist-thumb--empty" aria-hidden="true">🐾</span>`;
+  const meta = [speciesLabel(pet.species), pet.size, ageLabelWithRange(pet.age_label)].filter(Boolean).join(" · ");
+  const options = STATUS_ORDER.map((s) => `<option value="${s}" ${s === pet.status ? "selected" : ""}>${shortStatusLabel(s)}</option>`).join("");
+  return `
+    <div class="alist-row" data-pet-id="${pet.id}">
+      ${thumb}
+      <div class="alist-main">
+        <span class="alist-name">${escapeHtml(pet.name)}</span>
+        ${meta ? `<span class="alist-meta">${escapeHtml(meta)}</span>` : ""}
+      </div>
+      <select class="alist-status status-${pet.status}" onchange="changeStatus('${pet.id}', this.value)" aria-label="Status de ${escapeHtml(pet.name)}">${options}</select>
+      <div class="alist-acts">
+        <button class="pet-card-icon-btn" data-tooltip="Interessados (${interestCount})" aria-label="Ver interessados" onclick="openPetInterestsDrawer('${pet.id}')">💬${interestCount > 0 ? `<span class="pet-card-icon-badge">${interestCount}</span>` : ""}</button>
+        <button class="pet-card-icon-btn" data-tooltip="Editar" aria-label="Editar pet" onclick="openPetModal('${pet.id}')">✏️</button>
+        <button class="pet-card-icon-btn pet-card-icon-btn--danger" data-tooltip="Excluir" aria-label="Excluir pet" onclick="confirmDeletePetIcon(this, '${pet.id}')">🗑️</button>
+      </div>
+    </div>`;
 }
 
 function adminPetCardHtml(pet, interestCount) {
