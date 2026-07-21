@@ -21,26 +21,26 @@ const OBS_LEITURA = { next: null };
 const OBS = {
   // Carrossel do hero — os grandes números, cada um com fonte e data.
   numeros: [
-    { valor: "30,2", unidade: "mi", label: "de cães e gatos em situação de <strong>abandono</strong> — 1 em cada 4", fonte: "Mars · State of Pet Homelessness (2024)", cor: "danger" },
+    { valor: "30,2", unidade: "mi", label: "de cães e gatos em situação de <strong>abandono</strong>, 1 em cada 4", fonte: "Mars · State of Pet Homelessness (2024)", cor: "danger" },
     { valor: "80", unidade: "%", label: "dos pets nos lares brasileiros chegaram por <strong>adoção</strong>", fonte: "GoldeN / Opinion Box (2025)", cor: "brand" },
     { valor: "1,3", unidade: "mi", label: "de animais ganharam “RG” no 1º ano do <strong>SinPatinhas</strong>", fonte: "MMA / Gov. Federal (abr 2026)", cor: "brand" },
     { valor: "675", unidade: "mil", label: "<strong>castrações gratuitas</strong> pelo programa ProPatinhas", fonte: "MMA / ProPatinhas (2026)", cor: "brand" },
     { valor: "4,8", unidade: "mi", label: "de cães e gatos em condição de <strong>vulnerabilidade</strong>", fonte: "Instituto Pet Brasil (2024)", cor: "amber" },
-    { valor: "44", unidade: "%", label: "dos tutores são <strong>contra comprar</strong> animais — preferem adotar", fonte: "Opinion Box · Mercado Pet (fev 2026)", cor: "brand" },
+    { valor: "44", unidade: "%", label: "dos tutores são <strong>contra comprar</strong> animais, preferem adotar", fonte: "Opinion Box · Mercado Pet (fev 2026)", cor: "brand" },
     { valor: "201", unidade: "mil", label: "animais acolhidos por cerca de <strong>400 ONGs</strong> e protetores", fonte: "Instituto Pet Brasil (2024)", cor: "amber" },
-    { valor: "160,9", unidade: "mi", label: "de pets no Brasil — a <strong>3ª maior população</strong> do mundo", fonte: "Abempet (ref. 2023)", cor: "brand" },
-    { valor: "1,35", unidade: "→1", label: "entram no abrigo para cada <strong>1 que sai</strong> — a conta não fecha", fonte: "Infodados / Medicina de Abrigos (2025)", cor: "danger" },
+    { valor: "160,9", unidade: "mi", label: "de pets no Brasil, a <strong>3ª maior população</strong> do mundo", fonte: "Abempet (ref. 2023)", cor: "brand" },
+    { valor: "1,35", unidade: "→1", label: "entram no abrigo para cada <strong>1 que sai</strong>, a conta não fecha", fonte: "Infodados / Medicina de Abrigos (2025)", cor: "danger" },
   ],
 
   // Números-chave que giram na "leitura ao vivo" do hero (um por vez).
   destaques: [
-    { valor: "30,2", unidade: "mi", label: "de cães e gatos em situação de <strong>abandono</strong> — 1 em cada 4", fonte: "Mars · State of Pet Homelessness (2024)" },
+    { valor: "30,2", unidade: "mi", label: "de cães e gatos em situação de <strong>abandono</strong>, 1 em cada 4", fonte: "Mars · State of Pet Homelessness (2024)" },
     { valor: "80", unidade: "%", label: "dos pets nos lares brasileiros chegaram por <strong>adoção</strong>", fonte: "GoldeN / Opinion Box (2025)" },
     { valor: "1,3", unidade: "mi", label: "de animais ganharam “RG” no <strong>SinPatinhas</strong> em 1 ano", fonte: "MMA · Gov. Federal (abr 2026)" },
     { valor: "4,8", unidade: "mi", label: "de cães e gatos em condição de <strong>vulnerabilidade</strong>", fonte: "Instituto Pet Brasil (2024)" },
     { valor: "675", unidade: "mil", label: "<strong>castrações gratuitas</strong> pelo programa ProPatinhas", fonte: "MMA / ProPatinhas (2026)" },
-    { valor: "44", unidade: "%", label: "dos tutores são <strong>contra comprar</strong> animais — preferem adotar", fonte: "Opinion Box · Mercado Pet (fev 2026)" },
-    { valor: "160,9", unidade: "mi", label: "de pets no Brasil — a <strong>3ª maior população</strong> do mundo", fonte: "Abempet (ref. 2023)" },
+    { valor: "44", unidade: "%", label: "dos tutores são <strong>contra comprar</strong> animais, preferem adotar", fonte: "Opinion Box · Mercado Pet (fev 2026)" },
+    { valor: "160,9", unidade: "mi", label: "de pets no Brasil, a <strong>3ª maior população</strong> do mundo", fonte: "Abempet (ref. 2023)" },
     { valor: "201", unidade: "mil", label: "animais acolhidos por cerca de <strong>400 ONGs</strong> e protetores", fonte: "Instituto Pet Brasil (2024)" },
   ],
 
@@ -55,7 +55,7 @@ const OBS = {
       icone: "🚫", valor: "44%",
       label: "dos tutores são contra a compra de animais",
       verso: "A adoção virou consenso: 7 em cada 10 tutores já consideram os pets como filhos da família.",
-      fonte: "Opinion Box — Mercado Pet (fev 2026)",
+      fonte: "Opinion Box · Mercado Pet (fev 2026)",
     },
     {
       icone: "🖤", valor: "69%",
@@ -74,9 +74,9 @@ const OBS = {
   populacao: { caes: 63.7, gatos: 32.2, fonte: "Abempet (ex-Abinpet / Instituto Pet Brasil), ref. 2024" },
 
   leis: [
-    { ano: "1998", icone: "⚖️", cor: "#C98A2C", titulo: "Maus-tratos viram crime", texto: "A Lei de Crimes Ambientais (9.605/1998) torna crime praticar abuso ou maus-tratos contra animais.", fonte: "Lei nº 9.605/1998 — Planalto" },
-    { ano: "2020", icone: "🛡️", cor: "#527353", titulo: "Lei Sansão endurece a pena", texto: "Maus-tratos a cães e gatos passam a dar reclusão de 2 a 5 anos, multa e proibição de guarda.", fonte: "Lei nº 14.064/2020 — Planalto" },
-    { ano: "2021", icone: "🚫", cor: "#6E9256", titulo: "Fim da eliminação em canis públicos", texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis — o controle passa por castração e adoção.", fonte: "Lei nº 14.228/2021 — Planalto" },
+    { ano: "1998", icone: "⚖️", cor: "#C98A2C", titulo: "Maus-tratos viram crime", texto: "A Lei de Crimes Ambientais (9.605/1998) torna crime praticar abuso ou maus-tratos contra animais.", fonte: "Lei nº 9.605/1998 · Planalto" },
+    { ano: "2020", icone: "🛡️", cor: "#527353", titulo: "Lei Sansão endurece a pena", texto: "Maus-tratos a cães e gatos passam a dar reclusão de 2 a 5 anos, multa e proibição de guarda.", fonte: "Lei nº 14.064/2020 · Planalto" },
+    { ano: "2021", icone: "🚫", cor: "#6E9256", titulo: "Fim da eliminação em canis públicos", texto: "Órgãos públicos ficam proibidos de eliminar cães e gatos saudáveis, o controle passa por castração e adoção.", fonte: "Lei nº 14.228/2021 · Planalto" },
   ],
 
   // Projetos em tramitação no Congresso em 2026 (o que está acontecendo agora).
@@ -501,8 +501,8 @@ function obsRenderAbandono(el) {
       <div class="obs-abandono-paws" aria-hidden="true">
         ${Array.from({ length: 4 }, (_, i) => `<span class="obs-abandono-paw ${i === 0 ? "ab" : ""}" style="--d:${i * 110}ms">${OBS_PAW}</span>`).join("")}
       </div>
-      <p>cães e gatos do Brasil está em situação de <strong>abandono</strong> — cerca de <strong>30,2 milhões</strong> de animais sem um lar.</p>
-      <span class="obs-fonte">📌 Mars Petcare — State of Pet Homelessness Index (2024); corrobora a estimativa de 30 mi da OMS</span>
+      <p>cães e gatos do Brasil está em situação de <strong>abandono</strong>, cerca de <strong>30,2 milhões</strong> de animais sem um lar.</p>
+      <span class="obs-fonte">📌 Mars Petcare · State of Pet Homelessness Index (2024); corrobora a estimativa de 30 mi da OMS</span>
     </div>`;
 
   const numEl = el.querySelector("[data-abandono-num]");
@@ -662,7 +662,7 @@ function obsRenderReferencias(el) {
       : "";
     const fallback = `<span class="obs-ref-logo obs-ref-logo--emoji" ${f.dominio ? 'style="display:none;"' : ""}>${f.emoji || "🔗"}</span>`;
     return `
-      <div class="obs-ref-chip" title="${obsEsc(f.nome)} — ${obsEsc(f.tipo || "")}">
+      <div class="obs-ref-chip" title="${obsEsc(f.nome)} · ${obsEsc(f.tipo || "")}">
         <span class="obs-ref-logo-wrap">${logo}${fallback}</span>
         <span class="obs-ref-txt">
           <strong>${obsEsc(f.nome)}</strong>

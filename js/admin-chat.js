@@ -26,7 +26,7 @@
       id: "foto",
       q: "Como adiciono ou troco a foto do pet?",
       kw: ["foto", "fotos", "imagem", "imagens", "trocar", "mudar", "adicionar", "upload", "enviar", "camera"],
-      a: "No formulário do pet (ao cadastrar ou editar), clique no campo de foto e selecione a imagem do dispositivo. Prefira uma foto nítida, de frente e bem iluminada — é o que mais chama atenção de quem adota.",
+      a: "No formulário do pet (ao cadastrar ou editar), clique no campo de foto e selecione a imagem do dispositivo. Prefira uma foto nítida, de frente e bem iluminada, é o que mais chama atenção de quem adota.",
     },
     {
       id: "mover-status",
@@ -38,13 +38,13 @@
       id: "interessados",
       q: "Como vejo quem demonstrou interesse em um pet?",
       kw: ["interessados", "interesse", "contato", "contatos", "quem", "demonstrou", "adotante", "adotantes", "mensagem", "central", "leads"],
-      a: "Clique no botão com o ícone <strong>💬</strong> no card do pet — ele mostra quantas pessoas se interessaram e abre a lista com nome e contato de cada uma. Você também acha tudo reunido na <strong>Central de Interessados</strong> (menu ⚙️ Conta → 💬 Interessados).",
+      a: "Clique no botão com o ícone <strong>💬</strong> no card do pet, ele mostra quantas pessoas se interessaram e abre a lista com nome e contato de cada uma. Você também acha tudo reunido na <strong>Central de Interessados</strong> (menu ⚙️ Conta → 💬 Interessados).",
     },
     {
       id: "editar-excluir",
       q: "Como edito ou removo um pet?",
       kw: ["editar", "edito", "alterar", "corrigir", "excluir", "remover", "apagar", "deletar", "tirar", "excluo"],
-      a: "Passe o mouse no card do pet e use os botões de <strong>editar</strong> (lápis) ou <strong>excluir</strong> (lixeira). Ao excluir, confirmamos antes — a ação não pode ser desfeita.",
+      a: "Passe o mouse no card do pet e use os botões de <strong>editar</strong> (lápis) ou <strong>excluir</strong> (lixeira). Ao excluir, confirmamos antes, a ação não pode ser desfeita.",
     },
     {
       id: "formulario-proprio",
